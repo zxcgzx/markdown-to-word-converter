@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown转Word格式转换器</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked@9.0.0/marked.min.js"></script>
+    <script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .input-section, .preview-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        #markdownInput {
+            width: 100%;
+            height: 400px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        #markdownInput:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        #preview {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 400px;
+            background: #fafafa;
+            overflow-y: auto;
+        }
+
+        .controls {
+            padding: 30px;
+            background: #f8f9fa;
+            text-align: center;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .example-section {
+            margin: 20px 0;
+        }
+
+        .example-btn {
+            background: #2196F3;
+            font-size: 14px;
+            padding: 8px 20px;
+        }
+
+        .example-btn:hover {
+            background: #1976D2;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+
+        /* 预览样式 */
+        #preview h1, #preview h2, #preview h3, #preview h4, #preview h5, #preview h6 {
+            color: #333;
+            margin: 20px 0 10px 0;
+        }
+
+        #preview h1 { font-size: 2em; }
+        #preview h2 { font-size: 1.7em; }
+        #preview h3 { font-size: 1.4em; }
+
+        #preview p {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        #preview ul, #preview ol {
+            margin: 10px 0;
+            padding-left: 30px;
+        }
+
+        #preview li {
+            margin: 5px 0;
+        }
+
+        #preview code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        #preview pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        #preview blockquote {
+            border-left: 4px solid #4CAF50;
+            margin: 15px 0;
+            padding: 10px 20px;
+            background: #f9f9f9;
+        }
+
+        #preview table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 15px 0;
+        }
+
+        #preview th, #preview td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        #preview th {
+            background-color: #f2f2f2;
+        }
+
+        /* 拖拽提示样式 */
+        .drag-hint {
+            position: relative;
+        }
+
+        .drag-hint::after {
+            content: "💡 提示：支持拖拽 .md 文件到输入框";
+            position: absolute;
+            bottom: -25px;
+            left: 0;
+            font-size: 12px;
+            color: #666;
+            opacity: 0.7;
+        }
+
+        /* 快捷键提示 */
+        .shortcut-info {
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+        }
+
+        .shortcut-info strong {
+            color: #4CAF50;
+        }
+
+        /* 状态指示器 */
+        .status-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 15px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+
+        .status-indicator.show {
+            opacity: 1;
+        }
+
+        .status-indicator.error {
+            background: #f44336;
+        }
+
+        .status-indicator.info {
+            background: #2196F3;
+        }
+
+        /* 改进按钮样式 */
+        .btn-secondary {
+            background: linear-gradient(45deg, #6c757d, #5a6268);
+            font-size: 14px;
+            padding: 10px 20px;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(45deg, #5a6268, #495057);
+        }
+
+        /* 文件输入区域优化 */
+        .input-section {
+            position: relative;
+        }
+
+        /* 字数统计 */
+        .word-count {
+            position: absolute;
+            bottom: 10px;
+            right: 15px;
+            font-size: 12px;
+            color: #999;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 Markdown转Word转换器</h1>
+            <p>将您的Markdown文档快速转换为Word格式</p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section drag-hint">
+                <h2 class="section-title">📝 输入Markdown内容</h2>
+                <textarea id="markdownInput" placeholder="在这里输入您的Markdown内容...
+
+例如:
+# 标题一
+## 标题二
+### 标题三
+
+**粗体文本**
+*斜体文本*
+
+- 列表项1
+- 列表项2
+- 列表项3
+
+> 这是一个引用块
+
+```javascript
+console.log('Hello World!');
+```
+
+[链接文本](https://example.com)
+
+| 表格 | 示例 |
+|------|------|
+| 单元格1 | 单元格2 |
+| 单元格3 | 单元格4 |"></textarea>
+                <div class="word-count" id="wordCount">0 字符</div>
+                
+                <div class="example-section">
+                    <button class="btn example-btn" onclick="loadExample()">📄 加载示例</button>
+                </div>
+            </div>
+
+            <div class="preview-section">
+                <h2 class="section-title">👀 实时预览</h2>
+                <div id="preview">请在左侧输入Markdown内容...</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="downloadWord()">📄 下载Word文档</button>
+            <button class="btn" onclick="copyFormattedText()">📋 复制富文本</button>
+            <button class="btn btn-secondary" onclick="clearContent()">🗑️ 清空内容</button>
+            <button class="btn btn-secondary" onclick="uploadFile()">📁 上传Markdown文件</button>
+            <button class="btn btn-secondary" onclick="saveToLocal()">💾 保存草稿</button>
+            <button class="btn btn-secondary" onclick="loadFromLocal()">📂 加载草稿</button>
+            
+            <div class="shortcut-info">
+                快捷键：<strong>Ctrl+S</strong> 保存草稿 | <strong>Ctrl+O</strong> 打开文件 | <strong>Ctrl+D</strong> 下载Word
+            </div>
+        </div>
+        
+        <!-- 状态指示器 -->
+        <div id="statusIndicator" class="status-indicator"></div>
+        
+        <!-- 隐藏的文件输入 -->
+        <input type="file" id="fileInput" accept=".md,.markdown,.txt" style="display: none;" onchange="handleFileUpload(event)">
+    </div>
+
+    <script>
+        // 配置marked选项
+        marked.setOptions({
+            breaks: true,
+            gfm: true
+        });
+
+        const markdownInput = document.getElementById('markdownInput');
+        const preview = document.getElementById('preview');
+        const wordCount = document.getElementById('wordCount');
+        const statusIndicator = document.getElementById('statusIndicator');
+
+        // 显示状态消息
+        function showStatus(message, type = 'success') {
+            statusIndicator.textContent = message;
+            statusIndicator.className = `status-indicator show ${type}`;
+            setTimeout(() => {
+                statusIndicator.classList.remove('show');
+            }, 3000);
+        }
+
+        // 更新字数统计
+        function updateWordCount() {
+            const text = markdownInput.value;
+            const charCount = text.length;
+            const wordCount_en = text.trim() ? text.trim().split(/\s+/).length : 0;
+            const lineCount = text.split('\n').length;
+            
+            wordCount.textContent = `${charCount} 字符 | ${wordCount_en} 单词 | ${lineCount} 行`;
+        }
+
+        // 实时预览功能
+        markdownInput.addEventListener('input', function() {
+            const markdownText = this.value;
+            updateWordCount();
+            
+            if (markdownText.trim() === '') {
+                preview.innerHTML = '请在左侧输入Markdown内容...';
+                return;
+            }
+            
+            try {
+                const html = marked.parse(markdownText);
+                preview.innerHTML = html;
+            } catch (error) {
+                preview.innerHTML = '解析错误: ' + error.message;
+            }
+        });
+
+        // 加载示例内容
+        function loadExample() {
+            const exampleMarkdown = `# 我的文档标题
+
+## 简介
+
+这是一个**Markdown转Word**的示例文档。
+
+### 功能特色
+
+- ✅ 支持标题格式
+- ✅ 支持**粗体**和*斜体*
+- ✅ 支持列表和编号
+- ✅ 支持代码块
+- ✅ 支持表格
+- ✅ 支持引用块
+
+### 代码示例
+
+\`\`\`javascript
+function hello() {
+    console.log("Hello, World!");
+}
+\`\`\`
+
+### 表格示例
+
+| 功能 | 支持 | 备注 |
+|------|------|------|
+| 标题 | ✅ | 1-6级标题 |
+| 列表 | ✅ | 有序和无序 |
+| 代码 | ✅ | 行内和块级 |
+| 表格 | ✅ | 基本表格 |
+
+### 引用
+
+> 这是一个引用块的示例。
+> 可以包含多行内容。
+
+### 链接
+
+访问 [GitHub](https://github.com) 了解更多信息。
+
+---
+
+*文档结束*`;
+
+            markdownInput.value = exampleMarkdown;
+            markdownInput.dispatchEvent(new Event('input'));
+            showStatus('示例内容已加载');
+        }
+
+        // 清空内容
+        function clearContent() {
+            if (markdownInput.value.trim() && !confirm('确认清空所有内容？')) {
+                return;
+            }
+            markdownInput.value = '';
+            preview.innerHTML = '请在左侧输入Markdown内容...';
+            updateWordCount();
+            showStatus('内容已清空');
+        }
+
+        // 复制富文本内容
+        function copyFormattedText() {
+            const markdownText = markdownInput.value.trim();
+            
+            if (!markdownText) {
+                alert('请先输入Markdown内容！');
+                return;
+            }
+
+            try {
+                // 解析markdown为HTML
+                const html = marked.parse(markdownText);
+                
+                // 创建一个临时div来处理HTML
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                
+                // 选择预览区域的内容
+                const range = document.createRange();
+                range.selectNodeContents(preview);
+                
+                // 清除之前的选择
+                const selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
+                
+                // 尝试复制
+                try {
+                    // 现代浏览器使用 Clipboard API
+                    if (navigator.clipboard && navigator.clipboard.write) {
+                        // 创建 ClipboardItem，同时包含HTML和纯文本
+                        const clipboardItems = new ClipboardItem({
+                            'text/html': new Blob([html], { type: 'text/html' }),
+                            'text/plain': new Blob([preview.textContent], { type: 'text/plain' })
+                        });
+                        
+                        navigator.clipboard.write([clipboardItems]).then(() => {
+                            showStatus('富文本已复制到剪贴板');
+                        }).catch(() => {
+                            // 如果Clipboard API失败，回退到传统方法
+                            fallbackCopy();
+                        });
+                    } else {
+                        // 回退到传统复制方法
+                        fallbackCopy();
+                    }
+                } catch (error) {
+                    fallbackCopy();
+                }
+                
+                function fallbackCopy() {
+                    // 传统的复制方法
+                    const successful = document.execCommand('copy');
+                    if (successful) {
+                        showStatus('内容已复制到剪贴板');
+                    } else {
+                        showStatus('复制失败，请手动选择内容', 'error');
+                    }
+                }
+                
+                // 清除选择
+                selection.removeAllRanges();
+                
+            } catch (error) {
+                console.error('复制失败:', error);
+                alert('复制失败，请检查您的Markdown格式是否正确。');
+            }
+        }
+
+        // 转换为Word文档
+        function downloadWord() {
+            const markdownText = markdownInput.value.trim();
+            
+            if (!markdownText) {
+                alert('请先输入Markdown内容！');
+                return;
+            }
+
+            try {
+                // 解析markdown为HTML
+                const html = marked.parse(markdownText);
+                
+                // 将HTML转换为纯文本并保持基本格式
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                
+                // 提取文档内容
+                const children = [];
+                
+                // 处理各种元素
+                Array.from(tempDiv.children).forEach(element => {
+                    const tagName = element.tagName.toLowerCase();
+                    const text = element.textContent.trim();
+                    
+                    if (!text) return;
+                    
+                    switch(tagName) {
+                        case 'h1':
+                            children.push(new docx.Paragraph({
+                                text: text,
+                                heading: docx.HeadingLevel.HEADING_1,
+                                spacing: { after: 200 }
+                            }));
+                            break;
+                        case 'h2':
+                            children.push(new docx.Paragraph({
+                                text: text,
+                                heading: docx.HeadingLevel.HEADING_2,
+                                spacing: { after: 200 }
+                            }));
+                            break;
+                        case 'h3':
+                            children.push(new docx.Paragraph({
+                                text: text,
+                                heading: docx.HeadingLevel.HEADING_3,
+                                spacing: { after: 200 }
+                            }));
+                            break;
+                        case 'h4':
+                            children.push(new docx.Paragraph({
+                                text: text,
+                                heading: docx.HeadingLevel.HEADING_4,
+                                spacing: { after: 200 }
+                            }));
+                            break;
+                        case 'p':
+                            // 处理段落中的格式（递归处理混合格式）
+                            const runs = [];
+                            
+                            const processNode = (node) => {
+                                if (node.nodeType === Node.TEXT_NODE) {
+                                    const textContent = node.textContent;
+                                    if (textContent) {
+                                        runs.push(new docx.TextRun(textContent));
+                                    }
+                                } else if (node.nodeType === Node.ELEMENT_NODE) {
+                                    const tag = node.tagName.toLowerCase();
+                                    
+                                    // 递归处理嵌套标签
+                                    if (node.childNodes.length > 0) {
+                                        Array.from(node.childNodes).forEach(childNode => {
+                                            if (childNode.nodeType === Node.TEXT_NODE) {
+                                                const textContent = childNode.textContent;
+                                                if (textContent) {
+                                                    const runProps = {};
+                                                    
+                                                    // 根据父标签设置格式
+                                                    switch(tag) {
+                                                        case 'strong':
+                                                        case 'b':
+                                                            runProps.bold = true;
+                                                            break;
+                                                        case 'em':
+                                                        case 'i':
+                                                            runProps.italics = true;
+                                                            break;
+                                                        case 'code':
+                                                            runProps.font = "Courier New";
+                                                            runProps.highlight = "yellow";
+                                                            break;
+                                                        case 'u':
+                                                            runProps.underline = {};
+                                                            break;
+                                                        case 's':
+                                                        case 'del':
+                                                            runProps.strike = true;
+                                                            break;
+                                                    }
+                                                    
+                                                    runs.push(new docx.TextRun({
+                                                        text: textContent,
+                                                        ...runProps
+                                                    }));
+                                                }
+                                            } else if (childNode.nodeType === Node.ELEMENT_NODE) {
+                                                // 处理嵌套格式（如粗体+斜体）
+                                                const childTag = childNode.tagName.toLowerCase();
+                                                const childText = childNode.textContent;
+                                                if (childText) {
+                                                    const runProps = {};
+                                                    
+                                                    // 继承父标签格式
+                                                    if (tag === 'strong' || tag === 'b') runProps.bold = true;
+                                                    if (tag === 'em' || tag === 'i') runProps.italics = true;
+                                                    if (tag === 'code') {
+                                                        runProps.font = "Courier New";
+                                                        runProps.highlight = "yellow";
+                                                    }
+                                                    
+                                                    // 添加子标签格式
+                                                    if (childTag === 'strong' || childTag === 'b') runProps.bold = true;
+                                                    if (childTag === 'em' || childTag === 'i') runProps.italics = true;
+                                                    if (childTag === 'code') {
+                                                        runProps.font = "Courier New";
+                                                        runProps.highlight = "yellow";
+                                                    }
+                                                    if (childTag === 'u') runProps.underline = {};
+                                                    if (childTag === 's' || childTag === 'del') runProps.strike = true;
+                                                    
+                                                    runs.push(new docx.TextRun({
+                                                        text: childText,
+                                                        ...runProps
+                                                    }));
+                                                }
+                                            }
+                                        });
+                                    } else {
+                                        // 没有子节点的元素
+                                        const content = node.textContent;
+                                        if (content) {
+                                            const runProps = {};
+                                            switch(tag) {
+                                                case 'strong':
+                                                case 'b':
+                                                    runProps.bold = true;
+                                                    break;
+                                                case 'em':
+                                                case 'i':
+                                                    runProps.italics = true;
+                                                    break;
+                                                case 'code':
+                                                    runProps.font = "Courier New";
+                                                    runProps.highlight = "yellow";
+                                                    break;
+                                                case 'u':
+                                                    runProps.underline = {};
+                                                    break;
+                                                case 's':
+                                                case 'del':
+                                                    runProps.strike = true;
+                                                    break;
+                                            }
+                                            runs.push(new docx.TextRun({
+                                                text: content,
+                                                ...runProps
+                                            }));
+                                        }
+                                    }
+                                }
+                            };
+                            
+                            // 处理所有子节点
+                            Array.from(element.childNodes).forEach(processNode);
+                            
+                            // 如果没有runs，使用纯文本
+                            if (runs.length === 0 && text) {
+                                runs.push(new docx.TextRun(text));
+                            }
+                            
+                            if (runs.length > 0) {
+                                children.push(new docx.Paragraph({
+                                    children: runs,
+                                    spacing: { after: 120 }
+                                }));
+                            }
+                            break;
+                        case 'ul':
+                            Array.from(element.querySelectorAll('li')).forEach((li, index) => {
+                                children.push(new docx.Paragraph({
+                                    text: li.textContent.trim(),
+                                    bullet: {
+                                        level: 0
+                                    },
+                                    spacing: { after: 80 }
+                                }));
+                            });
+                            break;
+                        case 'ol':
+                            Array.from(element.querySelectorAll('li')).forEach((li, index) => {
+                                children.push(new docx.Paragraph({
+                                    text: li.textContent.trim(),
+                                    numbering: {
+                                        reference: "default-numbering",
+                                        level: 0
+                                    },
+                                    spacing: { after: 80 }
+                                }));
+                            });
+                            break;
+                        case 'blockquote':
+                            children.push(new docx.Paragraph({
+                                text: text,
+                                indent: {
+                                    left: 720
+                                },
+                                spacing: { after: 120 }
+                            }));
+                            break;
+                        case 'pre':
+                            // 处理代码块
+                            const codeElement = element.querySelector('code');
+                            const codeText = codeElement ? codeElement.textContent : text;
+                            const codeLines = codeText.split('\n');
+                            
+                            // 添加代码块标题
+                            children.push(new docx.Paragraph({
+                                text: "代码块:",
+                                spacing: { before: 120, after: 80 },
+                                run: {
+                                    bold: true,
+                                    color: "666666"
+                                }
+                            }));
+                            
+                            // 为每行代码创建段落
+                            codeLines.forEach((line, index) => {
+                                children.push(new docx.Paragraph({
+                                    text: line || " ", // 空行用空格占位
+                                    spacing: { after: 0, before: 0 },
+                                    run: {
+                                        font: "Consolas",
+                                        size: 18
+                                    },
+                                    shading: {
+                                        type: docx.ShadingType.SOLID,
+                                        color: "f8f8f8"
+                                    },
+                                    border: {
+                                        left: {
+                                            color: "cccccc",
+                                            size: 1,
+                                            type: docx.BorderStyle.SINGLE
+                                        }
+                                    },
+                                    indent: {
+                                        left: 360
+                                    }
+                                }));
+                            });
+                            
+                            // 代码块后空行
+                            children.push(new docx.Paragraph({
+                                text: "",
+                                spacing: { after: 120 }
+                            }));
+                            break;
+                        case 'table':
+                            // 简单表格处理
+                            const rows = Array.from(element.querySelectorAll('tr'));
+                            if (rows.length > 0) {
+                                const tableRows = rows.map(row => {
+                                    const cells = Array.from(row.querySelectorAll('td, th'));
+                                    return new docx.TableRow({
+                                        children: cells.map(cell => new docx.TableCell({
+                                            children: [new docx.Paragraph(cell.textContent.trim())]
+                                        }))
+                                    });
+                                });
+                                
+                                children.push(new docx.Table({
+                                    rows: tableRows,
+                                    width: {
+                                        size: 100,
+                                        type: docx.WidthType.PERCENTAGE
+                                    }
+                                }));
+                            }
+                            break;
+                        default:
+                            children.push(new docx.Paragraph({
+                                text: text,
+                                spacing: { after: 120 }
+                            }));
+                    }
+                });
+
+                // 如果没有内容，创建一个默认段落
+                if (children.length === 0) {
+                    children.push(new docx.Paragraph("文档内容"));
+                }
+
+                // 创建Word文档
+                const doc = new docx.Document({
+                    sections: [{
+                        properties: {},
+                        children: children
+                    }]
+                });
+
+                // 生成并下载文件
+                showStatus('正在生成Word文档...', 'info');
+                docx.Packer.toBlob(doc).then(blob => {
+                    const currentDate = new Date().toISOString().slice(0, 10);
+                    saveAs(blob, `markdown-document-${currentDate}.docx`);
+                    showStatus('Word文档下载成功');
+                }).catch(error => {
+                    console.error('Word生成失败:', error);
+                    showStatus('Word文档生成失败', 'error');
+                });
+
+            } catch (error) {
+                console.error('转换失败:', error);
+                alert('转换失败，请检查您的Markdown格式是否正确。');
+            }
+        }
+
+        // 上传Markdown文件
+        function uploadFile() {
+            document.getElementById('fileInput').click();
+        }
+
+        // 处理文件上传
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                markdownInput.value = e.target.result;
+                markdownInput.dispatchEvent(new Event('input'));
+                showStatus(`文件 ${file.name} 上传成功`);
+            };
+            reader.readAsText(file);
+        }
+
+        // 保存草稿到本地存储
+        function saveToLocal() {
+            const content = markdownInput.value;
+            if (!content.trim()) {
+                alert('没有内容可保存！');
+                return;
+            }
+            
+            const timestamp = new Date().toLocaleString();
+            localStorage.setItem('markdown-draft', content);
+            localStorage.setItem('markdown-draft-timestamp', timestamp);
+            showStatus(`草稿已保存 (${timestamp})`);
+        }
+
+        // 从本地存储加载草稿
+        function loadFromLocal() {
+            const savedContent = localStorage.getItem('markdown-draft');
+            const timestamp = localStorage.getItem('markdown-draft-timestamp');
+            
+            if (!savedContent) {
+                alert('没有找到保存的草稿！');
+                return;
+            }
+            
+            if (markdownInput.value.trim() && !confirm('当前有内容，是否确认加载草稿？这将覆盖当前内容。')) {
+                return;
+            }
+            
+            markdownInput.value = savedContent;
+            markdownInput.dispatchEvent(new Event('input'));
+            showStatus(`草稿加载成功 (${timestamp || '未知'})`);
+        }
+
+        // 自动保存功能
+        let autoSaveTimer;
+        function autoSave() {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => {
+                const content = markdownInput.value;
+                if (content.trim()) {
+                    localStorage.setItem('markdown-auto-save', content);
+                    localStorage.setItem('markdown-auto-save-timestamp', new Date().toISOString());
+                }
+            }, 5000); // 5秒后自动保存
+        }
+
+        // 添加拖拽上传支持
+        markdownInput.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.backgroundColor = '#f0f8ff';
+        });
+
+        markdownInput.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.backgroundColor = '';
+        });
+
+        markdownInput.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.backgroundColor = '';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type === 'text/markdown' || file.name.endsWith('.md') || file.name.endsWith('.txt')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        markdownInput.value = e.target.result;
+                        markdownInput.dispatchEvent(new Event('input'));
+                        showStatus(`文件 ${file.name} 拖拽上传成功`);
+                    };
+                    reader.readAsText(file);
+                } else {
+                    alert('请上传 .md 或 .txt 格式的文件！');
+                }
+            }
+        });
+
+        // 添加输入事件监听，触发自动保存
+        markdownInput.addEventListener('input', autoSave);
+
+        // 添加快捷键支持
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+S 保存草稿
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                saveToLocal();
+            }
+            // Ctrl+O 打开文件
+            if (e.ctrlKey && e.key === 'o') {
+                e.preventDefault();
+                uploadFile();
+            }
+            // Ctrl+D 下载Word
+            if (e.ctrlKey && e.key === 'd') {
+                e.preventDefault();
+                downloadWord();
+            }
+        });
+
+        // 页面加载时检查自动保存
+        window.addEventListener('load', function() {
+            // 检查是否有自动保存的内容
+            const autoSaved = localStorage.getItem('markdown-auto-save');
+            const autoSaveTime = localStorage.getItem('markdown-auto-save-timestamp');
+            
+            if (autoSaved && autoSaveTime) {
+                const saveTime = new Date(autoSaveTime);
+                const now = new Date();
+                const timeDiff = (now - saveTime) / 1000 / 60; // 分钟差
+                
+                if (timeDiff < 60) { // 1小时内的自动保存
+                    if (confirm(`发现 ${Math.round(timeDiff)} 分钟前的自动保存内容，是否恢复？`)) {
+                        markdownInput.value = autoSaved;
+                        markdownInput.dispatchEvent(new Event('input'));
+                        return;
+                    }
+                }
+            }
+            
+            // 否则加载示例
+            loadExample();
+        });
+    </script>
+</body>
+</html>
