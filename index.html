@@ -18,7 +18,8 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 10px;
+            margin: 0;
         }
 
         .container {
@@ -28,6 +29,7 @@
             border-radius: 15px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             overflow: hidden;
+            min-height: calc(100vh - 20px);
         }
 
         .header {
@@ -35,6 +37,7 @@
             color: white;
             text-align: center;
             padding: 30px;
+            position: relative;
         }
 
         .header h1 {
@@ -45,13 +48,26 @@
         .header p {
             font-size: 1.1em;
             opacity: 0.9;
+            margin-bottom: 15px;
+        }
+
+        .author-info {
+            font-size: 0.9em;
+            opacity: 0.8;
+            font-style: italic;
+        }
+
+        .author-info .author-name {
+            font-weight: bold;
+            color: #E8F5E8;
         }
 
         .main-content {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
-            padding: 30px;
+            padding: 20px;
+            min-height: 500px;
         }
 
         .input-section, .preview-section {
@@ -76,6 +92,7 @@
             font-size: 14px;
             resize: vertical;
             transition: border-color 0.3s;
+            line-height: 1.5;
         }
 
         #markdownInput:focus {
@@ -135,13 +152,159 @@
             background: #1976D2;
         }
 
-        @media (max-width: 768px) {
+        /* 平板端优化 */
+        @media (max-width: 1024px) {
+            .container {
+                margin: 5px;
+                border-radius: 10px;
+            }
+            
             .main-content {
-                grid-template-columns: 1fr;
+                padding: 15px;
+                gap: 15px;
+            }
+        }
+
+        /* 移动端优化 */
+        @media (max-width: 768px) {
+            body {
+                padding: 5px;
+            }
+            
+            .container {
+                border-radius: 8px;
+                min-height: calc(100vh - 10px);
+            }
+            
+            .header {
+                padding: 20px 15px;
             }
             
             .header h1 {
-                font-size: 2em;
+                font-size: 1.8em;
+                margin-bottom: 8px;
+            }
+            
+            .header p {
+                font-size: 1em;
+                margin-bottom: 10px;
+            }
+            
+            .author-info {
+                font-size: 0.8em;
+            }
+            
+            .main-content {
+                grid-template-columns: 1fr;
+                padding: 15px;
+                gap: 20px;
+            }
+            
+            #markdownInput {
+                height: 300px;
+                font-size: 16px; /* 防止iOS缩放 */
+                padding: 12px;
+            }
+            
+            #preview {
+                min-height: 300px;
+                padding: 15px;
+            }
+            
+            .controls {
+                padding: 20px 15px;
+                text-align: center;
+            }
+            
+            .btn {
+                margin: 5px;
+                padding: 12px 20px;
+                font-size: 14px;
+                display: inline-block;
+                min-width: 120px;
+            }
+            
+            .btn-secondary {
+                padding: 10px 16px;
+                font-size: 13px;
+                min-width: 100px;
+            }
+            
+            .shortcut-info {
+                font-size: 0.8em;
+                margin-top: 10px;
+                line-height: 1.4;
+            }
+            
+            .word-count {
+                position: static;
+                margin-top: 5px;
+                text-align: right;
+                background: none;
+                font-size: 11px;
+            }
+            
+            .drag-hint::after {
+                font-size: 11px;
+                bottom: -20px;
+            }
+        }
+
+        /* 小屏手机优化 */
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.5em;
+            }
+            
+            .header p {
+                font-size: 0.9em;
+            }
+            
+            .author-info {
+                font-size: 0.75em;
+            }
+            
+            .main-content {
+                padding: 10px;
+            }
+            
+            #markdownInput {
+                height: 250px;
+                padding: 10px;
+                font-size: 16px;
+            }
+            
+            #preview {
+                min-height: 250px;
+                padding: 12px;
+            }
+            
+            .controls {
+                padding: 15px 10px;
+            }
+            
+            .btn {
+                width: calc(50% - 10px);
+                margin: 3px 5px;
+                padding: 10px 8px;
+                font-size: 13px;
+            }
+            
+            .btn-secondary {
+                width: calc(50% - 10px);
+                margin: 3px 5px;
+                padding: 8px 6px;
+                font-size: 12px;
+            }
+            
+            .shortcut-info {
+                font-size: 0.7em;
+                padding: 0 5px;
+            }
+            
+            .section-title {
+                font-size: 1.1em;
+                margin-bottom: 10px;
             }
         }
 
@@ -295,6 +458,9 @@
         <div class="header">
             <h1>📝 Markdown转Word转换器</h1>
             <p>将您的Markdown文档快速转换为Word格式</p>
+            <div class="author-info">
+                由 <span class="author-name">Boning</span> 开发 · TJUT
+            </div>
         </div>
 
         <div class="main-content">
