@@ -1085,18 +1085,7 @@ function hello() {
             showStatus(`草稿加载成功 (${timestamp || '未知'})`);
         }
 
-        // 自动保存功能
-        let autoSaveTimer;
-        function autoSave() {
-            clearTimeout(autoSaveTimer);
-            autoSaveTimer = setTimeout(() => {
-                const content = markdownInput.value;
-                if (content.trim()) {
-                    localStorage.setItem('markdown-auto-save', content);
-                    localStorage.setItem('markdown-auto-save-timestamp', new Date().toISOString());
-                }
-            }, 5000); // 5秒后自动保存
-        }
+        // 自动保存功能已移除，避免弹窗问题
 
         // 添加拖拽上传支持
         markdownInput.addEventListener('dragover', function(e) {
@@ -1130,8 +1119,7 @@ function hello() {
             }
         });
 
-        // 添加输入事件监听，触发自动保存
-        markdownInput.addEventListener('input', autoSave);
+        // 自动保存功能已移除
 
         // 添加快捷键支持
         document.addEventListener('keydown', function(e) {
@@ -1154,25 +1142,11 @@ function hello() {
 
         // 页面加载时检查自动保存
         window.addEventListener('load', function() {
-            // 检查是否有自动保存的内容
-            const autoSaved = localStorage.getItem('markdown-auto-save');
-            const autoSaveTime = localStorage.getItem('markdown-auto-save-timestamp');
+            // 清除可能导致弹窗的自动保存数据
+            localStorage.removeItem('markdown-auto-save');
+            localStorage.removeItem('markdown-auto-save-timestamp');
             
-            if (autoSaved && autoSaveTime) {
-                const saveTime = new Date(autoSaveTime);
-                const now = new Date();
-                const timeDiff = (now - saveTime) / 1000 / 60; // 分钟差
-                
-                if (timeDiff < 60) { // 1小时内的自动保存
-                    if (confirm(`发现 ${Math.round(timeDiff)} 分钟前的自动保存内容，是否恢复？`)) {
-                        markdownInput.value = autoSaved;
-                        markdownInput.dispatchEvent(new Event('input'));
-                        return;
-                    }
-                }
-            }
-            
-            // 否则加载示例
+            // 直接加载示例，不检查自动保存内容避免弹窗
             loadExample();
         });
     </script>
