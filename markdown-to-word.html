@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown转Word格式转换器</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked@9.0.0/marked.min.js"></script>
+    <script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .input-section, .preview-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        #markdownInput {
+            width: 100%;
+            height: 400px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        #markdownInput:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        #preview {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 400px;
+            background: #fafafa;
+            overflow-y: auto;
+        }
+
+        .controls {
+            padding: 30px;
+            background: #f8f9fa;
+            text-align: center;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .example-section {
+            margin: 20px 0;
+        }
+
+        .example-btn {
+            background: #2196F3;
+            font-size: 14px;
+            padding: 8px 20px;
+        }
+
+        .example-btn:hover {
+            background: #1976D2;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+
+        /* 预览样式 */
+        #preview h1, #preview h2, #preview h3, #preview h4, #preview h5, #preview h6 {
+            color: #333;
+            margin: 20px 0 10px 0;
+        }
+
+        #preview h1 { font-size: 2em; }
+        #preview h2 { font-size: 1.7em; }
+        #preview h3 { font-size: 1.4em; }
+
+        #preview p {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        #preview ul, #preview ol {
+            margin: 10px 0;
+            padding-left: 30px;
+        }
+
+        #preview li {
+            margin: 5px 0;
+        }
+
+        #preview code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        #preview pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        #preview blockquote {
+            border-left: 4px solid #4CAF50;
+            margin: 15px 0;
+            padding: 10px 20px;
+            background: #f9f9f9;
+        }
+
+        #preview table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 15px 0;
+        }
+
+        #preview th, #preview td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        #preview th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 Markdown转Word转换器</h1>
+            <p>将您的Markdown文档快速转换为Word格式</p>
+            <div style="margin-top: 15px; font-size: 0.9em; opacity: 0.8;">
+                作者：Boning, TJUT
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h2 class="section-title">📝 输入Markdown内容</h2>
+                <textarea id="markdownInput" placeholder="在这里输入您的Markdown内容...
+
+例如:
+# 标题一
+## 标题二
+### 标题三
+
+**粗体文本**
+*斜体文本*
+
+- 列表项1
+- 列表项2
+- 列表项3
+
+> 这是一个引用块
+
+```javascript
+console.log('Hello World!');
+```
+
+[链接文本](https://example.com)
+
+| 表格 | 示例 |
+|------|------|
+| 单元格1 | 单元格2 |
+| 单元格3 | 单元格4 |"></textarea>
+                
+                <div class="example-section">
+                    <button class="btn example-btn" onclick="loadExample()">📄 加载示例</button>
+                </div>
+            </div>
+
+            <div class="preview-section">
+                <h2 class="section-title">👀 实时预览</h2>
+                <div id="preview">请在左侧输入Markdown内容...</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="downloadWord()">📄 下载Word文档</button>
+            <button class="btn" onclick="copyFormattedText()">📋 复制富文本</button>
+            <button class="btn" onclick="clearContent()">🗑️ 清空内容</button>
+        </div>
+    </div>
+
+    <script>
+        // 配置marked选项
+        marked.setOptions({
+            breaks: true,
+            gfm: true
+        });
+
+        const markdownInput = document.getElementById('markdownInput');
+        const preview = document.getElementById('preview');
+
+        // 实时预览功能
+        markdownInput.addEventListener('input', function() {
+            const markdownText = this.value;
+            if (markdownText.trim() === '') {
+                preview.innerHTML = '请在左侧输入Markdown内容...';
+                return;
+            }
+            
+            try {
+                const html = marked.parse(markdownText);
+                preview.innerHTML = html;
+            } catch (error) {
+                preview.innerHTML = '解析错误: ' + error.message;
+            }
+        });
+
+        // 加载示例内容
+        function loadExample() {
+            const exampleMarkdown = `# 我的文档标题
+
+## 简介
+
+这是一个**Markdown转Word**的示例文档。
+
+### 功能特色
+
+- ✅ 支持标题格式
+- ✅ 支持**粗体**和*斜体*
+- ✅ 支持列表和编号
+- ✅ 支持代码块
+- ✅ 支持表格
+- ✅ 支持引用块
+
+### 代码示例
+
+\`\`\`javascript
+function hello() {
+    console.log("Hello, World!");
+}
+\`\`\`
+
+### 表格示例
+
+| 功能 | 支持 | 备注 |
+|------|------|------|
+| 标题 | ✅ | 1-6级标题 |
+| 列表 | ✅ | 有序和无序 |
+| 代码 | ✅ | 行内和块级 |
+| 表格 | ✅ | 基本表格 |
+
+### 引用
+
+> 这是一个引用块的示例。
+> 可以包含多行内容。
+
+### 链接
+
+访问 [GitHub](https://github.com) 了解更多信息。
+
+---
+
+*文档结束*`;
+
+            markdownInput.value = exampleMarkdown;
+            markdownInput.dispatchEvent(new Event('input'));
+        }
+
+        // 清空内容
+        function clearContent() {
+            markdownInput.value = '';
+            preview.innerHTML = '请在左侧输入Markdown内容...';
+        }
+
+        // 复制富文本内容
+        function copyFormattedText() {
+            const markdownText = markdownInput.value.trim();
+            
+            if (!markdownText) {
+                alert('请先输入Markdown内容！');
+                return;
+            }
+
+            try {
+                // 解析markdown为HTML
+                const html = marked.parse(markdownText);
+                
+                // 创建一个临时div来处理HTML
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                
+                // 选择预览区域的内容
+                const range = document.createRange();
+                range.selectNodeContents(preview);
+                
+                // 清除之前的选择
+                const selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
+                
+                // 尝试复制
+                try {
+                    // 现代浏览器使用 Clipboard API
+                    if (navigator.clipboard && navigator.clipboard.write) {
+                        // 创建 ClipboardItem，同时包含HTML和纯文本
+                        const clipboardItems = new ClipboardItem({
+                            'text/html': new Blob([html], { type: 'text/html' }),
+                            'text/plain': new Blob([preview.textContent], { type: 'text/plain' })
+                        });
+                        
+                        navigator.clipboard.write([clipboardItems]).then(() => {
+                            alert('✅ 富文本内容已复制到剪贴板！\n现在可以直接粘贴到Word、微信等支持富文本的应用中。');
+                        }).catch(() => {
+                            // 如果Clipboard API失败，回退到传统方法
+                            fallbackCopy();
+                        });
+                    } else {
+                        // 回退到传统复制方法
+                        fallbackCopy();
+                    }
+                } catch (error) {
+                    fallbackCopy();
+                }
+                
+                function fallbackCopy() {
+                    // 传统的复制方法
+                    const successful = document.execCommand('copy');
+                    if (successful) {
+                        alert('✅ 内容已复制到剪贴板！\n在Word等应用中粘贴时会保留格式。');
+                    } else {
+                        alert('❌ 复制失败，请手动选择预览区域的内容进行复制。');
+                    }
+                }
+                
+                // 清除选择
+                selection.removeAllRanges();
+                
+            } catch (error) {
+                console.error('复制失败:', error);
+                alert('复制失败，请检查您的Markdown格式是否正确。');
+            }
+        }
+
+        // 转换为Word文档
+        function downloadWord() {
+            const markdownText = markdownInput.value.trim();
+            
+            if (!markdownText) {
+                alert('请先输入Markdown内容！');
+                return;
+            }
+
+            try {
+                // 解析markdown为HTML
+                const html = marked.parse(markdownText);
+                
+                // 将HTML转换为纯文本并保持基本格式
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                
+                // 提取文档内容
+                const children = [];
+                
+                // 处理各种元素
+                Array.from(tempDiv.children).forEach(element => {
+                    const tagName = element.tagName.toLowerCase();
+                    const text = element.textContent.trim();
+                    
+                    if (!text) return;
+                    
+                    switch(tagName) {
+                        case 'h1':
+                            children.push(new docx.Paragraph({
+                                text: text,
+                                heading: docx.HeadingLevel.HEADING_1,
+                                spacing: { after: 200 }
+                            }));
+                            break;
+                        case 'h2':
+                            children.push(new docx.Paragraph({
+                                text: text,
+                                heading: docx.HeadingLevel.HEADING_2,
+                                spacing: { after: 200 }
+                            }));
+                            break;
+                        case 'h3':
+                            children.push(new docx.Paragraph({
+                                text: text,
+                                heading: docx.HeadingLevel.HEADING_3,
+                                spacing: { after: 200 }
+                            }));
+                            break;
+                        case 'h4':
+                            children.push(new docx.Paragraph({
+                                text: text,
+                                heading: docx.HeadingLevel.HEADING_4,
+                                spacing: { after: 200 }
+                            }));
+                            break;
+                        case 'p':
+                            // 处理段落中的格式
+                            const runs = [];
+                            const processNode = (node) => {
+                                if (node.nodeType === Node.TEXT_NODE) {
+                                    if (node.textContent.trim()) {
+                                        runs.push(new docx.TextRun(node.textContent));
+                                    }
+                                } else if (node.nodeType === Node.ELEMENT_NODE) {
+                                    const tag = node.tagName.toLowerCase();
+                                    const content = node.textContent;
+                                    
+                                    if (content.trim()) {
+                                        switch(tag) {
+                                            case 'strong':
+                                            case 'b':
+                                                runs.push(new docx.TextRun({
+                                                    text: content,
+                                                    bold: true
+                                                }));
+                                                break;
+                                            case 'em':
+                                            case 'i':
+                                                runs.push(new docx.TextRun({
+                                                    text: content,
+                                                    italics: true
+                                                }));
+                                                break;
+                                            case 'code':
+                                                runs.push(new docx.TextRun({
+                                                    text: content,
+                                                    font: "Courier New"
+                                                }));
+                                                break;
+                                            default:
+                                                runs.push(new docx.TextRun(content));
+                                        }
+                                    }
+                                }
+                            };
+                            
+                            Array.from(element.childNodes).forEach(processNode);
+                            
+                            if (runs.length === 0) {
+                                runs.push(new docx.TextRun(text));
+                            }
+                            
+                            children.push(new docx.Paragraph({
+                                children: runs,
+                                spacing: { after: 120 }
+                            }));
+                            break;
+                        case 'ul':
+                        case 'ol':
+                            Array.from(element.querySelectorAll('li')).forEach((li, index) => {
+                                children.push(new docx.Paragraph({
+                                    text: li.textContent.trim(),
+                                    bullet: {
+                                        level: 0
+                                    },
+                                    spacing: { after: 80 }
+                                }));
+                            });
+                            break;
+                        case 'blockquote':
+                            children.push(new docx.Paragraph({
+                                text: text,
+                                indent: {
+                                    left: 720
+                                },
+                                spacing: { after: 120 }
+                            }));
+                            break;
+                        case 'pre':
+                            children.push(new docx.Paragraph({
+                                text: text,
+                                spacing: { after: 120 },
+                                run: {
+                                    font: "Courier New",
+                                    size: 20
+                                }
+                            }));
+                            break;
+                        case 'table':
+                            // 简单表格处理
+                            const rows = Array.from(element.querySelectorAll('tr'));
+                            if (rows.length > 0) {
+                                const tableRows = rows.map(row => {
+                                    const cells = Array.from(row.querySelectorAll('td, th'));
+                                    return new docx.TableRow({
+                                        children: cells.map(cell => new docx.TableCell({
+                                            children: [new docx.Paragraph(cell.textContent.trim())]
+                                        }))
+                                    });
+                                });
+                                
+                                children.push(new docx.Table({
+                                    rows: tableRows,
+                                    width: {
+                                        size: 100,
+                                        type: docx.WidthType.PERCENTAGE
+                                    }
+                                }));
+                            }
+                            break;
+                        default:
+                            children.push(new docx.Paragraph({
+                                text: text,
+                                spacing: { after: 120 }
+                            }));
+                    }
+                });
+
+                // 如果没有内容，创建一个默认段落
+                if (children.length === 0) {
+                    children.push(new docx.Paragraph("文档内容"));
+                }
+
+                // 创建Word文档
+                const doc = new docx.Document({
+                    sections: [{
+                        properties: {},
+                        children: children
+                    }]
+                });
+
+                // 生成并下载文件
+                docx.Packer.toBlob(doc).then(blob => {
+                    const currentDate = new Date().toISOString().slice(0, 10);
+                    saveAs(blob, `markdown-document-${currentDate}.docx`);
+                });
+
+            } catch (error) {
+                console.error('转换失败:', error);
+                alert('转换失败，请检查您的Markdown格式是否正确。');
+            }
+        }
+
+        // 页面加载时加载示例
+        window.addEventListener('load', function() {
+            loadExample();
+        });
+    </script>
+</body>
+</html>
