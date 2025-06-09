@@ -7,6 +7,10 @@
     <script src="https://cdn.jsdelivr.net/npm/marked@9.0.0/marked.min.js"></script>
     <script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <!-- KaTeX数学公式支持 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -537,6 +541,21 @@ console.log('Hello World!');
         const wordCount = document.getElementById('wordCount');
         const statusIndicator = document.getElementById('statusIndicator');
 
+        // 渲染数学公式
+        function renderMath(element) {
+            if (window.renderMathInElement) {
+                renderMathInElement(element, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false},
+                        {left: '\\(', right: '\\)', display: false},
+                        {left: '\\[', right: '\\]', display: true}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
         // 显示状态消息
         function showStatus(message, type = 'success') {
             statusIndicator.textContent = message;
@@ -569,6 +588,8 @@ console.log('Hello World!');
             try {
                 const html = marked.parse(markdownText);
                 preview.innerHTML = html;
+                // 渲染数学公式
+                setTimeout(() => renderMath(preview), 10);
             } catch (error) {
                 preview.innerHTML = '解析错误: ' + error.message;
             }
@@ -590,6 +611,7 @@ console.log('Hello World!');
 - ✅ 支持代码块
 - ✅ 支持表格
 - ✅ 支持引用块
+- ✅ 支持数学公式 📐
 
 ### 代码示例
 
@@ -613,6 +635,21 @@ function hello() {
 > 这是一个引用块的示例。
 > 可以包含多行内容。
 
+### 数学公式示例
+
+#### 行内公式
+这是行内公式：$E = mc^2$，爱因斯坦质能方程。
+
+#### 块级公式
+这是块级公式：
+
+$$\\int_{-\\infty}^{\\infty} e^{-x^2} dx = \\sqrt{\\pi}$$
+
+#### 复杂公式
+二次方程的解：
+
+$$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
+
 ### 链接
 
 访问 [GitHub](https://github.com) 了解更多信息。
@@ -624,6 +661,8 @@ function hello() {
             markdownInput.value = exampleMarkdown;
             markdownInput.dispatchEvent(new Event('input'));
             showStatus('示例内容已加载');
+            // 确保数学公式渲染
+            setTimeout(() => renderMath(preview), 100);
         }
 
         // 清空内容
