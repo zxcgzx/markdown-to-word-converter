@@ -455,17 +455,180 @@
             padding: 2px 6px;
             border-radius: 3px;
         }
+
+        /* 密码验证界面样式 */
+        .password-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .password-modal {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .password-modal h2 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.8em;
+        }
+
+        .password-modal .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1em;
+        }
+
+        .password-modal .beta-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 0.9em;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+
+        .password-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .password-btn {
+            width: 100%;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+        }
+
+        .password-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .password-error {
+            color: #f44336;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .password-hint {
+            color: #666;
+            font-size: 12px;
+            margin-top: 15px;
+            line-height: 1.4;
+        }
+
+        /* 隐藏主内容 */
+        .main-app {
+            display: none;
+        }
+
+        .main-app.authenticated {
+            display: block;
+        }
+
+        /* 密码界面移动端适配 */
+        @media (max-width: 768px) {
+            .password-modal {
+                padding: 30px 20px;
+                margin: 20px;
+                max-width: none;
+                width: calc(100% - 40px);
+            }
+            
+            .password-modal h2 {
+                font-size: 1.5em;
+            }
+            
+            .password-input {
+                font-size: 16px; /* 防止iOS缩放 */
+            }
+        }
+
+        @media (max-width: 480px) {
+            .password-modal {
+                padding: 25px 15px;
+                margin: 15px;
+                width: calc(100% - 30px);
+            }
+            
+            .password-modal h2 {
+                font-size: 1.3em;
+            }
+            
+            .password-modal .subtitle {
+                font-size: 0.9em;
+            }
+            
+            .password-modal .beta-info {
+                font-size: 0.8em;
+                padding: 12px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>📝 Markdown转Word转换器</h1>
-            <p>将您的Markdown文档快速转换为Word格式</p>
-            <div class="author-info">
-                由 <span class="author-name">Boning</span> 开发 · TJUT
+    <!-- 密码验证界面 -->
+    <div id="passwordOverlay" class="password-overlay">
+        <div class="password-modal">
+            <h2>🔐 访问验证</h2>
+            <p class="subtitle">Markdown转Word转换器</p>
+            <div class="beta-info">
+                <strong>⚠️ 个人内测版本</strong><br>
+                此版本仅供内部测试使用，请输入访问密码
+            </div>
+            <input type="password" id="passwordInput" class="password-input" placeholder="请输入访问密码" maxlength="20">
+            <button onclick="verifyPassword()" class="password-btn">🚀 进入应用</button>
+            <div id="passwordError" class="password-error">密码错误，请重试</div>
+            <div class="password-hint">
+                💡 提示：如需获取访问密码，请联系开发者<br>
+                <strong>Boning</strong> · TJUT
             </div>
         </div>
+    </div>
+
+    <!-- 主应用界面 -->
+    <div id="mainApp" class="main-app">
+        <div class="container">
+            <div class="header">
+                <h1>📝 Markdown转Word转换器</h1>
+                <p>将您的Markdown文档快速转换为Word格式</p>
+                <div class="author-info">
+                    由 <span class="author-name">Boning</span> 开发 · TJUT · <span style="color: #E8F5E8;">内测版</span>
+                </div>
+            </div>
 
         <div class="main-content">
             <div class="input-section drag-hint">
@@ -527,9 +690,74 @@ console.log('Hello World!');
         
         <!-- 隐藏的文件输入 -->
         <input type="file" id="fileInput" accept=".md,.markdown,.txt" style="display: none;" onchange="handleFileUpload(event)">
+        </div>
     </div>
 
     <script>
+        // 密码验证功能
+        const validPasswords = ['517517', 'lingling'];
+        
+        function verifyPassword() {
+            const passwordInput = document.getElementById('passwordInput');
+            const passwordError = document.getElementById('passwordError');
+            const password = passwordInput.value.trim();
+            
+            if (validPasswords.includes(password)) {
+                // 密码正确，隐藏验证界面，显示主应用
+                document.getElementById('passwordOverlay').style.display = 'none';
+                document.getElementById('mainApp').classList.add('authenticated');
+                
+                // 保存验证状态到sessionStorage（仅在当前会话有效）
+                sessionStorage.setItem('authenticated', 'true');
+                
+                // 初始化应用
+                initializeApp();
+            } else {
+                // 密码错误，显示错误信息
+                passwordError.style.display = 'block';
+                passwordInput.value = '';
+                passwordInput.focus();
+                
+                // 3秒后隐藏错误信息
+                setTimeout(() => {
+                    passwordError.style.display = 'none';
+                }, 3000);
+            }
+        }
+        
+        // 检查是否已经验证过
+        function checkAuthentication() {
+            if (sessionStorage.getItem('authenticated') === 'true') {
+                document.getElementById('passwordOverlay').style.display = 'none';
+                document.getElementById('mainApp').classList.add('authenticated');
+                initializeApp();
+            } else {
+                // 聚焦到密码输入框
+                setTimeout(() => {
+                    document.getElementById('passwordInput').focus();
+                }, 100);
+            }
+        }
+        
+        // 支持回车键提交密码
+        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                verifyPassword();
+            }
+        });
+        
+        // 初始化应用（原来的初始化逻辑）
+        function initializeApp() {
+            // 清除可能导致弹窗的自动保存数据
+            localStorage.removeItem('markdown-auto-save');
+            localStorage.removeItem('markdown-auto-save-timestamp');
+            
+            // 初始化拖拽功能
+            initializeDragAndDrop();
+            
+            // 直接加载示例，不检查自动保存内容避免弹窗
+            loadExample();
+        }
         // 配置marked选项
         marked.setOptions({
             breaks: true,
@@ -1126,37 +1354,42 @@ $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
 
         // 自动保存功能已移除，避免弹窗问题
 
-        // 添加拖拽上传支持
-        markdownInput.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            this.style.backgroundColor = '#f0f8ff';
-        });
+        // 添加拖拽上传支持（只有在认证后才添加）
+        function initializeDragAndDrop() {
+            const markdownInput = document.getElementById('markdownInput');
+            if (!markdownInput) return;
 
-        markdownInput.addEventListener('dragleave', function(e) {
-            e.preventDefault();
-            this.style.backgroundColor = '';
-        });
+            markdownInput.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.style.backgroundColor = '#f0f8ff';
+            });
 
-        markdownInput.addEventListener('drop', function(e) {
-            e.preventDefault();
-            this.style.backgroundColor = '';
-            
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                const file = files[0];
-                if (file.type === 'text/markdown' || file.name.endsWith('.md') || file.name.endsWith('.txt')) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        markdownInput.value = e.target.result;
-                        markdownInput.dispatchEvent(new Event('input'));
-                        showStatus(`文件 ${file.name} 拖拽上传成功`);
-                    };
-                    reader.readAsText(file);
-                } else {
-                    alert('请上传 .md 或 .txt 格式的文件！');
+            markdownInput.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.style.backgroundColor = '';
+            });
+
+            markdownInput.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.style.backgroundColor = '';
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.type === 'text/markdown' || file.name.endsWith('.md') || file.name.endsWith('.txt')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            markdownInput.value = e.target.result;
+                            markdownInput.dispatchEvent(new Event('input'));
+                            showStatus(`文件 ${file.name} 拖拽上传成功`);
+                        };
+                        reader.readAsText(file);
+                    } else {
+                        alert('请上传 .md 或 .txt 格式的文件！');
+                    }
                 }
-            }
-        });
+            });
+        }
 
         // 自动保存功能已移除
 
@@ -1179,14 +1412,9 @@ $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
             }
         });
 
-        // 页面加载时检查自动保存
+        // 页面加载时检查认证状态
         window.addEventListener('load', function() {
-            // 清除可能导致弹窗的自动保存数据
-            localStorage.removeItem('markdown-auto-save');
-            localStorage.removeItem('markdown-auto-save-timestamp');
-            
-            // 直接加载示例，不检查自动保存内容避免弹窗
-            loadExample();
+            checkAuthentication();
         });
     </script>
 </body>
