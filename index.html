@@ -11,7 +11,127 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <!-- Chart.js用于数据可视化 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <style>
+        /* 温暖琥珀主题作为默认主题 */
+        :root {
+            --bg-gradient-start: #ffeaa7;
+            --bg-gradient-end: #fab1a0;
+            --container-bg: rgba(255, 255, 255, 0.95);
+            --header-gradient-start: #0984e3;
+            --header-gradient-end: #00b894;
+            --text-primary: #2d3436;
+            --text-secondary: #636e72;
+            --text-muted: #b2bec3;
+            --text-white: #ffffff;
+            --border-color: rgba(255, 234, 167, 0.6);
+            --border-focus: #0984e3;
+            --preview-bg: rgba(255, 255, 255, 0.8);
+            --controls-bg: rgba(255, 255, 255, 0.9);
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --accent-primary: #0984e3;
+            --accent-secondary: #00b894;
+            --success: #00b894;
+            --warning: #e17055;
+            --info: #74b9ff;
+            --shadow: rgba(255, 177, 160, 0.2);
+            --shadow-hover: rgba(9, 132, 227, 0.15);
+            --shadow-focus: rgba(9, 132, 227, 0.25);
+            --transition: all 0.18s ease-out;
+            --blur: blur(15px);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 234, 167, 0.3);
+        }
+
+        /* 极简白色主题 - Linear风格 */
+        [data-theme="light"] {
+            --bg-gradient-start: #ffffff;
+            --bg-gradient-end: #fafbfc;
+            --container-bg: rgba(255, 255, 255, 0.95);
+            --header-gradient-start: #0070f3;
+            --header-gradient-end: #0366d6;
+            --text-primary: #171717;
+            --text-secondary: #525252;
+            --text-muted: #a3a3a3;
+            --text-white: #ffffff;
+            --border-color: #e5e5e5;
+            --border-focus: #0070f3;
+            --preview-bg: rgba(250, 251, 252, 0.8);
+            --controls-bg: rgba(255, 255, 255, 0.9);
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --accent-primary: #0070f3;
+            --accent-secondary: #00d4aa;
+            --success: #00d4aa;
+            --warning: #ff4444;
+            --info: #0070f3;
+            --shadow: rgba(0, 0, 0, 0.04);
+            --shadow-hover: rgba(0, 112, 243, 0.08);
+            --shadow-focus: rgba(0, 112, 243, 0.12);
+            --transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            --blur: blur(20px);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+
+
+
+        /* 经典主题 - 原始配色方案 */
+        [data-theme="classic"] {
+            --bg-gradient-start: #667eea;
+            --bg-gradient-end: #764ba2;
+            --container-bg: #ffffff;
+            --header-gradient-start: #4CAF50;
+            --header-gradient-end: #45a049;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+            --text-white: #ffffff;
+            --border-color: #e0e0e0;
+            --border-focus: #4CAF50;
+            --preview-bg: #fafafa;
+            --controls-bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --accent-primary: #4CAF50;
+            --accent-secondary: #2196F3;
+            --success: #4CAF50;
+            --warning: #ff9800;
+            --info: #2196F3;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --shadow-hover: rgba(76, 175, 80, 0.3);
+            --shadow-focus: rgba(76, 175, 80, 0.4);
+            --transition: all 0.3s ease;
+            --blur: blur(8px);
+            --glass-bg: #ffffff;
+            --glass-border: #e0e0e0;
+        }
+
+        /* 经典主题特殊样式处理 */
+        [data-theme="classic"] .container {
+            background: var(--container-bg);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px var(--shadow);
+            backdrop-filter: none;
+            border: none;
+        }
+
+        [data-theme="classic"] .analytics-card {
+            background: var(--card-bg);
+            backdrop-filter: none;
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        [data-theme="classic"] .btn {
+            backdrop-filter: none;
+            border: none;
+            box-shadow: 0 4px 15px var(--shadow-hover);
+        }
+
+        [data-theme="classic"] .btn-secondary {
+            backdrop-filter: none;
+            box-shadow: 0 1px 3px var(--shadow);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -19,29 +139,71 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
             min-height: 100vh;
-            padding: 10px;
+            padding: 20px;
             margin: 0;
+            transition: var(--transition);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            animation: float 20s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(10px, -10px) rotate(1deg); }
+            66% { transform: translate(-5px, 5px) rotate(-1deg); }
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            background: var(--glass-bg);
+            border-radius: 24px;
+            box-shadow: 
+                0 8px 32px var(--shadow),
+                0 0 0 1px var(--glass-border),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+            backdrop-filter: var(--blur);
             overflow: hidden;
-            min-height: calc(100vh - 20px);
+            min-height: calc(100vh - 40px);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
         }
 
         .header {
-            background: linear-gradient(45deg, #4CAF50, #45a049);
-            color: white;
+            background: linear-gradient(135deg, var(--header-gradient-start), var(--header-gradient-end));
+            color: var(--text-white);
             text-align: center;
-            padding: 30px;
+            padding: 32px;
             position: relative;
+            transition: var(--transition);
+            backdrop-filter: var(--blur);
+            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.1) inset;
         }
 
         .header h1 {
@@ -81,65 +243,116 @@
 
         .section-title {
             font-size: 1.3em;
-            color: #333;
+            color: var(--text-primary);
             margin-bottom: 15px;
             font-weight: 600;
+            transition: var(--transition);
         }
 
         #markdownInput {
             width: 100%;
             height: 400px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--border-color);
             border-radius: 8px;
             padding: 15px;
             font-family: 'Courier New', monospace;
             font-size: 14px;
             resize: vertical;
-            transition: border-color 0.3s;
+            transition: var(--transition);
             line-height: 1.5;
+            background: var(--container-bg);
+            color: var(--text-primary);
         }
 
         #markdownInput:focus {
             outline: none;
-            border-color: #4CAF50;
+            border-color: var(--border-focus);
         }
 
         #preview {
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--border-color);
             border-radius: 8px;
             padding: 20px;
             min-height: 400px;
-            background: #fafafa;
+            background: var(--preview-bg);
             overflow-y: auto;
+            transition: var(--transition);
+            color: var(--text-primary);
         }
 
         .controls {
             padding: 30px;
-            background: #f8f9fa;
+            background: var(--controls-bg);
             text-align: center;
-            border-top: 1px solid #e0e0e0;
+            border-top: 1px solid var(--border-color);
+            transition: var(--transition);
         }
 
         .btn {
-            background: linear-gradient(45deg, #4CAF50, #45a049);
-            color: white;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: var(--text-white);
             border: none;
-            padding: 12px 30px;
-            font-size: 16px;
-            border-radius: 25px;
+            padding: 14px 28px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 12px;
             cursor: pointer;
-            margin: 0 10px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            margin: 0 8px;
+            transition: var(--transition);
+            box-shadow: 
+                0 4px 14px var(--shadow-hover),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            backdrop-filter: var(--blur);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
         }
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+            box-shadow: 
+                0 8px 24px var(--shadow-focus),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            filter: brightness(1.05) saturate(1.1);
         }
 
         .btn:active {
-            transform: translateY(0);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px var(--shadow-hover);
+        }
+
+        .btn-secondary {
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            box-shadow: 
+                0 2px 8px var(--shadow),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: var(--preview-bg);
+            border-color: var(--border-focus);
+            color: var(--accent-primary);
+            transform: translateY(-1px);
+            box-shadow: 
+                0 4px 12px var(--shadow-hover),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
 
         .example-section {
@@ -597,6 +810,934 @@
                 padding: 12px;
             }
         }
+
+        /* 管理员面板样式 */
+        .admin-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 20000;
+        }
+
+        .admin-modal {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .admin-header {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-header h2 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .admin-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #333;
+            border-bottom: 3px solid #4CAF50;
+        }
+
+        .tab-btn:hover {
+            background: #e9ecef;
+        }
+
+        .admin-tab-content {
+            padding: 25px;
+        }
+
+        .admin-tab-content h3 {
+            margin-top: 0;
+            color: #333;
+            font-size: 1.3em;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .admin-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .admin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .password-list,
+        .statistics-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .password-item,
+        .stat-item {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .password-info,
+        .stat-info {
+            flex: 1;
+        }
+
+        .password-text {
+            font-family: 'Courier New', monospace;
+            background: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .password-meta {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .password-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .delete-btn {
+            background: #f44336;
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background: #d32f2f;
+        }
+
+        .extend-btn {
+            background: #2196F3;
+            color: white;
+        }
+
+        .extend-btn:hover {
+            background: #1976D2;
+        }
+
+        .usage-btn {
+            background: #FF9800;
+            color: white;
+        }
+
+        .usage-btn:hover {
+            background: #F57C00;
+        }
+
+        .expired {
+            opacity: 0.6;
+            background: #ffebee;
+        }
+
+        .usage-exceeded {
+            opacity: 0.6;
+            background: #fff3e0;
+        }
+
+        @media (max-width: 768px) {
+            .admin-modal {
+                width: 95%;
+                max-height: 95vh;
+            }
+            
+            .admin-header {
+                padding: 15px;
+            }
+            
+            .admin-header h2 {
+                font-size: 1.2em;
+            }
+            
+            .admin-tab-content {
+                padding: 15px;
+            }
+            
+            .password-item,
+            .stat-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            
+            .password-actions {
+                justify-content: flex-end;
+            }
+        }
+
+        /* 管理员提示样式 */
+        .admin-hint {
+            margin-left: 15px;
+            font-size: 0.8em;
+            color: #FFD700;
+            animation: pulse 2s infinite;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .admin-hint:hover {
+            transform: scale(1.2);
+            color: #FFA500;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* 用户状态增强样式 */
+        .user-status-super {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 10px rgba(255, 215, 0, 0.3);
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+
+        .user-status-temp {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 10px rgba(76, 175, 80, 0.3);
+        }
+
+        @keyframes glow {
+            from { box-shadow: 0 2px 10px rgba(255, 215, 0, 0.3); }
+            to { box-shadow: 0 2px 20px rgba(255, 215, 0, 0.6); }
+        }
+
+        /* 密码验证界面增强 */
+        .password-modal .beta-info {
+            position: relative;
+        }
+
+        .password-modal .beta-info::before {
+            content: "💡";
+            position: absolute;
+            left: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(-50%); }
+            40% { transform: translateY(-60%); }
+            60% { transform: translateY(-55%); }
+        }
+
+        /* 状态提示增强 */
+        .status-indicator.info {
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            border-radius: 25px;
+            padding: 10px 20px;
+            font-weight: bold;
+        }
+
+        .status-indicator.success {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            border-radius: 25px;
+            padding: 10px 20px;
+            font-weight: bold;
+        }
+
+        .status-indicator.error {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+            border-radius: 25px;
+            padding: 10px 20px;
+            font-weight: bold;
+        }
+
+        /* 批量生成结果样式 */
+        .batch-result {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .batch-result h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .batch-result-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            background: white;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .batch-password-item {
+            padding: 5px 10px;
+            margin: 2px 0;
+            background: #f0f8ff;
+            border-radius: 4px;
+            border-left: 3px solid #4CAF50;
+        }
+
+        .copy-success {
+            color: #4CAF50;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        /* 用户状态栏样式 */
+        .user-status-bar {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-top: 1px solid #dee2e6;
+            border-bottom: 1px solid #dee2e6;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 60px;
+        }
+
+        .user-status-content {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .user-status-super {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: var(--text-white);
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            backdrop-filter: var(--blur);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 16px var(--shadow-hover);
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+
+        .user-status-temp {
+            background: linear-gradient(135deg, var(--success), #388e3c);
+            color: var(--text-white);
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            backdrop-filter: var(--blur);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 16px var(--shadow-hover);
+        }
+
+        .status-detail {
+            background: var(--card-bg);
+            padding: 8px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            backdrop-filter: var(--blur);
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .status-warning {
+            background: linear-gradient(135deg, var(--warning), #d84315);
+            color: var(--text-white);
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            backdrop-filter: var(--blur);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: pulse 2s infinite;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .user-status-bar {
+                padding: 12px 15px;
+                min-height: auto;
+            }
+            
+            .user-status-content {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .user-status-super,
+            .user-status-temp {
+                font-size: 14px;
+                padding: 6px 15px;
+            }
+            
+            .status-detail {
+                font-size: 12px;
+                padding: 6px 12px;
+                text-align: center;
+            }
+        }
+
+        /* 导出功能样式 */
+        .export-section {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .export-section h4 {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .export-desc {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .btn-warning {
+            background: linear-gradient(45deg, #ff9800, #f57c00);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: linear-gradient(45deg, #f57c00, #ef6c00);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+        }
+
+        /* 现代化状态按钮样式 */
+        .logout-btn {
+            background: linear-gradient(135deg, var(--warning), #c62828);
+            color: var(--text-white);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: var(--transition);
+            margin-left: 12px;
+            backdrop-filter: var(--blur);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logout-btn:hover {
+            background: linear-gradient(135deg, #c62828, #b71c1c);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(244, 67, 54, 0.3);
+            filter: brightness(1.1);
+        }
+
+        /* 现代化主题切换器样式 */
+        .theme-switcher {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 6px 12px;
+            border-radius: 12px;
+            backdrop-filter: var(--blur);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .theme-switcher span {
+            font-size: 14px;
+            color: var(--text-white);
+            margin-right: 4px;
+        }
+
+        .theme-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-white);
+            padding: 4px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 500;
+            transition: var(--transition);
+            margin: 0 1px;
+            backdrop-filter: var(--blur);
+        }
+
+        .theme-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .theme-btn.active {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.6);
+            font-weight: 600;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) inset;
+        }
+
+        /* 现代化数据分析仪表板样式 */
+        .analytics-dashboard {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(16px);
+            z-index: 10000;
+            display: none;
+            overflow-y: auto;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .analytics-content {
+            max-width: 1200px;
+            margin: 20px auto;
+            background: var(--container-bg);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 16px 64px var(--shadow), 0 0 0 1px var(--border-color);
+            backdrop-filter: var(--blur);
+            transition: var(--transition);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .analytics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .analytics-title {
+            font-size: 2em;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .analytics-close {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .analytics-close:hover {
+            background: linear-gradient(45deg, #d32f2f, #c62828);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .analytics-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 24px;
+            transition: var(--transition);
+            backdrop-filter: var(--blur);
+            box-shadow: 
+                0 4px 16px var(--shadow),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .analytics-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+        }
+
+        .analytics-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 
+                0 12px 40px var(--shadow-hover),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            border-color: var(--accent-primary);
+        }
+
+        .analytics-card h3 {
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .stats-number {
+            font-size: 2.5em;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 10px 0;
+        }
+
+        .stats-label {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .data-table th {
+            background: var(--controls-bg);
+            font-weight: 600;
+        }
+
+
+        .data-table tr:hover {
+            background: var(--preview-bg);
+        }
+
+        /* 快捷键提示 */
+        .shortcut-hint {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            box-shadow: 0 5px 15px var(--shadow);
+            z-index: 1000;
+        }
+
+        /* 分类管理样式 */
+        .category-management {
+            display: none;
+        }
+
+        .category-form {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .category-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .category-item {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 15px;
+            transition: var(--transition);
+        }
+
+        .category-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--shadow-hover);
+        }
+
+        .category-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .category-stats {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .category-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--controls-bg);
+            color: var(--text-primary);
+        }
+
+        /* 监控告警样式 */
+        .monitoring-management {
+            display: none;
+        }
+
+        .monitoring-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .monitoring-section {
+            margin-bottom: 25px;
+        }
+
+        .monitoring-section h4 {
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .alert-item {
+            background: var(--preview-bg);
+            border-left: 4px solid var(--warning);
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .alert-critical {
+            border-left-color: #f44336;
+        }
+
+        .alert-warning {
+            border-left-color: #ff9800;
+        }
+
+        .alert-info {
+            border-left-color: #2196f3;
+        }
+
+        .monitoring-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .monitoring-stat {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .monitoring-stat-value {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--accent-primary);
+            margin-bottom: 5px;
+        }
+
+        .monitoring-stat-label {
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .analytics-content {
+                margin: 10px;
+                padding: 20px;
+            }
+            
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .theme-switcher {
+                flex-direction: column;
+                gap: 5px;
+                padding: 10px;
+            }
+            
+            .shortcut-hint {
+                bottom: 10px;
+                right: 10px;
+                font-size: 11px;
+            }
+
+            .category-list {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-controls {
+                flex-direction: column;
+            }
+
+            .monitoring-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
     </style>
 </head>
 <body>
@@ -614,7 +1755,8 @@
             <div id="passwordError" class="password-error">密码错误，请重试</div>
             <div class="password-hint">
                 💡 提示：如需获取访问密码，请联系开发者<br>
-                <strong>Boning</strong> · TJUT
+                <strong>Boning</strong> · TJUT<br><br>
+                <small style="color: #999;">调试：<a href="#" onclick="resetPasswordData()" style="color: #666;">重置密码数据</a></small>
             </div>
         </div>
     </div>
@@ -623,10 +1765,20 @@
     <div id="mainApp" class="main-app">
         <div class="container">
             <div class="header">
-                <h1>📝 Markdown转Word转换器</h1>
+                <h1 id="mainTitle" onclick="handleTitleClick()">
+                    📝 Markdown转Word转换器
+                    <span id="adminHint" class="admin-hint" style="display: none;" title="点击三次进入管理面板">🔧</span>
+                </h1>
                 <p>将您的Markdown文档快速转换为Word格式</p>
                 <div class="author-info">
                     由 <span class="author-name">Boning</span> 开发 · TJUT · <span style="color: #E8F5E8;">内测版</span>
+                </div>
+            </div>
+            
+            <!-- 用户状态栏 -->
+            <div id="userStatusBar" class="user-status-bar" style="display: none;">
+                <div id="userStatusContent" class="user-status-content">
+                    <!-- 用户状态信息将在这里动态生成 -->
                 </div>
             </div>
 
@@ -690,47 +1842,762 @@ console.log('Hello World!');
         
         <!-- 隐藏的文件输入 -->
         <input type="file" id="fileInput" accept=".md,.markdown,.txt" style="display: none;" onchange="handleFileUpload(event)">
+        
+        <!-- 管理员面板（隐藏） -->
+        <div id="adminPanel" class="admin-panel" style="display: none;">
+            <div class="admin-modal">
+                <div class="admin-header">
+                    <h2>🔐 密码管理系统</h2>
+                    <button onclick="closeAdminPanel()" class="close-btn">✕</button>
+                </div>
+                
+                <div class="admin-tabs">
+                    <button class="tab-btn active" onclick="showAdminTab('passwords')">密码管理</button>
+                    <button class="tab-btn" onclick="showAdminTab('generator')">生成密码</button>
+                    <button class="tab-btn" onclick="showAdminTab('batch')">批量生成</button>
+                    <button class="tab-btn" onclick="showAdminTab('categories')">分组管理</button>
+                    <button class="tab-btn" onclick="showAdminTab('monitoring')">监控告警</button>
+                    <button class="tab-btn" onclick="showAdminTab('statistics')">使用统计</button>
+                    <button class="tab-btn" onclick="showAdminTab('export')">数据导出</button>
+                </div>
+                
+                <!-- 密码管理标签页 -->
+                <div id="adminTabPasswords" class="admin-tab-content">
+                    <h3>临时密码列表</h3>
+                    <div id="passwordList" class="password-list">
+                        <!-- 动态生成的密码列表 -->
+                    </div>
+                </div>
+                
+                <!-- 生成密码标签页 -->
+                <div id="adminTabGenerator" class="admin-tab-content" style="display: none;">
+                    <h3>生成新的临时密码</h3>
+                    <div class="form-group">
+                        <label>密码内容：</label>
+                        <input type="text" id="newPasswordText" placeholder="留空自动生成" />
+                    </div>
+                    <div class="form-group">
+                        <label>密码描述：</label>
+                        <input type="text" id="newPasswordDesc" placeholder="如：VIP用户、演示账户等" />
+                    </div>
+                    <div class="form-group">
+                        <label>有效期：</label>
+                        <select id="newPasswordExpiry" onchange="toggleCustomExpiry('newPasswordExpiry', 'customExpiryGroup')">
+                            <option value="1">1天</option>
+                            <option value="3">3天</option>
+                            <option value="7">7天</option>
+                            <option value="15">15天</option>
+                            <option value="30" selected>30天</option>
+                            <option value="60">2个月</option>
+                            <option value="90">3个月</option>
+                            <option value="180">6个月</option>
+                            <option value="365">1年</option>
+                            <option value="730">2年</option>
+                            <option value="custom">自定义天数</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="customExpiryGroup" style="display: none;">
+                        <label>自定义天数：</label>
+                        <input type="number" id="customExpiryDays" min="1" max="3650" placeholder="输入天数" />
+                    </div>
+                    <div class="form-group">
+                        <label>最大使用次数：</label>
+                        <input type="number" id="newPasswordMaxUsage" value="100" min="1" max="10000" />
+                    </div>
+                    <div class="form-group">
+                        <label>密码分类：</label>
+                        <select id="newPasswordCategory">
+                            <option value="default">默认分类</option>
+                            <option value="premium">高级用户</option>
+                            <option value="trial">试用账户</option>
+                            <option value="internal">内部测试</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>标签（多个用逗号分隔）：</label>
+                        <input type="text" id="newPasswordTags" placeholder="如：重要,临时,测试" />
+                    </div>
+                    <button onclick="generateNewPassword()" class="admin-btn">生成密码</button>
+                </div>
+                
+                <!-- 批量生成标签页 -->
+                <div id="adminTabBatch" class="admin-tab-content" style="display: none;">
+                    <h3>批量生成临时密码</h3>
+                    <div class="form-group">
+                        <label>生成数量：</label>
+                        <input type="number" id="batchCount" value="5" min="1" max="50" />
+                    </div>
+                    <div class="form-group">
+                        <label>密码前缀：</label>
+                        <input type="text" id="batchPrefix" placeholder="如：user、vip、demo等" maxlength="10" />
+                    </div>
+                    <div class="form-group">
+                        <label>密码长度：</label>
+                        <select id="batchLength">
+                            <option value="6">6位</option>
+                            <option value="8" selected>8位</option>
+                            <option value="10">10位</option>
+                            <option value="12">12位</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>统一描述：</label>
+                        <input type="text" id="batchDesc" placeholder="如：批量生成的用户密码" />
+                    </div>
+                    <div class="form-group">
+                        <label>密码分组：</label>
+                        <select id="batchCategory" onchange="toggleCustomCategory('batchCategory', 'customCategoryGroup')">
+                            <option value="default">默认分组</option>
+                            <option value="premium">高级用户</option>
+                            <option value="trial">试用账户</option>
+                            <option value="internal">内部测试</option>
+                            <option value="custom">自定义分组</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="customCategoryGroup" style="display: none;">
+                        <label>自定义分组名：</label>
+                        <input type="text" id="customCategoryName" placeholder="输入分组名称" maxlength="20" />
+                    </div>
+                    <div class="form-group">
+                        <label>标签（多个用逗号分隔）：</label>
+                        <input type="text" id="batchTags" placeholder="如：重要,紧急,限时" />
+                    </div>
+                    <div class="form-group">
+                        <label>有效期：</label>
+                        <select id="batchExpiry" onchange="toggleCustomExpiry('batchExpiry', 'batchCustomExpiryGroup')">
+                            <option value="1">1天</option>
+                            <option value="3">3天</option>
+                            <option value="7">7天</option>
+                            <option value="15">15天</option>
+                            <option value="30" selected>30天</option>
+                            <option value="60">2个月</option>
+                            <option value="90">3个月</option>
+                            <option value="180">6个月</option>
+                            <option value="365">1年</option>
+                            <option value="730">2年</option>
+                            <option value="custom">自定义天数</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="batchCustomExpiryGroup" style="display: none;">
+                        <label>自定义天数：</label>
+                        <input type="number" id="batchCustomExpiryDays" min="1" max="3650" placeholder="输入天数" />
+                    </div>
+                    <div class="form-group">
+                        <label>每个密码最大使用次数：</label>
+                        <input type="number" id="batchMaxUsage" value="50" min="1" max="1000" />
+                    </div>
+                    <button onclick="batchGeneratePasswords()" class="admin-btn">批量生成</button>
+                    
+                    <div id="batchResult" class="batch-result" style="display: none;">
+                        <h4>生成结果：</h4>
+                        <div id="batchResultList" class="batch-result-list"></div>
+                        <button onclick="copyBatchResult()" class="admin-btn" style="margin-top: 15px;">复制所有密码</button>
+                    </div>
+                </div>
+                
+                <!-- 分组管理标签页 -->
+                <div id="adminTabCategories" class="admin-tab-content" style="display: none;">
+                    <h3>密码分组管理</h3>
+                    
+                    <!-- 添加新分类表单 -->
+                    <div class="category-form">
+                        <h4>添加新分类</h4>
+                        <div class="form-group">
+                            <label>分类名称：</label>
+                            <input type="text" id="categoryName" placeholder="输入分类名称" maxlength="20" />
+                        </div>
+                        <div class="form-group">
+                            <label>分类描述：</label>
+                            <input type="text" id="categoryDesc" placeholder="分类说明（可选）" maxlength="50" />
+                        </div>
+                        <div class="form-group">
+                            <label>分类颜色：</label>
+                            <input type="color" id="categoryColor" value="#4CAF50" />
+                        </div>
+                        <button onclick="addCategory()" class="admin-btn">添加分类</button>
+                    </div>
+                    
+                    <!-- 分类列表 -->
+                    <div class="category-management">
+                        <h4>现有分类</h4>
+                        <div id="categoryList" class="category-list">
+                            <!-- 动态生成分类列表 -->
+                        </div>
+                    </div>
+                    
+                    <!-- 筛选控制 -->
+                    <div class="filter-controls">
+                        <label>按分组筛选：</label>
+                        <select id="categoryFilter" class="filter-select" onchange="filterPasswords()">
+                            <option value="">所有分类</option>
+                        </select>
+                        <label>按标签筛选：</label>
+                        <input type="text" id="tagFilter" class="filter-select" placeholder="输入标签" onchange="filterPasswords()" />
+                        <button onclick="refreshCategoryManagement()" class="admin-btn btn-secondary">刷新</button>
+                    </div>
+                    
+                    <!-- 分组密码列表 -->
+                    <div id="categoryPasswordsList" class="password-list">
+                        <!-- 动态生成分组密码列表 -->
+                    </div>
+                </div>
+                
+                <!-- 监控告警标签页 -->
+                <div id="adminTabMonitoring" class="admin-tab-content" style="display: none;">
+                    <h3>使用监控与告警</h3>
+                    
+                    <!-- 监控统计概览 -->
+                    <div class="monitoring-stats">
+                        <div class="monitoring-stat">
+                            <div class="monitoring-stat-value" id="expiringPasswords">0</div>
+                            <div class="monitoring-stat-label">即将过期密码</div>
+                        </div>
+                        <div class="monitoring-stat">
+                            <div class="monitoring-stat-value" id="overusedPasswords">0</div>
+                            <div class="monitoring-stat-label">使用率过高</div>
+                        </div>
+                        <div class="monitoring-stat">
+                            <div class="monitoring-stat-value" id="failedLogins">0</div>
+                            <div class="monitoring-stat-label">登录失败次数</div>
+                        </div>
+                        <div class="monitoring-stat">
+                            <div class="monitoring-stat-value" id="activeAlerts">0</div>
+                            <div class="monitoring-stat-label">活跃告警</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 监控设置 -->
+                    <div class="monitoring-card">
+                        <h4>📋 监控设置</h4>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="enableNotifications" checked onchange="updateMonitoringSettings()">
+                                启用浏览器通知
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label>过期预警天数：</label>
+                            <input type="number" id="expiryWarningDays" value="7" min="1" max="30" onchange="updateMonitoringSettings()">
+                        </div>
+                        <div class="form-group">
+                            <label>使用率预警阈值：</label>
+                            <input type="range" id="usageWarningPercent" min="50" max="95" value="80" oninput="updateThresholdDisplay()" onchange="updateMonitoringSettings()">
+                            <span id="thresholdDisplay">80%</span>
+                        </div>
+                        <div class="form-group">
+                            <label>监控检查间隔（秒）：</label>
+                            <input type="number" id="monitoringInterval" value="300" min="60" max="3600" onchange="updateMonitoringSettings()">
+                        </div>
+                    </div>
+                    
+                    <!-- 告警列表 -->
+                    <div class="monitoring-card">
+                        <h4>🚨 最近告警</h4>
+                        <div id="alertsList" class="alerts-list">
+                            <!-- 动态生成告警信息 -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 使用统计标签页 -->
+                <div id="adminTabStatistics" class="admin-tab-content" style="display: none;">
+                    <h3>密码使用统计</h3>
+                    <div id="statisticsList" class="statistics-list">
+                        <!-- 动态生成的统计信息 -->
+                    </div>
+                </div>
+                
+                <!-- 数据导出标签页 -->
+                <div id="adminTabExport" class="admin-tab-content" style="display: none;">
+                    <h3>数据导出与备份</h3>
+                    
+                    <div class="export-section">
+                        <h4>📋 密码数据导出</h4>
+                        <p class="export-desc">导出所有临时密码信息为CSV格式，便于外部分析或备份。</p>
+                        <button onclick="exportPasswordsCSV()" class="admin-btn">导出密码列表 (CSV)</button>
+                    </div>
+                    
+                    <div class="export-section">
+                        <h4>📊 使用统计报表</h4>
+                        <p class="export-desc">生成详细的使用统计报表，包含用户活动和系统使用情况。</p>
+                        <button onclick="exportUsageReport()" class="admin-btn">导出使用报表 (CSV)</button>
+                    </div>
+                    
+                    <div class="export-section">
+                        <h4>💾 系统备份</h4>
+                        <p class="export-desc">完整备份系统配置和数据，用于灾难恢复或数据迁移。</p>
+                        <button onclick="exportSystemBackup()" class="admin-btn">创建系统备份 (JSON)</button>
+                        <button onclick="importSystemBackup()" class="admin-btn btn-secondary">恢复系统备份</button>
+                        <input type="file" id="backupFile" accept=".json" style="display: none;" onchange="handleBackupImport(event)">
+                    </div>
+                    
+                    <div class="export-section">
+                        <h4>🗂️ 操作日志</h4>
+                        <p class="export-desc">导出系统操作日志，用于审计和安全分析。</p>
+                        <button onclick="exportOperationLogs()" class="admin-btn">导出操作日志 (CSV)</button>
+                        <button onclick="clearOperationLogs()" class="admin-btn btn-warning">清空日志</button>
+                    </div>
+                </div>
+            </div>
+        </div>
         </div>
     </div>
 
+    <!-- 数据分析仪表板 -->
+    <div id="analyticsDashboard" class="analytics-dashboard">
+        <div class="analytics-content">
+            <div class="analytics-header">
+                <h2 class="analytics-title">📊 数据分析仪表板</h2>
+                <button onclick="closeAnalytics()" class="analytics-close">关闭</button>
+            </div>
+            
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <h3>📈 总体统计</h3>
+                    <div class="stats-number" id="totalConversions">0</div>
+                    <div class="stats-label">总转换次数</div>
+                </div>
+                
+                <div class="analytics-card">
+                    <h3>👥 活跃用户</h3>
+                    <div class="stats-number" id="activeUsers">0</div>
+                    <div class="stats-label">活跃密码数量</div>
+                </div>
+                
+                <div class="analytics-card">
+                    <h3>⏱️ 平均使用时长</h3>
+                    <div class="stats-number" id="avgSessionTime">0</div>
+                    <div class="stats-label">分钟</div>
+                </div>
+                
+                <div class="analytics-card">
+                    <h3>🔄 今日活动</h3>
+                    <div class="stats-number" id="todayActivity">0</div>
+                    <div class="stats-label">次操作</div>
+                </div>
+            </div>
+            
+            <div class="analytics-card">
+                <h3>📊 使用趋势图</h3>
+                <div class="chart-container">
+                    <canvas id="usageChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="analytics-card">
+                <h3>🕐 时间分布图</h3>
+                <div class="chart-container">
+                    <canvas id="timeChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="analytics-card">
+                <h3>📋 最近操作记录</h3>
+                <div style="max-height: 300px; overflow-y: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>时间</th>
+                                <th>操作类型</th>
+                                <th>用户</th>
+                                <th>详情</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentOperations">
+                            <!-- 动态生成操作记录 -->
+                        </tbody>
+                    </table>
+                </div>
+                <div style="margin-top: 15px;">
+                    <button onclick="exportAnalyticsData()" class="btn">导出分析数据</button>
+                    <button onclick="refreshAnalytics()" class="btn btn-secondary">刷新数据</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 快捷键提示 -->
+    <div id="shortcutHint" class="shortcut-hint" style="display: none;">
+        <strong>⌨️ 快捷键</strong><br>
+        Ctrl+T - 切换主题<br>
+        F12 - 数据分析<br>
+        Esc - 关闭面板
+    </div>
+
+    <!-- 紧急重置按钮 -->
+    <div style="position: fixed; bottom: 10px; right: 10px; z-index: 99999;">
+        <button onclick="emergencyReset()" style="background: #e74c3c; color: white; border: none; padding: 8px 12px; border-radius: 4px; font-size: 12px; cursor: pointer;">
+            紧急重置
+        </button>
+    </div>
+
+
     <script>
-        // 密码验证功能
-        const validPasswords = ['517517', 'lingling'];
+        // ========== 全局函数定义（页面加载时立即可用） ==========
         
-        function verifyPassword() {
+        // 密码验证函数
+        window.verifyPassword = function() {
+            console.log('verifyPassword 被调用');
+            
             const passwordInput = document.getElementById('passwordInput');
             const passwordError = document.getElementById('passwordError');
-            const password = passwordInput.value.trim();
             
-            if (validPasswords.includes(password)) {
-                // 密码正确，隐藏验证界面，显示主应用
-                document.getElementById('passwordOverlay').style.display = 'none';
-                document.getElementById('mainApp').classList.add('authenticated');
+            if (!passwordInput) {
+                console.error('找不到密码输入框');
+                return;
+            }
+            
+            const password = passwordInput.value.trim();
+            console.log('输入的密码:', password);
+            
+            // 简单密码验证
+            if (password === 'lingling' || password === '517517' || password === 'demo2024') {
+                console.log('密码验证成功');
                 
-                // 保存验证状态到sessionStorage（仅在当前会话有效）
+                // 隐藏验证界面
+                const overlay = document.getElementById('passwordOverlay');
+                const mainApp = document.getElementById('mainApp');
+                
+                console.log('overlay element:', overlay);
+                console.log('mainApp element:', mainApp);
+                
+                if (overlay) {
+                    overlay.style.display = 'none';
+                    console.log('密码界面已隐藏');
+                }
+                if (mainApp) {
+                    mainApp.classList.add('authenticated');
+                    console.log('主应用界面已显示');
+                }
+                
+                // 保存状态
                 sessionStorage.setItem('authenticated', 'true');
+                console.log('登录状态已保存');
                 
-                // 初始化应用
-                initializeApp();
-            } else {
-                // 密码错误，显示错误信息
+                return;
+            }
+            
+            // 密码错误
+            console.log('密码错误');
+            if (passwordError) {
+                passwordError.textContent = '密码错误，请重试';
                 passwordError.style.display = 'block';
+            }
+            
+            if (passwordInput) {
                 passwordInput.value = '';
                 passwordInput.focus();
-                
-                // 3秒后隐藏错误信息
-                setTimeout(() => {
-                    passwordError.style.display = 'none';
-                }, 3000);
+            }
+            
+            setTimeout(() => {
+                if (passwordError) passwordError.style.display = 'none';
+            }, 3000);
+        };
+        
+        // 确保函数在全局作用域
+        console.log('verifyPassword 函数已定义:', typeof window.verifyPassword);
+
+        // 密码验证功能 - 升级版
+        const passwordConfig = {
+            // 超级管理员密码（永久有效）
+            superAdmin: {
+                password: 'lingling',
+                type: 'super_admin',
+                permanent: true,
+                permissions: ['admin', 'convert', 'manage'],
+                createdAt: new Date().toISOString()
+            },
+            // 临时密码存储
+            tempPasswords: JSON.parse(localStorage.getItem('temp_passwords') || '{}'),
+            // 密码使用统计
+            usageStats: JSON.parse(localStorage.getItem('password_usage') || '{}'),
+            // 操作日志
+            operationLogs: JSON.parse(localStorage.getItem('operation_logs') || '[]')
+        };
+
+        // 初始化一些示例临时密码
+        function initDefaultTempPasswords() {
+            const now = new Date();
+            const oneWeekLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+            const oneMonthLater = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+            
+            console.log('初始化临时密码...');
+            console.log('当前临时密码数量:', Object.keys(passwordConfig.tempPasswords).length);
+            
+            // 强制重新初始化（用于修复密码问题）
+            const shouldReinit = Object.keys(passwordConfig.tempPasswords).length === 0 || !passwordConfig.tempPasswords['517517'];
+            
+            if (shouldReinit) {
+                console.log('创建默认临时密码...');
+                passwordConfig.tempPasswords = {
+                    '517517': {
+                        password: '517517',
+                        type: 'temp_user',
+                        expiresAt: oneMonthLater.toISOString(),
+                        permissions: ['convert'],
+                        usageCount: 0,
+                        maxUsage: 50,
+                        createdAt: now.toISOString(),
+                        createdBy: 'system',
+                        description: '高级临时账户'
+                    },
+                    'demo2024': {
+                        password: 'demo2024',
+                        type: 'temp_user', 
+                        expiresAt: oneWeekLater.toISOString(),
+                        permissions: ['convert'],
+                        usageCount: 0,
+                        maxUsage: 30,
+                        createdAt: now.toISOString(),
+                        createdBy: 'system',
+                        description: '演示账户'
+                    }
+                };
+                saveTempPasswords();
+                console.log('默认密码已创建:', Object.keys(passwordConfig.tempPasswords));
+            } else {
+                console.log('已存在临时密码:', Object.keys(passwordConfig.tempPasswords));
+            }
+        }
+
+        // 保存临时密码到localStorage
+        function saveTempPasswords() {
+            localStorage.setItem('temp_passwords', JSON.stringify(passwordConfig.tempPasswords));
+        }
+
+        // 保存使用统计
+        function saveUsageStats() {
+            localStorage.setItem('password_usage', JSON.stringify(passwordConfig.usageStats));
+        }
+
+        // 保存操作日志
+        function saveOperationLogs() {
+            localStorage.setItem('operation_logs', JSON.stringify(passwordConfig.operationLogs));
+        }
+
+        // 记录操作日志
+        function logOperation(action, details = {}) {
+            const userInfo = JSON.parse(sessionStorage.getItem('user_info') || '{}');
+            const currentPassword = sessionStorage.getItem('current_password');
+            
+            const logEntry = {
+                timestamp: new Date().toISOString(),
+                action: action,
+                user: userInfo.type === 'super_admin' ? '超级管理员' : `临时用户(${currentPassword})`,
+                userType: userInfo.type,
+                details: details,
+                userAgent: navigator.userAgent.substring(0, 100),
+                ip: 'N/A' // 前端无法获取真实IP
+            };
+            
+            passwordConfig.operationLogs.push(logEntry);
+            
+            // 只保留最近1000条日志
+            if (passwordConfig.operationLogs.length > 1000) {
+                passwordConfig.operationLogs = passwordConfig.operationLogs.slice(-1000);
+            }
+            
+            saveOperationLogs();
+        }
+
+        // 重置密码数据（调试功能）
+        function resetPasswordData() {
+            if (confirm('确认重置所有密码数据？这将清除所有临时密码和使用统计。')) {
+                logOperation('system_reset', { reason: 'debug_reset' });
+                localStorage.removeItem('temp_passwords');
+                localStorage.removeItem('password_usage');
+                localStorage.removeItem('operation_logs');
+                passwordConfig.tempPasswords = {};
+                passwordConfig.usageStats = {};
+                passwordConfig.operationLogs = [];
+                console.log('密码数据已重置');
+                alert('密码数据已重置，页面将刷新');
+                location.reload();
             }
         }
         
+        // 检查密码是否有效
+        function validatePassword(password) {
+            const now = new Date();
+            
+            console.log('验证密码:', password);
+            console.log('超级管理员密码:', passwordConfig.superAdmin.password);
+            console.log('可用临时密码:', Object.keys(passwordConfig.tempPasswords));
+            
+            // 检查超级管理员密码
+            if (password === passwordConfig.superAdmin.password) {
+                console.log('超级管理员密码验证成功');
+                return {
+                    valid: true,
+                    userInfo: passwordConfig.superAdmin,
+                    message: '超级管理员登录成功'
+                };
+            }
+            
+            // 检查临时密码
+            const tempPassword = passwordConfig.tempPasswords[password];
+            console.log('临时密码配置:', tempPassword);
+            
+            if (tempPassword) {
+                // 检查密码是否过期
+                const expiresAt = new Date(tempPassword.expiresAt);
+                console.log('过期时间:', expiresAt, '当前时间:', now);
+                
+                if (now > expiresAt) {
+                    console.log('密码已过期');
+                    return {
+                        valid: false,
+                        error: 'expired',
+                        message: '密码已过期，请联系管理员获取新密码'
+                    };
+                }
+                
+                // 检查使用次数是否超限
+                console.log('使用次数:', tempPassword.usageCount, '最大次数:', tempPassword.maxUsage);
+                if (tempPassword.usageCount >= tempPassword.maxUsage) {
+                    console.log('使用次数超限');
+                    return {
+                        valid: false,
+                        error: 'usage_exceeded',
+                        message: '密码使用次数已达上限，请联系管理员'
+                    };
+                }
+                
+                console.log('临时密码验证成功');
+                return {
+                    valid: true,
+                    userInfo: tempPassword,
+                    message: `欢迎使用！剩余使用次数：${tempPassword.maxUsage - tempPassword.usageCount}`
+                };
+            }
+            
+            console.log('密码验证失败');
+            return {
+                valid: false,
+                error: 'invalid',
+                message: '密码错误，请重试'
+            };
+        }
+
+        // 记录密码使用
+        function recordPasswordUsage(password, userInfo) {
+            const now = new Date().toISOString();
+            
+            // 更新使用次数（仅对临时密码）
+            if (userInfo.type === 'temp_user') {
+                passwordConfig.tempPasswords[password].usageCount++;
+                saveTempPasswords();
+            }
+            
+            // 记录使用统计
+            if (!passwordConfig.usageStats[password]) {
+                passwordConfig.usageStats[password] = {
+                    totalUsage: 0,
+                    lastUsed: null,
+                    sessions: []
+                };
+            }
+            
+            passwordConfig.usageStats[password].totalUsage++;
+            passwordConfig.usageStats[password].lastUsed = now;
+            passwordConfig.usageStats[password].sessions.push({
+                timestamp: now,
+                userAgent: navigator.userAgent.substring(0, 100)
+            });
+            
+            // 只保留最近50次会话记录
+            if (passwordConfig.usageStats[password].sessions.length > 50) {
+                passwordConfig.usageStats[password].sessions = 
+                    passwordConfig.usageStats[password].sessions.slice(-50);
+            }
+            
+            saveUsageStats();
+        }
+
+        
+        // 会话管理
+        const SESSION_TIMEOUT = 30 * 60 * 1000; // 30分钟
+        let sessionTimer = null;
+        let lastActivity = Date.now();
+
+        // 重置会话计时器
+        function resetSessionTimer() {
+            lastActivity = Date.now();
+            sessionStorage.setItem('last_activity', lastActivity.toString());
+            
+            if (sessionTimer) {
+                clearTimeout(sessionTimer);
+            }
+            
+            sessionTimer = setTimeout(() => {
+                logoutUser('session_timeout');
+            }, SESSION_TIMEOUT);
+        }
+
+        // 用户登出
+        function logoutUser(reason = 'manual') {
+            logOperation('user_logout', { reason: reason });
+            
+            sessionStorage.removeItem('authenticated');
+            sessionStorage.removeItem('user_info');
+            sessionStorage.removeItem('current_password');
+            sessionStorage.removeItem('last_activity');
+            
+            if (sessionTimer) {
+                clearTimeout(sessionTimer);
+                sessionTimer = null;
+            }
+            
+            // 显示登录界面
+            document.getElementById('passwordOverlay').style.display = 'flex';
+            document.getElementById('mainApp').classList.remove('authenticated');
+            
+            // 关闭管理面板
+            document.getElementById('adminPanel').style.display = 'none';
+            
+            if (reason === 'session_timeout') {
+                showStatus('会话已超时，请重新登录', 'error');
+            } else {
+                showStatus('已安全退出', 'info');
+            }
+            
+            // 聚焦到密码输入框
+            setTimeout(() => {
+                document.getElementById('passwordInput').focus();
+            }, 100);
+        }
+
+        // 检查会话是否过期
+        function checkSessionTimeout() {
+            const lastActivityStr = sessionStorage.getItem('last_activity');
+            if (lastActivityStr) {
+                const lastActivityTime = parseInt(lastActivityStr);
+                const now = Date.now();
+                
+                if (now - lastActivityTime > SESSION_TIMEOUT) {
+                    logoutUser('session_timeout');
+                    return false;
+                }
+            }
+            return true;
+        }
+
         // 检查是否已经验证过
         function checkAuthentication() {
+            // 初始化默认临时密码
+            initDefaultTempPasswords();
+            
             if (sessionStorage.getItem('authenticated') === 'true') {
-                document.getElementById('passwordOverlay').style.display = 'none';
-                document.getElementById('mainApp').classList.add('authenticated');
-                initializeApp();
+                // 检查会话是否过期
+                if (checkSessionTimeout()) {
+                    document.getElementById('passwordOverlay').style.display = 'none';
+                    document.getElementById('mainApp').classList.add('authenticated');
+                    resetSessionTimer();
+                    initializeApp();
+                } else {
+                    // 会话已过期，显示登录界面
+                    return;
+                }
             } else {
                 // 聚焦到密码输入框
                 setTimeout(() => {
@@ -739,12 +2606,6 @@ console.log('Hello World!');
             }
         }
         
-        // 支持回车键提交密码
-        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                verifyPassword();
-            }
-        });
         
         // 初始化应用（原来的初始化逻辑）
         function initializeApp() {
@@ -757,6 +2618,601 @@ console.log('Hello World!');
             
             // 直接加载示例，不检查自动保存内容避免弹窗
             loadExample();
+            
+            // 根据用户权限调整界面
+            adjustUIBasedOnPermissions();
+            
+            // 初始化主题系统
+            initializeTheme();
+            
+            // 初始化快捷键
+            initializeShortcuts();
+            
+            // 显示快捷键提示
+            showShortcutHint();
+        }
+
+        // 根据用户权限调整界面
+        function adjustUIBasedOnPermissions() {
+            const userInfo = JSON.parse(sessionStorage.getItem('user_info') || '{}');
+            const currentPassword = sessionStorage.getItem('current_password');
+            
+            // 更新标题显示用户信息
+            updateUserDisplay(userInfo, currentPassword);
+            
+            // 如果是临时用户，可以考虑隐藏某些高级功能
+            if (userInfo.type === 'temp_user') {
+                // 暂时不限制功能，但保留扩展性
+                console.log('临时用户登录，所有功能可用');
+            }
+        }
+
+        // 更新用户显示信息
+        function updateUserDisplay(userInfo, currentPassword) {
+            const userStatusBar = document.getElementById('userStatusBar');
+            const userStatusContent = document.getElementById('userStatusContent');
+            const adminHint = document.getElementById('adminHint');
+            
+            if (!userStatusBar || !userStatusContent) return;
+            
+            let statusHTML = '';
+            
+            if (userInfo.type === 'super_admin') {
+                statusHTML = `
+                    <div class="user-status-super">🔑 超级管理员</div>
+                    <div class="status-detail">完整系统权限 · 永久有效</div>
+                    <div class="theme-switcher">
+                        <span>🎨</span>
+                        <button class="theme-btn ${getCurrentTheme() === 'amber' || getCurrentTheme() === '' ? 'active' : ''}" onclick="switchTheme('amber')">琥珀</button>
+                        <button class="theme-btn ${getCurrentTheme() === 'light' ? 'active' : ''}" onclick="switchTheme('light')">极简</button>
+                        <button class="theme-btn ${getCurrentTheme() === 'classic' ? 'active' : ''}" onclick="switchTheme('classic')">经典</button>
+                    </div>
+                    <button onclick="openAnalytics()" class="logout-btn" style="background: linear-gradient(45deg, #2196F3, #1976D2); margin-right: 10px;" title="数据分析">📊 分析</button>
+                    <button onclick="logoutUser('manual')" class="logout-btn" title="安全退出">🚪 退出</button>
+                `;
+                // 显示管理员提示图标
+                if (adminHint) {
+                    adminHint.style.display = 'inline';
+                }
+            } else if (userInfo.type === 'temp_user') {
+                const config = passwordConfig.tempPasswords[currentPassword];
+                if (config) {
+                    const remainingUsage = config.maxUsage - config.usageCount;
+                    const expiresAt = new Date(config.expiresAt);
+                    const remainingDays = Math.ceil((expiresAt - new Date()) / (1000 * 60 * 60 * 24));
+                    const description = config.description || '临时用户';
+                    
+                    // 判断是否需要警告
+                    const isExpiringSoon = remainingDays <= 3;
+                    const isUsageRunningLow = remainingUsage <= 5;
+                    
+                    statusHTML = `
+                        <div class="user-status-temp">👤 ${description}</div>
+                        <div class="${isUsageRunningLow ? 'status-warning' : 'status-detail'}">
+                            剩余 ${remainingUsage} 次使用
+                        </div>
+                        <div class="${isExpiringSoon ? 'status-warning' : 'status-detail'}">
+                            ${remainingDays > 0 ? `${remainingDays} 天后到期` : '已过期'}
+                        </div>
+                        <div class="theme-switcher">
+                            <span>🎨</span>
+                            <button class="theme-btn ${getCurrentTheme() === 'amber' || getCurrentTheme() === '' ? 'active' : ''}" onclick="switchTheme('amber')">琥珀</button>
+                            <button class="theme-btn ${getCurrentTheme() === 'light' ? 'active' : ''}" onclick="switchTheme('light')">极简</button>
+                            <button class="theme-btn ${getCurrentTheme() === 'classic' ? 'active' : ''}" onclick="switchTheme('classic')">经典</button>
+                        </div>
+                        <button onclick="logoutUser('manual')" class="logout-btn" title="安全退出">🚪 退出</button>
+                    `;
+                } else {
+                    statusHTML = '<div class="user-status-temp">👤 临时用户</div>';
+                }
+                // 隐藏管理员提示图标
+                if (adminHint) {
+                    adminHint.style.display = 'none';
+                }
+            }
+            
+            userStatusContent.innerHTML = statusHTML;
+            userStatusBar.style.display = 'flex';
+        }
+
+        // 检查用户权限
+        function checkPermission(action) {
+            const userInfo = JSON.parse(sessionStorage.getItem('user_info') || '{}');
+            
+            if (!userInfo.permissions) return false;
+            
+            return userInfo.permissions.includes(action) || userInfo.permissions.includes('admin');
+        }
+
+        // 权限控制的功能包装器
+        function withPermission(action, callback, errorMessage = '您没有权限执行此操作') {
+            if (checkPermission(action)) {
+                callback();
+            } else {
+                showStatus(errorMessage, 'error');
+            }
+        }
+
+        // ========== 主题系统 ==========
+        
+        // 获取当前主题
+        function getCurrentTheme() {
+            return localStorage.getItem('theme') || 'amber';
+        }
+
+        // 应用主题
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            
+            // 记录主题切换
+            logOperation('theme_change', { 
+                newTheme: theme, 
+                timestamp: new Date().toISOString() 
+            });
+        }
+
+        // 切换主题
+        function switchTheme(theme) {
+            applyTheme(theme);
+            
+            // 更新主题按钮状态
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // 设置当前主题按钮为活跃状态
+            const currentBtn = document.querySelector(`.theme-btn[onclick="switchTheme('${theme}')"]`);
+            if (currentBtn) {
+                currentBtn.classList.add('active');
+            }
+            
+            const themeNames = {
+                'amber': '温暖琥珀',
+                'light': '极简白色',
+                'classic': '经典配色'
+            };
+            showStatus(`已切换到${themeNames[theme] || theme}主题`, 'info');
+        }
+
+        // 初始化主题
+        function initializeTheme() {
+            const savedTheme = getCurrentTheme();
+            applyTheme(savedTheme);
+        }
+
+        // ========== 数据分析系统 ==========
+        
+        let usageChart = null;
+        let timeChart = null;
+
+        // 打开数据分析面板
+        function openAnalytics() {
+            document.getElementById('analyticsDashboard').style.display = 'block';
+            updateAnalyticsData();
+            createCharts();
+            
+            // 记录打开分析面板
+            logOperation('analytics_open', { timestamp: new Date().toISOString() });
+        }
+
+        // 关闭数据分析面板
+        function closeAnalytics() {
+            document.getElementById('analyticsDashboard').style.display = 'none';
+            
+            // 销毁图表实例以释放内存
+            if (usageChart) {
+                usageChart.destroy();
+                usageChart = null;
+            }
+            if (timeChart) {
+                timeChart.destroy();
+                timeChart = null;
+            }
+        }
+
+        // 更新分析数据
+        function updateAnalyticsData() {
+            // 计算总转换次数
+            const operationLogs = passwordConfig.operationLogs || [];
+            const conversions = operationLogs.filter(log => log.action === 'word_download');
+            document.getElementById('totalConversions').textContent = conversions.length;
+
+            // 计算活跃用户数
+            const activePasswords = Object.keys(passwordConfig.usageStats || {}).length;
+            document.getElementById('activeUsers').textContent = activePasswords;
+
+            // 计算平均会话时长（模拟数据）
+            const avgTime = Math.round(Math.random() * 20 + 5);
+            document.getElementById('avgSessionTime').textContent = avgTime;
+
+            // 计算今日活动
+            const today = new Date().toISOString().split('T')[0];
+            const todayOps = operationLogs.filter(log => 
+                log.timestamp && log.timestamp.startsWith(today)
+            );
+            document.getElementById('todayActivity').textContent = todayOps.length;
+
+            // 更新操作记录表格
+            updateOperationsTable();
+        }
+
+        // 更新操作记录表格
+        function updateOperationsTable() {
+            const tbody = document.getElementById('recentOperations');
+            const operationLogs = passwordConfig.operationLogs || [];
+            
+            // 获取最近20条记录
+            const recentLogs = operationLogs.slice(-20).reverse();
+            
+            tbody.innerHTML = recentLogs.map(log => {
+                const time = new Date(log.timestamp || Date.now()).toLocaleString('zh-CN');
+                const operation = getOperationDisplayName(log.action || log.operation);
+                const user = log.userType === 'super_admin' ? '超级管理员' : '临时用户';
+                const details = JSON.stringify(log.details || {});
+                
+                return `
+                    <tr>
+                        <td>${time}</td>
+                        <td>${operation}</td>
+                        <td>${user}</td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${details}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // 获取操作显示名称
+        function getOperationDisplayName(operation) {
+            const names = {
+                'user_login': '用户登录',
+                'user_logout': '用户登出',
+                'word_download': 'Word下载',
+                'copy_content': '复制内容',
+                'file_upload': '文件上传',
+                'theme_change': '主题切换',
+                'analytics_open': '打开分析',
+                'admin_panel': '管理面板',
+                'password_create': '创建密码',
+                'password_delete': '删除密码',
+                'system_reset': '系统重置'
+            };
+            return names[operation] || operation;
+        }
+
+        // 创建图表
+        function createCharts() {
+            createUsageChart();
+            createTimeChart();
+        }
+
+        // 创建使用趋势图
+        function createUsageChart() {
+            const ctx = document.getElementById('usageChart').getContext('2d');
+            
+            // 生成最近7天的模拟数据
+            const days = [];
+            const data = [];
+            const now = new Date();
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+                days.push(date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }));
+                data.push(Math.floor(Math.random() * 20) + 5);
+            }
+
+            usageChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: days,
+                    datasets: [{
+                        label: '转换次数',
+                        data: data,
+                        borderColor: getComputedStyle(document.documentElement).getPropertyValue('--header-gradient-start') || '#4CAF50',
+                        backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--header-gradient-start') + '20' || '#4CAF5020',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary') || '#333'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary') || '#666'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary') || '#666'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 创建时间分布图
+        function createTimeChart() {
+            const ctx = document.getElementById('timeChart').getContext('2d');
+            
+            const hours = Array.from({length: 24}, (_, i) => `${i}:00`);
+            const data = Array.from({length: 24}, () => Math.floor(Math.random() * 10));
+
+            timeChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: hours,
+                    datasets: [{
+                        label: '小时使用量',
+                        data: data,
+                        backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--header-gradient-start') + '60' || '#4CAF5060',
+                        borderColor: getComputedStyle(document.documentElement).getPropertyValue('--header-gradient-start') || '#4CAF50',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary') || '#333'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary') || '#666'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary') || '#666'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+
+        // 刷新分析数据
+        function refreshAnalytics() {
+            updateAnalyticsData();
+            
+            // 重新创建图表
+            if (usageChart) {
+                usageChart.destroy();
+            }
+            if (timeChart) {
+                timeChart.destroy();
+            }
+            createCharts();
+            
+            showStatus('数据已刷新', 'info');
+        }
+
+        // 创建图表
+        function createCharts() {
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js 未加载');
+                return;
+            }
+            createUsageChart();
+            createTimeChart();
+        }
+
+        // 创建使用趋势图
+        function createUsageChart() {
+            const ctx = document.getElementById('usageChart');
+            if (!ctx) return;
+
+            // 模拟7天数据
+            const data = Array.from({length: 7}, () => Math.floor(Math.random() * 20 + 5));
+            const labels = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                labels.push(date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }));
+            }
+
+            usageChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '每日使用量',
+                        data: data,
+                        borderColor: '#0984e3',
+                        backgroundColor: 'rgba(9, 132, 227, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 创建时间分布图
+        function createTimeChart() {
+            const ctx = document.getElementById('timeChart');
+            if (!ctx) return;
+
+            // 模拟24小时数据
+            const data = Array.from({length: 24}, () => Math.floor(Math.random() * 10));
+            const labels = Array.from({length: 24}, (_, i) => `${i}:00`);
+
+            timeChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '小时使用量',
+                        data: data,
+                        backgroundColor: 'rgba(116, 185, 255, 0.8)',
+                        borderColor: '#74b9ff',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 打开分析面板
+        function openAnalytics() {
+            const dashboard = document.getElementById('analyticsDashboard');
+            if (!dashboard) return;
+
+            dashboard.style.display = 'block';
+            updateAnalyticsData();
+            
+            // 创建图表
+            if (!usageChart || !timeChart) {
+                setTimeout(() => createCharts(), 100);
+            }
+
+            logOperation('analytics_open', { timestamp: new Date().toISOString() });
+        }
+
+        // 关闭分析面板
+        function closeAnalytics() {
+            const dashboard = document.getElementById('analyticsDashboard');
+            if (dashboard) {
+                dashboard.style.display = 'none';
+            }
+        }
+
+        // 导出分析数据
+        function exportAnalyticsData() {
+            const data = {
+                exportTime: new Date().toISOString(),
+                totalConversions: document.getElementById('totalConversions').textContent,
+                activeUsers: document.getElementById('activeUsers').textContent,
+                avgSessionTime: document.getElementById('avgSessionTime').textContent,
+                todayActivity: document.getElementById('todayActivity').textContent,
+                operationLogs: passwordConfig.operationLogs || [],
+                usageStats: passwordConfig.usageStats || {}
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `analytics-data-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            showStatus('分析数据已导出', 'info');
+            logOperation('analytics_export', { timestamp: new Date().toISOString() });
+        }
+
+        // ========== 快捷键系统 ==========
+        
+        // 初始化快捷键
+        function initializeShortcuts() {
+            document.addEventListener('keydown', function(e) {
+                // Ctrl+T - 切换主题
+                if (e.ctrlKey && e.key === 't') {
+                    e.preventDefault();
+                    const currentTheme = getCurrentTheme() || 'amber';
+                    const themes = ['amber', 'light', 'classic'];
+                    const currentIndex = themes.indexOf(currentTheme);
+                    const nextTheme = themes[(currentIndex + 1) % themes.length];
+                    switchTheme(nextTheme);
+                }
+                
+                // F12 - 打开数据分析（仅超级管理员）
+                if (e.key === 'F12') {
+                    e.preventDefault();
+                    const userInfo = JSON.parse(sessionStorage.getItem('user_info') || '{}');
+                    if (userInfo.type === 'super_admin') {
+                        if (document.getElementById('analyticsDashboard').style.display === 'block') {
+                            closeAnalytics();
+                        } else {
+                            openAnalytics();
+                        }
+                    }
+                }
+                
+                // Esc - 关闭面板
+                if (e.key === 'Escape') {
+                    if (document.getElementById('analyticsDashboard').style.display === 'block') {
+                        closeAnalytics();
+                    }
+                    if (document.getElementById('adminPanel').style.display === 'block') {
+                        document.getElementById('adminPanel').style.display = 'none';
+                    }
+                }
+            });
+        }
+
+        // 显示快捷键提示
+        function showShortcutHint() {
+            const hint = document.getElementById('shortcutHint');
+            if (hint) {
+                hint.style.display = 'block';
+                
+                // 5秒后自动隐藏
+                setTimeout(() => {
+                    hint.style.display = 'none';
+                }, 5000);
+            }
         }
         // 配置marked选项
         marked.setOptions({
@@ -803,10 +3259,22 @@ console.log('Hello World!');
             wordCount.textContent = `${charCount} 字符 | ${wordCount_en} 单词 | ${lineCount} 行`;
         }
 
-        // 实时预览功能
-        markdownInput.addEventListener('input', function() {
-            const markdownText = this.value;
-            updateWordCount();
+        // 防抖处理函数
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func.apply(this, args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // 优化的预览更新函数
+        function updatePreview() {
+            const markdownText = markdownInput.value;
             
             if (markdownText.trim() === '') {
                 preview.innerHTML = '请在左侧输入Markdown内容...';
@@ -816,11 +3284,28 @@ console.log('Hello World!');
             try {
                 const html = marked.parse(markdownText);
                 preview.innerHTML = html;
-                // 渲染数学公式
-                setTimeout(() => renderMath(preview), 10);
+                // 数学公式渲染使用防抖
+                debouncedRenderMath();
             } catch (error) {
                 preview.innerHTML = '解析错误: ' + error.message;
             }
+        }
+
+        // 防抖处理的数学公式渲染
+        const debouncedRenderMath = debounce(() => {
+            renderMath(preview);
+        }, 100);
+
+        // 防抖处理的预览更新
+        const debouncedUpdatePreview = debounce(updatePreview, 150);
+
+        // 实时预览功能（优化版）
+        markdownInput.addEventListener('input', function() {
+            // 字数统计实时更新
+            updateWordCount();
+            
+            // 预览更新使用防抖
+            debouncedUpdatePreview();
         });
 
         // 加载示例内容
@@ -942,6 +3427,13 @@ $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
                         
                         navigator.clipboard.write([clipboardItems]).then(() => {
                             showStatus('富文本已复制到剪贴板');
+                            
+                            // 记录复制操作
+                            logOperation('copy_content', {
+                                method: 'clipboard_api',
+                                contentLength: markdownText.length,
+                                timestamp: new Date().toISOString()
+                            });
                         }).catch(() => {
                             // 如果Clipboard API失败，回退到传统方法
                             fallbackCopy();
@@ -959,6 +3451,13 @@ $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
                     const successful = document.execCommand('copy');
                     if (successful) {
                         showStatus('内容已复制到剪贴板');
+                        
+                        // 记录复制操作
+                        logOperation('copy_content', {
+                            method: 'exec_command',
+                            contentLength: markdownText.length,
+                            timestamp: new Date().toISOString()
+                        });
                     } else {
                         showStatus('复制失败，请手动选择内容', 'error');
                     }
@@ -1289,6 +3788,13 @@ $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
                     const currentDate = new Date().toISOString().slice(0, 10);
                     saveAs(blob, `markdown-document-${currentDate}.docx`);
                     showStatus('Word文档下载成功');
+                    
+                    // 记录Word下载操作
+                    logOperation('word_download', {
+                        filename: `markdown-document-${currentDate}.docx`,
+                        contentLength: markdownInput.value.length,
+                        timestamp: new Date().toISOString()
+                    });
                 }).catch(error => {
                     console.error('Word生成失败:', error);
                     showStatus('Word文档生成失败', 'error');
@@ -1315,6 +3821,15 @@ $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
                 markdownInput.value = e.target.result;
                 markdownInput.dispatchEvent(new Event('input'));
                 showStatus(`文件 ${file.name} 上传成功`);
+                
+                // 记录文件上传操作
+                logOperation('file_upload', {
+                    filename: file.name,
+                    fileSize: file.size,
+                    fileType: file.type,
+                    contentLength: e.target.result.length,
+                    timestamp: new Date().toISOString()
+                });
             };
             reader.readAsText(file);
         }
@@ -1382,6 +3897,16 @@ $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
                             markdownInput.value = e.target.result;
                             markdownInput.dispatchEvent(new Event('input'));
                             showStatus(`文件 ${file.name} 拖拽上传成功`);
+                            
+                            // 记录拖拽上传操作
+                            logOperation('file_upload', {
+                                filename: file.name,
+                                fileSize: file.size,
+                                fileType: file.type,
+                                method: 'drag_drop',
+                                contentLength: e.target.result.length,
+                                timestamp: new Date().toISOString()
+                            });
                         };
                         reader.readAsText(file);
                     } else {
@@ -1392,6 +3917,732 @@ $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
         }
 
         // 自动保存功能已移除
+
+        // 管理员面板功能
+        let titleClickCount = 0;
+        let titleClickTimer = null;
+
+        function handleTitleClick() {
+            titleClickCount++;
+            
+            if (titleClickTimer) {
+                clearTimeout(titleClickTimer);
+            }
+            
+            titleClickTimer = setTimeout(() => {
+                if (titleClickCount >= 3) {
+                    openAdminPanel();
+                }
+                titleClickCount = 0;
+            }, 1000);
+        }
+
+        function openAdminPanel() {
+            const userInfo = JSON.parse(sessionStorage.getItem('user_info') || '{}');
+            
+            if (userInfo.type !== 'super_admin') {
+                showStatus('仅超级管理员可以访问管理面板', 'error');
+                return;
+            }
+            
+            document.getElementById('adminPanel').style.display = 'flex';
+            refreshPasswordList();
+            refreshStatistics();
+        }
+
+        function closeAdminPanel() {
+            document.getElementById('adminPanel').style.display = 'none';
+        }
+
+        function showAdminTab(tabName) {
+            // 隐藏所有标签页
+            document.querySelectorAll('.admin-tab-content').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            
+            // 移除所有按钮的active状态
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // 显示选中的标签页
+            document.getElementById('adminTab' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).style.display = 'block';
+            
+            // 激活对应按钮
+            event.target.classList.add('active');
+            
+            // 刷新内容
+            if (tabName === 'passwords') {
+                refreshPasswordList();
+            } else if (tabName === 'statistics') {
+                refreshStatistics();
+            } else if (tabName === 'categories') {
+                refreshCategoryManagement();
+            } else if (tabName === 'monitoring') {
+                refreshMonitoringData();
+            }
+        }
+
+        function refreshPasswordList() {
+            const passwordList = document.getElementById('passwordList');
+            const now = new Date();
+            
+            let html = '';
+            
+            Object.entries(passwordConfig.tempPasswords).forEach(([password, config]) => {
+                const expiresAt = new Date(config.expiresAt);
+                const isExpired = now > expiresAt;
+                const usageExceeded = config.usageCount >= config.maxUsage;
+                
+                let statusClass = '';
+                if (isExpired) statusClass = 'expired';
+                else if (usageExceeded) statusClass = 'usage-exceeded';
+                
+                const remainingDays = Math.ceil((expiresAt - now) / (1000 * 60 * 60 * 24));
+                const remainingUsage = config.maxUsage - config.usageCount;
+                
+                html += `
+                    <div class="password-item ${statusClass}">
+                        <div class="password-info">
+                            <div class="password-text">${password}</div>
+                            <div class="password-meta">
+                                到期: ${expiresAt.toLocaleDateString()} (${isExpired ? '已过期' : remainingDays + '天'}) | 
+                                使用: ${config.usageCount}/${config.maxUsage} (剩余${remainingUsage}次) |
+                                创建: ${new Date(config.createdAt).toLocaleDateString()}
+                            </div>
+                        </div>
+                        <div class="password-actions">
+                            <button class="action-btn extend-btn" onclick="extendPassword('${password}')">延期</button>
+                            <button class="action-btn usage-btn" onclick="addUsageCount('${password}')">+次数</button>
+                            <button class="action-btn delete-btn" onclick="deletePassword('${password}')">删除</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            if (html === '') {
+                html = '<p style="text-align: center; color: #666; padding: 20px;">暂无临时密码</p>';
+            }
+            
+            passwordList.innerHTML = html;
+        }
+
+        function refreshStatistics() {
+            const statisticsList = document.getElementById('statisticsList');
+            
+            let html = '';
+            
+            // 超级管理员统计
+            const superAdminStats = passwordConfig.usageStats[passwordConfig.superAdmin.password];
+            if (superAdminStats) {
+                html += `
+                    <div class="stat-item">
+                        <div class="stat-info">
+                            <strong>超级管理员 (${passwordConfig.superAdmin.password})</strong>
+                            <div class="password-meta">
+                                总使用次数: ${superAdminStats.totalUsage} | 
+                                最后使用: ${superAdminStats.lastUsed ? new Date(superAdminStats.lastUsed).toLocaleString() : '从未使用'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 临时密码统计
+            Object.entries(passwordConfig.usageStats).forEach(([password, stats]) => {
+                if (password === passwordConfig.superAdmin.password) return;
+                
+                const config = passwordConfig.tempPasswords[password];
+                if (!config) return;
+                
+                html += `
+                    <div class="stat-item">
+                        <div class="stat-info">
+                            <strong>临时密码: ${password}</strong>
+                            <div class="password-meta">
+                                总使用次数: ${stats.totalUsage} | 
+                                最后使用: ${stats.lastUsed ? new Date(stats.lastUsed).toLocaleString() : '从未使用'} |
+                                剩余次数: ${config.maxUsage - config.usageCount}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            if (html === '') {
+                html = '<p style="text-align: center; color: #666; padding: 20px;">暂无使用统计</p>';
+            }
+            
+            statisticsList.innerHTML = html;
+        }
+
+        function generateRandomPassword(length = 8) {
+            const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        // 生成随机密码
+        function generateRandomPassword(length = 8) {
+            const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        // 获取有效期天数
+        function getExpiryDays(selectId, customInputId) {
+            const selectElement = document.getElementById(selectId);
+            const customInputElement = document.getElementById(customInputId);
+            
+            if (!selectElement) return 30; // 默认30天
+            
+            const value = selectElement.value;
+            if (value === 'custom') {
+                if (!customInputElement) return null;
+                const customDays = parseInt(customInputElement.value);
+                if (isNaN(customDays) || customDays < 1 || customDays > 3650) {
+                    alert('自定义天数必须在1-3650之间！');
+                    return null;
+                }
+                return customDays;
+            }
+            return parseInt(value);
+        }
+
+        // 切换自定义有效期显示
+        function toggleCustomExpiry(selectId, groupId) {
+            const selectElement = document.getElementById(selectId);
+            const groupElement = document.getElementById(groupId);
+            
+            if (!selectElement || !groupElement) return;
+            
+            if (selectElement.value === 'custom') {
+                groupElement.style.display = 'block';
+            } else {
+                groupElement.style.display = 'none';
+            }
+        }
+
+        // 切换自定义分组显示
+        function toggleCustomCategory(selectId, groupId) {
+            const selectElement = document.getElementById(selectId);
+            const groupElement = document.getElementById(groupId);
+            
+            if (!selectElement || !groupElement) return;
+            
+            if (selectElement.value === 'custom') {
+                groupElement.style.display = 'block';
+            } else {
+                groupElement.style.display = 'none';
+            }
+        }
+
+        function generateNewPassword() {
+            const passwordText = document.getElementById('newPasswordText').value.trim() || generateRandomPassword();
+            const description = document.getElementById('newPasswordDesc').value.trim() || '临时用户';
+            const expiryDays = getExpiryDays('newPasswordExpiry', 'customExpiryDays');
+            const maxUsage = parseInt(document.getElementById('newPasswordMaxUsage').value);
+            const category = document.getElementById('newPasswordCategory').value || 'default';
+            const tags = document.getElementById('newPasswordTags').value.trim();
+            
+            if (expiryDays === null) return;
+            
+            // 检查密码是否已存在
+            if (passwordConfig.tempPasswords[passwordText] || passwordText === passwordConfig.superAdmin.password) {
+                alert('该密码已存在，请使用其他密码！');
+                return;
+            }
+            
+            const now = new Date();
+            const expiresAt = new Date(now.getTime() + expiryDays * 24 * 60 * 60 * 1000);
+            
+            const newPasswordConfig = {
+                password: passwordText,
+                type: 'temp_user',
+                expiresAt: expiresAt.toISOString(),
+                permissions: ['convert'],
+                usageCount: 0,
+                maxUsage: maxUsage,
+                createdAt: now.toISOString(),
+                createdBy: 'admin',
+                description: description,
+                category: category,
+                tags: tags
+            };
+            
+            passwordConfig.tempPasswords[passwordText] = newPasswordConfig;
+            
+            logOperation('create_password', {
+                password: passwordText,
+                description: description,
+                expiryDays: expiryDays,
+                maxUsage: maxUsage
+            });
+            
+            saveTempPasswords();
+            refreshPasswordList();
+            
+            // 清空表单
+            document.getElementById('newPasswordText').value = '';
+            document.getElementById('newPasswordDesc').value = '';
+            document.getElementById('newPasswordMaxUsage').value = '100';
+            document.getElementById('newPasswordCategory').value = 'default';
+            document.getElementById('newPasswordTags').value = '';
+            document.getElementById('newPasswordExpiry').value = '30';
+            
+            // 隐藏自定义有效期字段
+            const customExpiryGroup = document.getElementById('customExpiryGroup');
+            if (customExpiryGroup) customExpiryGroup.style.display = 'none';
+            
+            showStatus(`新密码 "${passwordText}" 生成成功！有效期${expiryDays}天，可使用${maxUsage}次`, 'success');
+        }
+
+        function deletePassword(password) {
+            if (confirm(`确认删除密码 "${password}"？此操作不可撤销。`)) {
+                const config = passwordConfig.tempPasswords[password];
+                
+                logOperation('delete_password', {
+                    password: password,
+                    deletedConfig: config
+                });
+                
+                delete passwordConfig.tempPasswords[password];
+                delete passwordConfig.usageStats[password];
+                saveTempPasswords();
+                saveUsageStats();
+                refreshPasswordList();
+                refreshStatistics();
+                showStatus(`密码 "${password}" 已删除`, 'info');
+            }
+        }
+
+        function extendPassword(password) {
+            const config = passwordConfig.tempPasswords[password];
+            if (!config) return;
+            
+            const days = prompt('延长多少天？', '30');
+            if (!days || isNaN(days) || days <= 0) return;
+            
+            const currentExpiry = new Date(config.expiresAt);
+            const newExpiry = new Date(currentExpiry.getTime() + parseInt(days) * 24 * 60 * 60 * 1000);
+            
+            config.expiresAt = newExpiry.toISOString();
+            saveTempPasswords();
+            refreshPasswordList();
+            
+            showStatus(`密码 "${password}" 已延期${days}天`, 'info');
+        }
+
+        function addUsageCount(password) {
+            const config = passwordConfig.tempPasswords[password];
+            if (!config) return;
+            
+            const additionalCount = prompt('增加多少次使用次数？', '50');
+            if (!additionalCount || isNaN(additionalCount) || additionalCount <= 0) return;
+            
+            const oldMaxUsage = config.maxUsage;
+            config.maxUsage += parseInt(additionalCount);
+            
+            saveTempPasswords();
+            refreshPasswordList();
+            
+            showStatus(`密码 "${password}" 使用次数已从${oldMaxUsage}次增加到${config.maxUsage}次`, 'info');
+        }
+
+        // 批量生成密码功能
+        function batchGeneratePasswords() {
+            const count = parseInt(document.getElementById('batchCount').value);
+            const prefix = document.getElementById('batchPrefix').value.trim();
+            const length = parseInt(document.getElementById('batchLength').value);
+            const description = document.getElementById('batchDesc').value.trim() || '批量生成用户';
+            const expiryDays = getExpiryDays('batchExpiry', 'batchCustomExpiryDays');
+            const maxUsage = parseInt(document.getElementById('batchMaxUsage').value);
+            
+            // 获取分类和标签信息
+            const categorySelect = document.getElementById('batchCategory');
+            const customCategoryInput = document.getElementById('customCategoryName');
+            const tagsInput = document.getElementById('batchTags');
+            
+            let category = categorySelect ? categorySelect.value : 'default';
+            if (category === 'custom' && customCategoryInput) {
+                const customCategory = customCategoryInput.value.trim();
+                if (customCategory) {
+                    // 创建新的自定义分类
+                    category = 'cat_' + Date.now();
+                    categoryConfig.categories.push({
+                        id: category,
+                        name: customCategory,
+                        description: '批量生成时创建',
+                        color: '#4CAF50'
+                    });
+                    saveCategories();
+                } else {
+                    category = 'default';
+                }
+            }
+            
+            const tags = tagsInput ? tagsInput.value.trim() : '';
+            
+            if (expiryDays === null) return;
+            
+            if (count < 1 || count > 50) {
+                alert('生成数量必须在1-50之间！');
+                return;
+            }
+            
+            const now = new Date();
+            const expiresAt = new Date(now.getTime() + expiryDays * 24 * 60 * 60 * 1000);
+            const generatedPasswords = [];
+            const conflicts = [];
+            
+            for (let i = 0; i < count; i++) {
+                let passwordText;
+                let attempts = 0;
+                
+                // 生成密码，避免重复
+                do {
+                    const randomSuffix = generateRandomPassword(length - (prefix ? prefix.length : 0));
+                    passwordText = prefix ? `${prefix}${randomSuffix}` : randomSuffix;
+                    attempts++;
+                } while ((passwordConfig.tempPasswords[passwordText] || passwordText === passwordConfig.superAdmin.password) && attempts < 100);
+                
+                if (attempts >= 100) {
+                    conflicts.push(`第${i + 1}个密码生成失败（无法避免重复）`);
+                    continue;
+                }
+                
+                // 创建密码配置（包含分类和标签）
+                passwordConfig.tempPasswords[passwordText] = {
+                    password: passwordText,
+                    type: 'temp_user',
+                    expiresAt: expiresAt.toISOString(),
+                    permissions: ['convert'],
+                    usageCount: 0,
+                    maxUsage: maxUsage,
+                    createdAt: now.toISOString(),
+                    createdBy: 'admin',
+                    description: `${description} #${i + 1}`,
+                    category: category,
+                    tags: tags
+                };
+                
+                generatedPasswords.push(passwordText);
+            }
+            
+            // 保存到存储
+            saveTempPasswords();
+            refreshPasswordList();
+            
+            // 显示结果
+            displayBatchResult(generatedPasswords, conflicts);
+            
+            showStatus(`批量生成完成！成功${generatedPasswords.length}个，失败${conflicts.length}个`, generatedPasswords.length > 0 ? 'success' : 'error');
+        }
+        
+        function displayBatchResult(passwords, conflicts) {
+            const resultDiv = document.getElementById('batchResult');
+            const resultList = document.getElementById('batchResultList');
+            
+            let html = '';
+            
+            if (passwords.length > 0) {
+                html += '<strong>✅ 成功生成的密码：</strong><br>';
+                passwords.forEach((password, index) => {
+                    html += `<div class="batch-password-item">${index + 1}. ${password}</div>`;
+                });
+            }
+            
+            if (conflicts.length > 0) {
+                html += '<br><strong>❌ 生成失败：</strong><br>';
+                conflicts.forEach(conflict => {
+                    html += `<div style="color: #f44336; padding: 2px 0;">${conflict}</div>`;
+                });
+            }
+            
+            resultList.innerHTML = html;
+            resultDiv.style.display = 'block';
+            
+            // 保存生成的密码用于复制
+            window.lastBatchPasswords = passwords;
+        }
+        
+        function copyBatchResult() {
+            if (!window.lastBatchPasswords || window.lastBatchPasswords.length === 0) {
+                alert('没有密码可复制！');
+                return;
+            }
+            
+            const passwordText = window.lastBatchPasswords.join('\n');
+            
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(passwordText).then(() => {
+                    showStatus('所有密码已复制到剪贴板', 'success');
+                }).catch(() => {
+                    fallbackCopy(passwordText);
+                });
+            } else {
+                fallbackCopy(passwordText);
+            }
+            
+            function fallbackCopy(text) {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                const successful = document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                if (successful) {
+                    showStatus('所有密码已复制到剪贴板', 'success');
+                } else {
+                    alert('复制失败，请手动复制密码列表');
+                }
+            }
+        }
+
+        // CSV导出通用函数
+        function downloadCSV(data, filename) {
+            const csvContent = "data:text/csv;charset=utf-8," + data;
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // 导出密码列表为CSV
+        function exportPasswordsCSV() {
+            logOperation('export_passwords', { format: 'csv' });
+            
+            const headers = ['密码', '类型', '描述', '创建时间', '到期时间', '最大使用次数', '已使用次数', '剩余次数', '创建者', '状态'];
+            let csvData = headers.join(',') + '\n';
+            
+            Object.entries(passwordConfig.tempPasswords).forEach(([password, config]) => {
+                const expiresAt = new Date(config.expiresAt);
+                const isExpired = new Date() > expiresAt;
+                const usageExceeded = config.usageCount >= config.maxUsage;
+                
+                let status = '正常';
+                if (isExpired) status = '已过期';
+                else if (usageExceeded) status = '次数用完';
+                
+                const row = [
+                    `"${password}"`,
+                    `"${config.type}"`,
+                    `"${config.description || ''}"`,
+                    `"${new Date(config.createdAt).toLocaleString()}"`,
+                    `"${expiresAt.toLocaleString()}"`,
+                    config.maxUsage,
+                    config.usageCount,
+                    config.maxUsage - config.usageCount,
+                    `"${config.createdBy || 'system'}"`,
+                    `"${status}"`
+                ].join(',');
+                
+                csvData += row + '\n';
+            });
+            
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
+            downloadCSV(csvData, `passwords_${timestamp}.csv`);
+            showStatus('密码列表已导出', 'success');
+        }
+
+        // 导出使用统计报表
+        function exportUsageReport() {
+            logOperation('export_usage_stats', { format: 'csv' });
+            
+            const headers = ['密码', '用户类型', '总使用次数', '最后使用时间', '会话数量', '最近会话', '状态'];
+            let csvData = headers.join(',') + '\n';
+            
+            // 超级管理员统计
+            const superAdminStats = passwordConfig.usageStats[passwordConfig.superAdmin.password];
+            if (superAdminStats) {
+                const lastSession = superAdminStats.sessions && superAdminStats.sessions.length > 0 
+                    ? new Date(superAdminStats.sessions[superAdminStats.sessions.length - 1].timestamp).toLocaleString()
+                    : '无';
+                
+                const row = [
+                    `"${passwordConfig.superAdmin.password}"`,
+                    '"超级管理员"',
+                    superAdminStats.totalUsage,
+                    `"${superAdminStats.lastUsed ? new Date(superAdminStats.lastUsed).toLocaleString() : '从未使用'}"`,
+                    superAdminStats.sessions ? superAdminStats.sessions.length : 0,
+                    `"${lastSession}"`,
+                    '"永久有效"'
+                ].join(',');
+                
+                csvData += row + '\n';
+            }
+            
+            // 临时密码统计
+            Object.entries(passwordConfig.usageStats).forEach(([password, stats]) => {
+                if (password === passwordConfig.superAdmin.password) return;
+                
+                const config = passwordConfig.tempPasswords[password];
+                if (!config) return;
+                
+                const lastSession = stats.sessions && stats.sessions.length > 0 
+                    ? new Date(stats.sessions[stats.sessions.length - 1].timestamp).toLocaleString()
+                    : '无';
+                
+                let status = '正常';
+                const expiresAt = new Date(config.expiresAt);
+                if (new Date() > expiresAt) status = '已过期';
+                else if (config.usageCount >= config.maxUsage) status = '次数用完';
+                
+                const row = [
+                    `"${password}"`,
+                    '"临时用户"',
+                    stats.totalUsage,
+                    `"${stats.lastUsed ? new Date(stats.lastUsed).toLocaleString() : '从未使用'}"`,
+                    stats.sessions ? stats.sessions.length : 0,
+                    `"${lastSession}"`,
+                    `"${status}"`
+                ].join(',');
+                
+                csvData += row + '\n';
+            });
+            
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
+            downloadCSV(csvData, `usage_report_${timestamp}.csv`);
+            showStatus('使用统计报表已导出', 'success');
+        }
+
+        // 导出操作日志
+        function exportOperationLogs() {
+            logOperation('export_logs', { format: 'csv', logCount: passwordConfig.operationLogs.length });
+            
+            const headers = ['时间', '操作', '用户', '用户类型', '详细信息', '用户代理'];
+            let csvData = headers.join(',') + '\n';
+            
+            passwordConfig.operationLogs.forEach(log => {
+                const row = [
+                    `"${new Date(log.timestamp).toLocaleString()}"`,
+                    `"${log.action}"`,
+                    `"${log.user}"`,
+                    `"${log.userType}"`,
+                    `"${JSON.stringify(log.details).replace(/"/g, '""')}"`,
+                    `"${log.userAgent}"`
+                ].join(',');
+                
+                csvData += row + '\n';
+            });
+            
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
+            downloadCSV(csvData, `operation_logs_${timestamp}.csv`);
+            showStatus('操作日志已导出', 'success');
+        }
+
+        // 创建系统备份
+        function exportSystemBackup() {
+            logOperation('create_backup', { timestamp: new Date().toISOString() });
+            
+            const backupData = {
+                version: '1.0',
+                timestamp: new Date().toISOString(),
+                data: {
+                    tempPasswords: passwordConfig.tempPasswords,
+                    usageStats: passwordConfig.usageStats,
+                    operationLogs: passwordConfig.operationLogs
+                }
+            };
+            
+            const jsonString = JSON.stringify(backupData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
+            link.download = `system_backup_${timestamp}.json`;
+            link.href = url;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            showStatus('系统备份已创建', 'success');
+        }
+
+        // 导入系统备份
+        function importSystemBackup() {
+            document.getElementById('backupFile').click();
+        }
+
+        // 处理备份文件导入
+        function handleBackupImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (!confirm('确认导入备份？这将覆盖当前所有数据！')) {
+                event.target.value = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const backupData = JSON.parse(e.target.result);
+                    
+                    if (!backupData.version || !backupData.data) {
+                        throw new Error('无效的备份文件格式');
+                    }
+                    
+                    // 恢复数据
+                    passwordConfig.tempPasswords = backupData.data.tempPasswords || {};
+                    passwordConfig.usageStats = backupData.data.usageStats || {};
+                    passwordConfig.operationLogs = backupData.data.operationLogs || [];
+                    
+                    // 保存到localStorage
+                    saveTempPasswords();
+                    saveUsageStats();
+                    saveOperationLogs();
+                    
+                    logOperation('restore_backup', { 
+                        backupVersion: backupData.version,
+                        backupTimestamp: backupData.timestamp
+                    });
+                    
+                    showStatus('系统备份已恢复', 'success');
+                    
+                    // 刷新显示
+                    if (document.getElementById('adminPanel').style.display === 'flex') {
+                        refreshPasswordList();
+                        refreshStatistics();
+                    }
+                    
+                } catch (error) {
+                    console.error('备份恢复失败:', error);
+                    showStatus('备份文件格式错误或损坏', 'error');
+                }
+                
+                event.target.value = '';
+            };
+            
+            reader.readAsText(file);
+        }
+
+        // 清空操作日志
+        function clearOperationLogs() {
+            if (!confirm('确认清空所有操作日志？此操作不可撤销。')) {
+                return;
+            }
+            
+            const logCount = passwordConfig.operationLogs.length;
+            logOperation('clear_logs', { clearedCount: logCount });
+            
+            passwordConfig.operationLogs = [];
+            saveOperationLogs();
+            
+            showStatus(`已清空 ${logCount} 条操作日志`, 'info');
+        }
 
         // 添加快捷键支持
         document.addEventListener('keydown', function(e) {
@@ -1412,9 +4663,617 @@ $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
             }
         });
 
-        // 页面加载时检查认证状态
+        // 处理自定义有效期选择
+        document.addEventListener('DOMContentLoaded', function() {
+            // 单个生成的有效期选择
+            const newPasswordExpiry = document.getElementById('newPasswordExpiry');
+            const customExpiryGroup = document.getElementById('customExpiryGroup');
+            
+            if (newPasswordExpiry && customExpiryGroup) {
+                newPasswordExpiry.addEventListener('change', function() {
+                    if (this.value === 'custom') {
+                        customExpiryGroup.style.display = 'block';
+                    } else {
+                        customExpiryGroup.style.display = 'none';
+                    }
+                });
+            }
+            
+            // 批量生成的有效期选择
+            const batchExpiry = document.getElementById('batchExpiry');
+            const batchCustomExpiryGroup = document.getElementById('batchCustomExpiryGroup');
+            
+            if (batchExpiry && batchCustomExpiryGroup) {
+                batchExpiry.addEventListener('change', function() {
+                    if (this.value === 'custom') {
+                        batchCustomExpiryGroup.style.display = 'block';
+                    } else {
+                        batchCustomExpiryGroup.style.display = 'none';
+                    }
+                });
+            }
+        });
+
+        // 获取有效期天数
+        function getExpiryDays(selectId, customInputId) {
+            const selectElement = document.getElementById(selectId);
+            const customInput = document.getElementById(customInputId);
+            
+            if (selectElement.value === 'custom') {
+                const customDays = parseInt(customInput.value);
+                if (isNaN(customDays) || customDays < 1) {
+                    alert('请输入有效的自定义天数（1-3650天）');
+                    return null;
+                }
+                return customDays;
+            } else {
+                return parseInt(selectElement.value);
+            }
+        }
+
+        // 监听用户活动来重置会话计时器
+        function addActivityListeners() {
+            const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+            
+            events.forEach(event => {
+                document.addEventListener(event, function() {
+                    if (sessionStorage.getItem('authenticated') === 'true') {
+                        resetSessionTimer();
+                    }
+                }, true);
+            });
+        }
+
+
+
+        // 紧急重置功能
+        function emergencyReset() {
+            console.log('=== 紧急重置系统 ===');
+            
+            // 清除所有本地存储
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // 重新初始化密码配置
+            passwordConfig.tempPasswords = {};
+            passwordConfig.usageStats = {};
+            passwordConfig.operationLogs = [];
+            
+            // 强制重新创建默认密码
+            const now = new Date();
+            const oneWeekLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+            const oneMonthLater = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+            
+            passwordConfig.tempPasswords = {
+                '517517': {
+                    password: '517517',
+                    type: 'temp_user',
+                    expiresAt: oneMonthLater.toISOString(),
+                    permissions: ['convert'],
+                    usageCount: 0,
+                    maxUsage: 50,
+                    createdAt: now.toISOString(),
+                    createdBy: 'system',
+                    description: '高级临时账户'
+                },
+                'demo2024': {
+                    password: 'demo2024',
+                    type: 'temp_user', 
+                    expiresAt: oneWeekLater.toISOString(),
+                    permissions: ['convert'],
+                    usageCount: 0,
+                    maxUsage: 30,
+                    createdAt: now.toISOString(),
+                    createdBy: 'system',
+                    description: '演示账户'
+                }
+            };
+            
+            // 保存到localStorage
+            localStorage.setItem('temp_passwords', JSON.stringify(passwordConfig.tempPasswords));
+            localStorage.setItem('password_usage', JSON.stringify(passwordConfig.usageStats));
+            localStorage.setItem('operation_logs', JSON.stringify(passwordConfig.operationLogs));
+            
+            console.log('重置完成');
+            console.log('超级管理员密码: lingling');
+            console.log('临时密码: 517517, demo2024');
+            
+            alert('系统已重置！\n\n可用密码：\n- 超级管理员: lingling\n- 临时密码: 517517\n- 临时密码: demo2024\n\n页面将刷新...');
+            
+            // 刷新页面
+            location.reload();
+        }
+
+        // ========== 分类管理功能 ==========
+        
+        // 密码分类数据结构
+        const categoryConfig = {
+            categories: JSON.parse(localStorage.getItem('password_categories') || '[]'),
+            getDefaultCategories() {
+                return [
+                    { id: 'default', name: '默认分类', description: '未分类的密码', color: '#666666' },
+                    { id: 'premium', name: '高级用户', description: '付费用户账户', color: '#4CAF50' },
+                    { id: 'trial', name: '试用账户', description: '临时试用密码', color: '#FF9800' },
+                    { id: 'internal', name: '内部测试', description: '团队内部使用', color: '#2196F3' }
+                ];
+            }
+        };
+
+        // 初始化分类数据
+        function initCategories() {
+            if (categoryConfig.categories.length === 0) {
+                categoryConfig.categories = categoryConfig.getDefaultCategories();
+                saveCategories();
+            }
+        }
+
+        // 保存分类数据
+        function saveCategories() {
+            localStorage.setItem('password_categories', JSON.stringify(categoryConfig.categories));
+        }
+
+        // 刷新分类管理界面
+        function refreshCategoryManagement() {
+            initCategories();
+            const categoryList = document.getElementById('categoryList');
+            const filterSelect = document.getElementById('categoryFilter');
+            
+            if (!categoryList || !filterSelect) return;
+
+            // 更新分类列表
+            let html = '';
+            categoryConfig.categories.forEach(category => {
+                const passwordCount = getPasswordCountByCategory(category.id);
+                html += `
+                    <div class="category-item">
+                        <div class="category-name" style="color: ${category.color}">
+                            ${category.name}
+                        </div>
+                        <div class="category-stats">
+                            ${category.description} | ${passwordCount} 个密码
+                        </div>
+                        <div class="category-actions">
+                            <button class="action-btn" onclick="editCategory('${category.id}')">编辑</button>
+                            <button class="action-btn delete-btn" onclick="deleteCategory('${category.id}')">删除</button>
+                        </div>
+                    </div>
+                `;
+            });
+            categoryList.innerHTML = html;
+
+            // 更新筛选下拉框
+            let filterOptions = '<option value="">所有分类</option>';
+            categoryConfig.categories.forEach(category => {
+                filterOptions += `<option value="${category.id}">${category.name}</option>`;
+            });
+            filterSelect.innerHTML = filterOptions;
+        }
+
+        // 添加新分类
+        function addCategory() {
+            const name = document.getElementById('categoryName').value.trim();
+            const description = document.getElementById('categoryDesc').value.trim();
+            const color = document.getElementById('categoryColor').value;
+
+            if (!name) {
+                alert('请输入分类名称');
+                return;
+            }
+
+            const newCategory = {
+                id: 'cat_' + Date.now(),
+                name: name,
+                description: description,
+                color: color
+            };
+
+            categoryConfig.categories.push(newCategory);
+            saveCategories();
+            refreshCategoryManagement();
+            
+            // 清空表单
+            document.getElementById('categoryName').value = '';
+            document.getElementById('categoryDesc').value = '';
+            document.getElementById('categoryColor').value = '#4CAF50';
+
+            showStatus('分类添加成功', 'success');
+            logOperation('category_add', { categoryName: name });
+        }
+
+        // 获取分类下的密码数量
+        function getPasswordCountByCategory(categoryId) {
+            let count = 0;
+            Object.values(passwordConfig.tempPasswords).forEach(password => {
+                if ((password.category || 'default') === categoryId) {
+                    count++;
+                }
+            });
+            return count;
+        }
+
+        // 删除分类
+        function deleteCategory(categoryId) {
+            if (categoryId === 'default') {
+                alert('默认分类不能删除');
+                return;
+            }
+
+            if (confirm('确定要删除这个分类吗？该分类下的密码将移到默认分类。')) {
+                // 将该分类下的密码移到默认分类
+                Object.values(passwordConfig.tempPasswords).forEach(password => {
+                    if (password.category === categoryId) {
+                        password.category = 'default';
+                    }
+                });
+
+                // 删除分类
+                categoryConfig.categories = categoryConfig.categories.filter(cat => cat.id !== categoryId);
+                saveCategories();
+                saveTempPasswords();
+                refreshCategoryManagement();
+                
+                showStatus('分类删除成功', 'success');
+                logOperation('category_delete', { categoryId: categoryId });
+            }
+        }
+
+        // 筛选密码
+        function filterPasswords() {
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const tagFilter = document.getElementById('tagFilter').value.toLowerCase();
+            
+            refreshPasswordList(categoryFilter, tagFilter);
+        }
+
+        // ========== 监控告警功能 ==========
+        
+        // 监控配置
+        const monitoringConfig = {
+            alerts: JSON.parse(localStorage.getItem('monitoring_alerts') || '[]'),
+            settings: JSON.parse(localStorage.getItem('monitoring_settings') || '{}'),
+            getDefaultSettings() {
+                return {
+                    enableEmailAlerts: false,
+                    enableBrowserNotifications: true,
+                    expiryWarningDays: 7,
+                    usageWarningPercent: 80,
+                    maxLoginAttempts: 5,
+                    monitoringInterval: 300000 // 5分钟
+                };
+            }
+        };
+
+        // 初始化监控配置
+        function initMonitoring() {
+            if (Object.keys(monitoringConfig.settings).length === 0) {
+                monitoringConfig.settings = monitoringConfig.getDefaultSettings();
+                saveMonitoringSettings();
+            }
+            startMonitoring();
+        }
+
+        // 保存监控设置
+        function saveMonitoringSettings() {
+            localStorage.setItem('monitoring_settings', JSON.stringify(monitoringConfig.settings));
+        }
+
+        // 保存告警记录
+        function saveAlerts() {
+            localStorage.setItem('monitoring_alerts', JSON.stringify(monitoringConfig.alerts));
+        }
+
+        // 刷新监控数据
+        function refreshMonitoringData() {
+            initMonitoring();
+            updateMonitoringStats();
+            updateAlertsList();
+        }
+
+        // 更新监控统计
+        function updateMonitoringStats() {
+            const stats = getMonitoringStats();
+            
+            const elements = {
+                'expiringPasswords': stats.expiringPasswords,
+                'overusedPasswords': stats.overusedPasswords,
+                'failedLogins': stats.failedLogins,
+                'activeAlerts': monitoringConfig.alerts.filter(a => a.status === 'active').length
+            };
+
+            Object.entries(elements).forEach(([id, value]) => {
+                const element = document.getElementById(id);
+                if (element) element.textContent = value;
+            });
+        }
+
+        // 获取监控统计数据
+        function getMonitoringStats() {
+            const now = new Date();
+            const warningTime = new Date(now.getTime() + monitoringConfig.settings.expiryWarningDays * 24 * 60 * 60 * 1000);
+            
+            let expiringPasswords = 0;
+            let overusedPasswords = 0;
+            
+            Object.values(passwordConfig.tempPasswords).forEach(password => {
+                const expiresAt = new Date(password.expiresAt);
+                if (expiresAt <= warningTime && expiresAt > now) {
+                    expiringPasswords++;
+                }
+                
+                const usagePercent = (password.usageCount / password.maxUsage) * 100;
+                if (usagePercent >= monitoringConfig.settings.usageWarningPercent) {
+                    overusedPasswords++;
+                }
+            });
+
+            return {
+                expiringPasswords,
+                overusedPasswords,
+                failedLogins: JSON.parse(sessionStorage.getItem('failed_logins') || '0'),
+                totalPasswords: Object.keys(passwordConfig.tempPasswords).length
+            };
+        }
+
+        // 更新告警列表
+        function updateAlertsList() {
+            const alertsList = document.getElementById('alertsList');
+            if (!alertsList) return;
+
+            let html = '';
+            const recentAlerts = monitoringConfig.alerts.slice(-10).reverse();
+            
+            recentAlerts.forEach(alert => {
+                const alertClass = `alert-${alert.level}`;
+                const timeStr = new Date(alert.timestamp).toLocaleString();
+                
+                html += `
+                    <div class="alert-item ${alertClass}">
+                        <strong>[${alert.level.toUpperCase()}]</strong> ${alert.message}
+                        <br><small>时间: ${timeStr}</small>
+                    </div>
+                `;
+            });
+
+            if (html === '') {
+                html = '<p style="text-align: center; color: #666; padding: 20px;">暂无告警信息</p>';
+            }
+
+            alertsList.innerHTML = html;
+        }
+
+        // 添加告警
+        function addAlert(level, message, details = {}) {
+            const alert = {
+                id: 'alert_' + Date.now(),
+                level: level, // info, warning, critical
+                message: message,
+                details: details,
+                timestamp: new Date().toISOString(),
+                status: 'active'
+            };
+
+            monitoringConfig.alerts.push(alert);
+            saveAlerts();
+            
+            // 如果启用了浏览器通知
+            if (monitoringConfig.settings.enableBrowserNotifications && 'Notification' in window) {
+                if (Notification.permission === 'granted') {
+                    new Notification(`[${level.toUpperCase()}] 系统告警`, {
+                        body: message,
+                        icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDIyQzEzLjEgMjIgMTQgMjEuMSAxNCAyMEgxMEMxMCAyMS4xIDEwLjkgMjIgMTIgMjJaTTE4IDE2VjExQzE4IDcuOTMgMTYuMzYgNS4zNiAxMy41IDQuNjhWNEMxMy41IDMuMTcgMTIuODMgMi41IDEyIDIuNUMxMS4xNyAyLjUgMTAuNSAzLjE3IDEwLjUgNFY0LjY4QzcuNjMgNS4zNiA2IDcuOTIgNiAxMVYxNkw0IDE4VjE5SDE5VjE4TDE4IDE2WiIgZmlsbD0iIzRDQUY1MCIvPgo8L3N2Zz4K'
+                    });
+                }
+            }
+
+            logOperation('alert_generated', { level, message });
+        }
+
+        // 启动监控
+        function startMonitoring() {
+            // 检查即将过期的密码
+            checkExpiringPasswords();
+            
+            // 检查使用率过高的密码
+            checkOverusedPasswords();
+            
+            // 设置定时检查
+            if (window.monitoringInterval) {
+                clearInterval(window.monitoringInterval);
+            }
+            
+            window.monitoringInterval = setInterval(() => {
+                checkExpiringPasswords();
+                checkOverusedPasswords();
+                updateMonitoringStats();
+            }, monitoringConfig.settings.monitoringInterval);
+        }
+
+        // 检查即将过期的密码
+        function checkExpiringPasswords() {
+            const now = new Date();
+            const warningTime = new Date(now.getTime() + monitoringConfig.settings.expiryWarningDays * 24 * 60 * 60 * 1000);
+            
+            Object.entries(passwordConfig.tempPasswords).forEach(([password, config]) => {
+                const expiresAt = new Date(config.expiresAt);
+                if (expiresAt <= warningTime && expiresAt > now) {
+                    const daysLeft = Math.ceil((expiresAt - now) / (1000 * 60 * 60 * 24));
+                    addAlert('warning', `密码 ${password} 将在 ${daysLeft} 天后过期`, { 
+                        password: password,
+                        expiresAt: config.expiresAt,
+                        daysLeft: daysLeft
+                    });
+                }
+            });
+        }
+
+        // 检查使用率过高的密码
+        function checkOverusedPasswords() {
+            Object.entries(passwordConfig.tempPasswords).forEach(([password, config]) => {
+                const usagePercent = (config.usageCount / config.maxUsage) * 100;
+                if (usagePercent >= monitoringConfig.settings.usageWarningPercent) {
+                    addAlert('warning', `密码 ${password} 使用率已达 ${usagePercent.toFixed(1)}%`, {
+                        password: password,
+                        usagePercent: usagePercent,
+                        usageCount: config.usageCount,
+                        maxUsage: config.maxUsage
+                    });
+                }
+            });
+        }
+
+        // 更新监控设置
+        function updateMonitoringSettings() {
+            const settings = {
+                enableBrowserNotifications: document.getElementById('enableNotifications').checked,
+                expiryWarningDays: parseInt(document.getElementById('expiryWarningDays').value),
+                usageWarningPercent: parseInt(document.getElementById('usageWarningPercent').value),
+                monitoringInterval: parseInt(document.getElementById('monitoringInterval').value) * 1000
+            };
+
+            monitoringConfig.settings = { ...monitoringConfig.settings, ...settings };
+            saveMonitoringSettings();
+            
+            // 重启监控
+            startMonitoring();
+            
+            showStatus('监控设置已更新', 'success');
+            logOperation('monitoring_settings_update', settings);
+        }
+
+        // 更新阈值显示
+        function updateThresholdDisplay() {
+            const threshold = document.getElementById('usageWarningPercent');
+            const display = document.getElementById('thresholdDisplay');
+            if (threshold && display) {
+                display.textContent = threshold.value + '%';
+            }
+        }
+
+        // 编辑分类
+        function editCategory(categoryId) {
+            const category = categoryConfig.categories.find(cat => cat.id === categoryId);
+            if (!category) {
+                alert('分类不存在');
+                return;
+            }
+
+            const newName = prompt('请输入新的分类名称:', category.name);
+            if (newName && newName.trim() !== '' && newName !== category.name) {
+                category.name = newName.trim();
+                
+                const newDesc = prompt('请输入新的分类描述:', category.description || '');
+                if (newDesc !== null) {
+                    category.description = newDesc.trim();
+                }
+                
+                const newColor = prompt('请输入新的分类颜色 (十六进制):', category.color);
+                if (newColor && /^#[0-9A-F]{6}$/i.test(newColor)) {
+                    category.color = newColor;
+                }
+                
+                saveCategories();
+                refreshCategoryManagement();
+                showStatus('分类更新成功', 'success');
+                logOperation('category_edit', { categoryId, newName, newDesc, newColor });
+            }
+        }
+
+        // 按分组筛选密码（增强版）
+        function refreshPasswordList(categoryFilter = '', tagFilter = '') {
+            const passwordList = document.getElementById('passwordList');
+            const categoryPasswordsList = document.getElementById('categoryPasswordsList');
+            const now = new Date();
+            
+            let html = '';
+            let filteredPasswords = Object.entries(passwordConfig.tempPasswords);
+            
+            // 应用分类筛选
+            if (categoryFilter) {
+                filteredPasswords = filteredPasswords.filter(([_, config]) => 
+                    (config.category || 'default') === categoryFilter
+                );
+            }
+            
+            // 应用标签筛选
+            if (tagFilter) {
+                filteredPasswords = filteredPasswords.filter(([_, config]) => 
+                    config.tags && config.tags.toLowerCase().includes(tagFilter.toLowerCase())
+                );
+            }
+            
+            filteredPasswords.forEach(([password, config]) => {
+                const expiresAt = new Date(config.expiresAt);
+                const isExpired = now > expiresAt;
+                const usageExceeded = config.usageCount >= config.maxUsage;
+                
+                let statusClass = '';
+                if (isExpired) statusClass = 'expired';
+                else if (usageExceeded) statusClass = 'usage-exceeded';
+                
+                const remainingDays = Math.ceil((expiresAt - now) / (1000 * 60 * 60 * 24));
+                const remainingUsage = config.maxUsage - config.usageCount;
+                
+                // 获取分类信息
+                const category = categoryConfig.categories.find(cat => cat.id === (config.category || 'default'));
+                const categoryName = category ? category.name : '默认分类';
+                const categoryColor = category ? category.color : '#666666';
+                
+                html += `
+                    <div class="password-item ${statusClass}">
+                        <div class="password-info">
+                            <div class="password-text">${password}</div>
+                            <div class="password-meta">
+                                <span style="color: ${categoryColor}; font-weight: bold;">[${categoryName}]</span>
+                                ${config.tags ? `<span style="color: #888;"> #${config.tags}</span>` : ''}<br>
+                                到期: ${expiresAt.toLocaleDateString()} (${isExpired ? '已过期' : remainingDays + '天'}) | 
+                                使用: ${config.usageCount}/${config.maxUsage} (剩余${remainingUsage}次) |
+                                创建: ${new Date(config.createdAt).toLocaleDateString()}
+                            </div>
+                        </div>
+                        <div class="password-actions">
+                            <button class="action-btn extend-btn" onclick="extendPassword('${password}')">延期</button>
+                            <button class="action-btn usage-btn" onclick="addUsageCount('${password}')">+次数</button>
+                            <button class="action-btn delete-btn" onclick="deletePassword('${password}')">删除</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            if (html === '') {
+                html = '<p style="text-align: center; color: #666; padding: 20px;">暂无符合条件的密码</p>';
+            }
+            
+            if (passwordList) passwordList.innerHTML = html;
+            if (categoryPasswordsList) categoryPasswordsList.innerHTML = html;
+        }
+
+        // 页面加载时的简化初始化
         window.addEventListener('load', function() {
-            checkAuthentication();
+            console.log('页面加载完成');
+            
+            // 检查是否已登录
+            if (sessionStorage.getItem('authenticated') === 'true') {
+                const overlay = document.getElementById('passwordOverlay');
+                const mainApp = document.getElementById('mainApp');
+                
+                if (overlay) overlay.style.display = 'none';
+                if (mainApp) mainApp.classList.add('authenticated');
+            }
+            
+            // 设置回车键监听
+            const passwordInput = document.getElementById('passwordInput');
+            if (passwordInput) {
+                passwordInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        window.verifyPassword();
+                    }
+                });
+                passwordInput.focus();
+            }
+
+            // 初始化分类和监控功能
+            initCategories();
+            initMonitoring();
         });
     </script>
 </body>
