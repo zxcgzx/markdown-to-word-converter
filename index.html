@@ -2527,19 +2527,46 @@ $$\\lim_{x \\to \\infty} \\frac{1}{x} = 0$$
             document.getElementById('fileInput').click();
         }
 
-        // 处理文件上传
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
+        // 处理单个文件的通用函数
+        function processFile(file, uploadType = '上传') {
             if (!file) return;
+
+            // 检查文件类型
+            const allowedTypes = ['.md', '.markdown', '.txt'];
+            const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+            if (!allowedTypes.includes(fileExtension)) {
+                showToast('文件类型错误', `请${uploadType} .md, .markdown 或 .txt 格式的文件`, 'error');
+                return;
+            }
+
+            // 检查文件大小 (限制5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('文件过大', '文件大小不能超过5MB', 'error');
+                return;
+            }
 
             const reader = new FileReader();
             reader.onload = function(e) {
-                markdownInput.value = e.target.result;
-                updateWordCount();
-                updatePreview();
-                showToast('上传成功', `文件 ${file.name} 上传成功`);
+                try {
+                    markdownInput.value = e.target.result;
+                    updateWordCount();
+                    updatePreview();
+                    showToast('上传成功', `文件 ${file.name} ${uploadType}成功`);
+                } catch (error) {
+                    console.error('文件处理错误:', error);
+                    showToast('处理失败', '文件内容处理失败，请检查文件格式', 'error');
+                }
             };
-            reader.readAsText(file);
+            reader.onerror = function() {
+                showToast('读取失败', '文件读取失败，请重试', 'error');
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        // 处理文件上传
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            processFile(file, '上传');
         }
 
         // 保存草稿到本地存储
@@ -2620,26 +2647,9 @@ $$\\lim_{x \\to \\infty} \\frac{1}{x} = 0$$
                 const files = e.dataTransfer.files;
                 if (files.length > 0) {
                     const file = files[0];
-                    if (file.type === 'text/markdown' || file.name.endsWith('.md') || file.name.endsWith('.txt')) {
-                        // 显示上传开始提示
-                        showToast('开始上传', `正在读取文件 ${file.name}...`, 'info', 1000);
-                        
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            markdownInput.value = e.target.result;
-                            updateWordCount();
-                            updatePreview();
-                            showToast('上传成功', `文件 ${file.name} 拖拽上传成功`);
-                        };
-                        
-                        reader.onerror = function() {
-                            showToast('上传失败', '文件读取出现错误', 'error');
-                        };
-                        
-                        reader.readAsText(file);
-                    } else {
-                        showToast('文件格式错误', '请上传 .md 或 .txt 格式的文件！', 'warning');
-                    }
+                    // 显示上传开始提示
+                    showToast('开始上传', `正在读取文件 ${file.name}...`, 'info', 1000);
+                    processFile(file, '拖拽上传');
                 }
             });
 
