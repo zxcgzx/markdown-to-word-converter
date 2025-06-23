@@ -1189,7 +1189,213 @@
             width: 0%;
         }
 
-        /* 密码验证界面样式 */
+        /* 长文档解析进度指示器样式 */
+        .parse-progress-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
+            backdrop-filter: var(--blur);
+            padding: 16px 20px;
+            border-radius: 12px;
+            min-width: 280px;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                0 0 0 1px var(--glass-border);
+            z-index: 10;
+            display: none;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .parse-progress-indicator.show {
+            display: block;
+            opacity: 1;
+        }
+
+        .parse-progress-indicator .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--border-color);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .parse-progress-indicator .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            width: 0%;
+            animation: progressShimmer 2s infinite;
+        }
+
+        .parse-progress-indicator .progress-text {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        @keyframes progressShimmer {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        /* Word转换进度指示器样式 */
+        .word-conversion-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
+            backdrop-filter: var(--blur);
+            padding: 20px 24px;
+            border-radius: 16px;
+            min-width: 320px;
+            box-shadow: 
+                0 12px 40px rgba(0, 0, 0, 0.15),
+                0 0 0 1px var(--glass-border);
+            z-index: 1000;
+            display: none;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .word-conversion-indicator.show {
+            display: block;
+            opacity: 1;
+        }
+
+        .word-conversion-indicator .conversion-icon {
+            text-align: center;
+            font-size: 32px;
+            margin-bottom: 16px;
+            animation: bounce 1.5s infinite;
+        }
+
+        .word-conversion-indicator .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .word-conversion-indicator .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 4px;
+            transition: width 0.4s ease;
+            width: 0%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .word-conversion-indicator .progress-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        .word-conversion-indicator .progress-text {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { 
+                transform: translateY(0); 
+            }
+            40% { 
+                transform: translateY(-8px); 
+            }
+            60% { 
+                transform: translateY(-4px); 
+            }
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* 密码界面动画效果 */
+        @keyframes backgroundShift {
+            0%, 100% { filter: hue-rotate(0deg); }
+            50% { filter: hue-rotate(20deg); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            33% { transform: translateY(-10px) scale(1.02); }
+            66% { transform: translateY(5px) scale(0.98); }
+        }
+
+        @keyframes modalEntrance {
+            0% {
+                opacity: 0;
+                transform: scale(0.8) translateY(40px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        @keyframes titleSlideIn {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes errorShake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+            20%, 40%, 60%, 80% { transform: translateX(8px); }
+        }
+
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+        }
+
+        /* 密码验证界面样式 - 玻璃拟态升级版 */
         .password-overlay {
             position: fixed;
             top: 0;
@@ -1197,90 +1403,211 @@
             width: 100%;
             height: 100%;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 10000;
+            animation: backgroundShift 20s ease-in-out infinite;
+        }
+
+        .password-overlay::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.1) 0%, transparent 50%);
+            animation: float 15s ease-in-out infinite;
         }
 
         .password-modal {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            background: var(--glass-bg);
+            backdrop-filter: var(--blur);
+            border: 1px solid var(--glass-border);
+            padding: 48px;
+            border-radius: 24px;
+            box-shadow: 
+                0 32px 64px rgba(0, 0, 0, 0.15),
+                0 0 0 1px rgba(255, 255, 255, 0.05);
             text-align: center;
-            max-width: 400px;
+            max-width: 420px;
             width: 90%;
+            position: relative;
+            overflow: hidden;
+            animation: modalEntrance 0.6s ease-out;
+        }
+
+        .password-modal::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
         }
 
         .password-modal h2 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 1.8em;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            font-size: 2em;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            animation: titleSlideIn 0.8s ease-out 0.2s both;
         }
 
         .password-modal .subtitle {
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 1em;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            font-size: 1.1em;
+            font-weight: 500;
+            animation: titleSlideIn 0.8s ease-out 0.3s both;
         }
 
         .password-modal .beta-info {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
+            background: linear-gradient(135deg, rgba(255, 243, 205, 0.9), rgba(255, 234, 167, 0.8));
+            border: 1px solid rgba(255, 234, 167, 0.6);
             color: #856404;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            font-size: 0.9em;
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 28px;
+            font-size: 0.95em;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 12px rgba(255, 234, 167, 0.3);
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
+
+        .password-input-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+            animation: fadeInUp 0.8s ease-out 0.5s both;
         }
 
         .password-input {
             width: 100%;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
+            padding: 18px 24px;
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
             font-size: 16px;
-            margin-bottom: 20px;
             text-align: center;
-            transition: border-color 0.3s;
+            box-sizing: border-box;
+            background: var(--glass-bg);
+            backdrop-filter: blur(8px);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            box-shadow: 
+                0 4px 12px rgba(0, 0, 0, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
 
         .password-input:focus {
             outline: none;
-            border-color: #4CAF50;
+            border-color: var(--accent-primary);
+            box-shadow: 
+                0 0 0 3px rgba(9, 132, 227, 0.2),
+                0 8px 24px rgba(9, 132, 227, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .password-input::placeholder {
+            color: var(--text-muted);
+            transition: opacity 0.3s ease;
+        }
+
+        .password-input:focus::placeholder {
+            opacity: 0.6;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .password-toggle:hover {
+            color: var(--accent-primary);
+            background: rgba(9, 132, 227, 0.1);
         }
 
         .password-btn {
             width: 100%;
-            background: linear-gradient(45deg, #4CAF50, #45a049);
-            color: white;
+            padding: 18px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: var(--text-white);
             border: none;
-            padding: 15px;
+            border-radius: 16px;
             font-size: 16px;
-            border-radius: 10px;
             cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 
+                0 8px 20px rgba(9, 132, 227, 0.3),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+            animation: fadeInUp 0.8s ease-out 0.6s both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .password-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .password-btn:hover::before {
+            left: 100%;
         }
 
         .password-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+            box-shadow: 
+                0 12px 28px rgba(9, 132, 227, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.2);
+        }
+
+        .password-btn:active {
+            transform: translateY(0);
         }
 
         .password-error {
-            color: #f44336;
-            font-size: 14px;
-            margin-top: 10px;
+            color: #d32f2f;
+            background: linear-gradient(135deg, rgba(255, 235, 238, 0.9), rgba(255, 205, 210, 0.8));
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
             display: none;
+            font-weight: 500;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 12px rgba(244, 67, 54, 0.2);
+            animation: errorShake 0.6s ease-out;
         }
 
         .password-hint {
-            color: #666;
-            font-size: 12px;
-            margin-top: 15px;
-            line-height: 1.4;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            line-height: 1.6;
+            animation: fadeInUp 0.8s ease-out 0.7s both;
         }
 
         /* 隐藏主内容 */
@@ -1405,31 +1732,146 @@
             }
         }
 
-        /* 移动端键盘适配 */
+        /* 移动端键盘适配 - 增强版 */
         @media (max-height: 600px) and (max-width: 768px) {
             .password-overlay {
                 align-items: flex-start;
-                padding-top: 20px;
+                padding-top: 10vh;
             }
             
             .password-modal {
                 margin-top: 0;
-                max-height: calc(100vh - 40px);
+                max-height: calc(100vh - 20vh);
+                padding: 32px 24px;
+                animation: modalEntranceMobile 0.6s ease-out;
+            }
+            
+            .password-modal h2 {
+                font-size: 1.4em;
+                margin-bottom: 8px;
+            }
+            
+            .password-modal .subtitle {
+                font-size: 1em;
+                margin-bottom: 20px;
+            }
+            
+            .password-modal .beta-info {
+                font-size: 0.8em;
+                padding: 12px;
+                margin-bottom: 16px;
+            }
+            
+            .password-input-wrapper {
+                margin-bottom: 16px;
+            }
+            
+            .password-input {
+                padding: 16px 20px;
+                font-size: 16px; /* 防止iOS缩放 */
+            }
+            
+            .password-btn {
+                padding: 16px;
+                font-size: 16px;
+                margin-bottom: 16px;
+            }
+            
+            .password-hint {
+                font-size: 0.8em;
+                margin-top: 8px;
+                line-height: 1.4;
+            }
+        }
+
+        /* 极小屏幕适配 */
+        @media (max-height: 500px) {
+            .password-overlay {
+                padding: 10px;
+                align-items: center;
+            }
+            
+            .password-modal {
+                max-height: calc(100vh - 20px);
+                padding: 20px;
+                overflow-y: auto;
             }
             
             .password-modal h2 {
                 font-size: 1.2em;
+                margin-bottom: 6px;
+            }
+            
+            .password-modal .subtitle {
+                font-size: 0.9em;
+                margin-bottom: 16px;
             }
             
             .password-modal .beta-info {
                 font-size: 0.75em;
-                padding: 8px;
+                padding: 10px;
                 margin-bottom: 12px;
             }
+        }
+
+        /* 移动端入场动画 */
+        @keyframes modalEntranceMobile {
+            0% {
+                opacity: 0;
+                transform: translateY(50px) scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* 焦点管理增强 */
+        .password-input:focus,
+        .password-btn:focus,
+        .password-toggle:focus {
+            outline: 2px solid var(--accent-primary);
+            outline-offset: 2px;
+        }
+
+        /* 高对比度模式支持 */
+        @media (prefers-contrast: high) {
+            .password-modal {
+                border: 3px solid var(--text-primary);
+                background: var(--container-bg);
+                backdrop-filter: none;
+            }
             
+            .password-input {
+                border-width: 3px;
+                background: var(--container-bg);
+                backdrop-filter: none;
+            }
+            
+            .password-btn {
+                border: 2px solid var(--accent-primary);
+            }
+        }
+
+        /* 减少动画模式支持 */
+        @media (prefers-reduced-motion: reduce) {
+            .password-overlay,
+            .password-modal,
+            .password-modal h2,
+            .password-modal .subtitle,
+            .password-modal .beta-info,
+            .password-input-wrapper,
+            .password-btn,
             .password-hint {
-                font-size: 10px;
-                margin-top: 8px;
+                animation: none !important;
+            }
+            
+            .password-overlay::before {
+                animation: none !important;
+            }
+            
+            .password-btn::before {
+                transition: none !important;
             }
         }
     </style>
@@ -1444,8 +1886,11 @@
                 <strong>⚠️ 个人内测版本</strong><br>
                 此版本仅供内部测试使用，请输入访问密码
             </div>
-            <label for="passwordInput" class="visually-hidden">访问密码</label>
-            <input type="password" id="passwordInput" class="password-input" placeholder="请输入访问密码" maxlength="20" aria-describedby="passwordHint passwordError" autocomplete="current-password">
+            <div class="password-input-wrapper">
+                <label for="passwordInput" class="visually-hidden">访问密码</label>
+                <input type="password" id="passwordInput" class="password-input" placeholder="请输入访问密码" maxlength="20" aria-describedby="passwordHint passwordError" autocomplete="current-password">
+                <button type="button" class="password-toggle" id="passwordToggle" aria-label="显示/隐藏密码" title="显示/隐藏密码">👁️</button>
+            </div>
             <button onclick="verifyPassword()" class="password-btn" aria-describedby="passwordHint">🚀 进入应用</button>
             <div id="passwordError" class="password-error" role="alert" aria-live="polite">密码错误，请重试</div>
             <div class="password-hint" id="passwordHint">
@@ -1568,6 +2013,23 @@ console.log('Hello World!');
                         <span>⚡</span>
                         <span>渲染数学公式...</span>
                     </div>
+                    
+                    <!-- 长文档解析进度指示器 -->
+                    <div class="parse-progress-indicator" id="parseIndicator" aria-live="polite" aria-label="文档解析进度">
+                        <div class="progress-bar">
+                            <div class="progress-bar-fill"></div>
+                        </div>
+                        <div class="progress-text">解析中...</div>
+                    </div>
+                    
+                    <!-- Word转换进度指示器 -->
+                    <div class="word-conversion-indicator" id="wordConversionIndicator" aria-live="polite" aria-label="Word转换进度">
+                        <div class="conversion-icon">📄</div>
+                        <div class="progress-bar">
+                            <div class="progress-bar-fill"></div>
+                        </div>
+                        <div class="progress-text">转换中...</div>
+                    </div>
                 </div>
             </section>
         </main>
@@ -1650,34 +2112,105 @@ console.log('Hello World!');
     </div>
 
     <script>
-        // 密码验证功能
+        // 密码验证功能 - 增强版
         const validPasswords = ['517517', 'lingling'];
+        let loginAttempts = 0;
+        const maxAttempts = 5;
+        let lockoutTime = 0;
+        
+        // 密码显示/隐藏切换
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('passwordInput');
+            const passwordToggle = document.getElementById('passwordToggle');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                passwordToggle.textContent = '🙈';
+                passwordToggle.setAttribute('aria-label', '隐藏密码');
+                passwordToggle.setAttribute('title', '隐藏密码');
+            } else {
+                passwordInput.type = 'password';
+                passwordToggle.textContent = '👁️';
+                passwordToggle.setAttribute('aria-label', '显示密码');
+                passwordToggle.setAttribute('title', '显示密码');
+            }
+        }
+        
+        // 检查是否被锁定
+        function checkLockout() {
+            const now = Date.now();
+            if (lockoutTime > now) {
+                const remainingTime = Math.ceil((lockoutTime - now) / 1000);
+                return remainingTime;
+            }
+            return 0;
+        }
+        
+        // 显示错误信息
+        function showPasswordError(message, shake = true) {
+            const passwordError = document.getElementById('passwordError');
+            passwordError.textContent = message;
+            passwordError.style.display = 'block';
+            
+            if (shake) {
+                passwordError.style.animation = 'none';
+                setTimeout(() => {
+                    passwordError.style.animation = 'errorShake 0.6s ease-out';
+                }, 10);
+            }
+            
+            // 5秒后隐藏错误信息
+            setTimeout(() => {
+                passwordError.style.display = 'none';
+            }, 5000);
+        }
         
         function verifyPassword() {
             const passwordInput = document.getElementById('passwordInput');
-            const passwordError = document.getElementById('passwordError');
             const password = passwordInput.value.trim();
             
+            // 检查锁定状态
+            const lockoutRemaining = checkLockout();
+            if (lockoutRemaining > 0) {
+                showPasswordError(`尝试次数过多，请等待 ${lockoutRemaining} 秒后重试`, false);
+                return;
+            }
+            
             if (validPasswords.includes(password)) {
-                // 密码正确，隐藏验证界面，显示主应用
-                document.getElementById('passwordOverlay').style.display = 'none';
-                document.getElementById('mainApp').classList.add('authenticated');
+                // 密码正确，重置尝试次数
+                loginAttempts = 0;
                 
-                // 保存验证状态到sessionStorage（仅在当前会话有效）
-                sessionStorage.setItem('authenticated', 'true');
+                // 显示成功动画
+                const modal = document.querySelector('.password-modal');
+                modal.style.animation = 'fadeOut 0.5s ease-out forwards';
                 
-                // 初始化应用
-                initializeApp();
+                setTimeout(() => {
+                    // 隐藏验证界面，显示主应用
+                    document.getElementById('passwordOverlay').style.display = 'none';
+                    document.getElementById('mainApp').classList.add('authenticated');
+                    
+                    // 保存验证状态到sessionStorage（仅在当前会话有效）
+                    sessionStorage.setItem('authenticated', 'true');
+                    
+                    // 初始化应用
+                    initializeApp();
+                }, 500);
+                
             } else {
-                // 密码错误，显示错误信息
-                passwordError.style.display = 'block';
+                // 密码错误，增加尝试次数
+                loginAttempts++;
+                
+                let errorMessage = `密码错误，请重试 (${loginAttempts}/${maxAttempts})`;
+                
+                if (loginAttempts >= maxAttempts) {
+                    // 达到最大尝试次数，锁定5分钟
+                    lockoutTime = Date.now() + 5 * 60 * 1000;
+                    errorMessage = '尝试次数过多，已锁定5分钟';
+                }
+                
+                showPasswordError(errorMessage);
                 passwordInput.value = '';
                 passwordInput.focus();
-                
-                // 3秒后隐藏错误信息
-                setTimeout(() => {
-                    passwordError.style.display = 'none';
-                }, 3000);
             }
         }
         
@@ -1695,10 +2228,22 @@ console.log('Hello World!');
             }
         }
         
-        // 支持回车键提交密码
-        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                verifyPassword();
+        // 添加事件监听器
+        document.addEventListener('DOMContentLoaded', function() {
+            // 密码显示/隐藏切换
+            const passwordToggle = document.getElementById('passwordToggle');
+            if (passwordToggle) {
+                passwordToggle.addEventListener('click', togglePasswordVisibility);
+            }
+            
+            // 支持回车键提交密码
+            const passwordInput = document.getElementById('passwordInput');
+            if (passwordInput) {
+                passwordInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        verifyPassword();
+                    }
+                });
             }
         });
         
@@ -1725,7 +2270,47 @@ console.log('Hello World!');
         const wordCount = document.getElementById('wordCount');
         const statusIndicator = document.getElementById('statusIndicator');
 
-        // 渲染数学公式
+        // 数学公式缓存系统
+        const mathCache = new Map();
+        let lastMathHash = '';
+
+        // 计算内容哈希（简单实现）
+        function simpleHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convert to 32bit integer
+            }
+            return hash.toString();
+        }
+
+        // 提取数学公式
+        function extractMathFormulas(text) {
+            const formulas = [];
+            const patterns = [
+                /\$\$([^$]+)\$\$/g,     // Display math $$...$$
+                /\$([^$\n]+)\$/g,       // Inline math $...$
+                /\\\(([^)]+)\\\)/g,     // Inline math \(...\)
+                /\\\[([^\]]+)\\\]/g     // Display math \[...\]
+            ];
+            
+            patterns.forEach((pattern, index) => {
+                let match;
+                while ((match = pattern.exec(text)) !== null) {
+                    formulas.push({
+                        formula: match[0],
+                        content: match[1],
+                        display: index % 2 === 0,
+                        hash: simpleHash(match[0])
+                    });
+                }
+            });
+            
+            return formulas;
+        }
+
+        // 优化的数学公式渲染函数
         function renderMath(element) {
             if (!window.renderMathInElement) {
                 return;
@@ -1734,54 +2319,75 @@ console.log('Hello World!');
             const mathIndicator = document.getElementById('mathIndicator');
             const markdownText = document.getElementById('markdownInput').value;
             
-            // 检查是否包含数学公式
+            // 快速检查是否包含数学公式
             const hasMath = /\$.*?\$|\\\(.*?\\\)|\\\[.*?\\\]|\$\$.*?\$\$/s.test(markdownText);
-            
             if (!hasMath) {
+                if (mathIndicator) {
+                    mathIndicator.classList.remove('show');
+                }
                 return;
             }
+
+            // 计算当前内容的数学公式哈希
+            const mathFormulas = extractMathFormulas(markdownText);
+            const currentMathHash = simpleHash(mathFormulas.map(f => f.formula).join(''));
+            
+            // 如果数学公式没有变化，跳过渲染
+            if (currentMathHash === lastMathHash) {
+                return;
+            }
+            
+            lastMathHash = currentMathHash;
             
             // 显示渲染指示器
             if (mathIndicator) {
                 mathIndicator.classList.add('show');
             }
             
-            try {
-                renderMathInElement(element, {
-                    delimiters: [
-                        {left: '$$', right: '$$', display: true},
-                        {left: '$', right: '$', display: false},
-                        {left: '\\(', right: '\\)', display: false},
-                        {left: '\\[', right: '\\]', display: true}
-                    ],
-                    throwOnError: false,
-                    errorCallback: function(msg, err) {
-                        console.warn('数学公式渲染警告:', msg, err);
-                        // 在出错的地方显示错误提示
-                        if (err && err.position) {
-                            const errorSpan = document.createElement('span');
-                            errorSpan.className = 'math-error';
-                            errorSpan.textContent = '公式错误: ' + msg;
-                            err.position.insertAdjacentElement('afterend', errorSpan);
+            // 使用RequestAnimationFrame优化渲染时机
+            requestAnimationFrame(() => {
+                try {
+                    // 创建DocumentFragment进行批量DOM操作
+                    const fragment = document.createDocumentFragment();
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = element.innerHTML;
+                    fragment.appendChild(tempDiv);
+                    
+                    renderMathInElement(tempDiv, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false},
+                            {left: '\\(', right: '\\)', display: false},
+                            {left: '\\[', right: '\\]', display: true}
+                        ],
+                        throwOnError: false,
+                        errorCallback: function(msg, err) {
+                            console.warn('数学公式渲染警告:', msg, err);
                         }
-                    }
-                });
-                
-                // 渲染完成后隐藏指示器
-                setTimeout(() => {
+                    });
+                    
+                    // 批量更新DOM
+                    element.innerHTML = tempDiv.innerHTML;
+                    
+                    // 渲染完成后隐藏指示器
+                    setTimeout(() => {
+                        if (mathIndicator) {
+                            mathIndicator.classList.remove('show');
+                        }
+                    }, 200);
+                    
+                } catch (error) {
+                    console.error('数学公式渲染失败:', error);
                     if (mathIndicator) {
                         mathIndicator.classList.remove('show');
                     }
-                }, 500);
-                
-            } catch (error) {
-                console.error('数学公式渲染失败:', error);
-                if (mathIndicator) {
-                    mathIndicator.classList.remove('show');
+                    showToast('公式渲染失败', '部分数学公式可能无法正确显示', 'warning', 2000);
                 }
-                showToast('公式渲染失败', '部分数学公式可能无法正确显示', 'warning', 2000);
-            }
+            });
         }
+
+        // 节流的数学公式渲染（1000ms限制）
+        const throttledRenderMath = throttle(renderMath, 1000);
 
         // Toast通知系统
         function showToast(title, message, type = 'success', duration = 3000) {
@@ -1888,20 +2494,148 @@ console.log('Hello World!');
             document.getElementById('readTime').textContent = readTime || '<1';
         }
 
-        // 防抖函数
-        function debounce(func, wait) {
+        // 增强防抖函数 - 支持动态延迟
+        function debounce(func, wait, dynamicWaitFunc = null) {
             let timeout;
             return function executedFunction(...args) {
+                const actualWait = dynamicWaitFunc ? dynamicWaitFunc() : wait;
                 const later = () => {
                     clearTimeout(timeout);
                     func(...args);
                 };
                 clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
+                timeout = setTimeout(later, actualWait);
             };
         }
 
-        // 预览更新函数
+        // 节流函数 - 限制函数执行频率
+        function throttle(func, limit) {
+            let inThrottle;
+            return function executedFunction(...args) {
+                if (!inThrottle) {
+                    func.apply(this, args);
+                    inThrottle = true;
+                    setTimeout(() => inThrottle = false, limit);
+                }
+            };
+        }
+
+        // 长文档性能优化配置
+        const PERFORMANCE_CONFIG = {
+            CHUNK_SIZE: 2000,           // 每个分片的字符数
+            LARGE_DOC_THRESHOLD: 5000,  // 长文档阈值
+            HUGE_DOC_THRESHOLD: 15000,  // 超长文档阈值
+            MAX_PARSE_TIME: 100         // 最大解析时间(ms)
+        };
+
+        // 内容差异检测
+        let lastContentHash = '';
+        
+        function getContentHash(content) {
+            return simpleHash(content);
+        }
+
+        // 分片解析函数
+        function parseMarkdownInChunks(markdownText, onProgress = null) {
+            return new Promise((resolve) => {
+                const chunks = [];
+                const chunkSize = PERFORMANCE_CONFIG.CHUNK_SIZE;
+                
+                // 按行分割，保持内容完整性
+                const lines = markdownText.split('\n');
+                let currentChunk = '';
+                let currentSize = 0;
+                
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i] + '\n';
+                    
+                    if (currentSize + line.length > chunkSize && currentChunk.trim()) {
+                        chunks.push(currentChunk);
+                        currentChunk = line;
+                        currentSize = line.length;
+                    } else {
+                        currentChunk += line;
+                        currentSize += line.length;
+                    }
+                }
+                
+                if (currentChunk.trim()) {
+                    chunks.push(currentChunk);
+                }
+                
+                // 逐步解析分片
+                let processedChunks = [];
+                let currentIndex = 0;
+                
+                function processNextChunk() {
+                    if (currentIndex >= chunks.length) {
+                        resolve(processedChunks.join(''));
+                        return;
+                    }
+                    
+                    const chunk = chunks[currentIndex];
+                    const startTime = performance.now();
+                    
+                    try {
+                        const html = marked.parse(chunk);
+                        processedChunks.push(html);
+                        
+                        if (onProgress) {
+                            onProgress({
+                                current: currentIndex + 1,
+                                total: chunks.length,
+                                percentage: Math.round(((currentIndex + 1) / chunks.length) * 100)
+                            });
+                        }
+                        
+                        currentIndex++;
+                        
+                        // 检查解析时间，如果太长则延迟下一个分片
+                        const parseTime = performance.now() - startTime;
+                        if (parseTime > PERFORMANCE_CONFIG.MAX_PARSE_TIME) {
+                            setTimeout(processNextChunk, 10);
+                        } else {
+                            processNextChunk();
+                        }
+                        
+                    } catch (error) {
+                        processedChunks.push(`<div class="parse-error">分片解析错误: ${error.message}</div>`);
+                        currentIndex++;
+                        setTimeout(processNextChunk, 5);
+                    }
+                }
+                
+                processNextChunk();
+            });
+        }
+
+        // 显示解析进度
+        function showParseProgress(show = true) {
+            const indicator = document.getElementById('parseIndicator');
+            if (indicator) {
+                if (show) {
+                    indicator.classList.add('show');
+                } else {
+                    indicator.classList.remove('show');
+                }
+            }
+        }
+
+        // 更新解析进度
+        function updateParseProgress(progress) {
+            const progressBar = document.querySelector('#parseIndicator .progress-bar-fill');
+            const progressText = document.querySelector('#parseIndicator .progress-text');
+            
+            if (progressBar) {
+                progressBar.style.width = `${progress.percentage}%`;
+            }
+            
+            if (progressText) {
+                progressText.textContent = `解析中... ${progress.current}/${progress.total} (${progress.percentage}%)`;
+            }
+        }
+
+        // 优化的预览更新函数
         function updatePreview() {
             const markdownText = markdownInput.value;
             
@@ -1922,14 +2656,52 @@ console.log('Hello World!');
                         </div>
                     </div>
                 `;
+                lastContentHash = '';
                 return;
             }
+
+            // 内容差异检测
+            const currentHash = getContentHash(markdownText);
+            if (currentHash === lastContentHash) {
+                return; // 内容没有变化，跳过更新
+            }
+            lastContentHash = currentHash;
+            
+            const textLength = markdownText.length;
             
             try {
-                const html = marked.parse(markdownText);
-                preview.innerHTML = html;
-                // 渲染数学公式
-                setTimeout(() => renderMath(preview), 10);
+                // 长文档使用分片解析
+                if (textLength > PERFORMANCE_CONFIG.LARGE_DOC_THRESHOLD) {
+                    
+                    // 超长文档警告
+                    if (textLength > PERFORMANCE_CONFIG.HUGE_DOC_THRESHOLD) {
+                        showToast('性能提示', '文档较长，解析可能需要一些时间', 'info', 3000);
+                    }
+                    
+                    showParseProgress(true);
+                    
+                    parseMarkdownInChunks(markdownText, updateParseProgress)
+                        .then(html => {
+                            preview.innerHTML = html;
+                            throttledRenderMath(preview);
+                            showParseProgress(false);
+                        })
+                        .catch(error => {
+                            console.error('分片解析失败:', error);
+                            showParseProgress(false);
+                            // 降级到标准解析
+                            const html = marked.parse(markdownText);
+                            preview.innerHTML = html;
+                            throttledRenderMath(preview);
+                        });
+                    
+                } else {
+                    // 短文档直接解析
+                    const html = marked.parse(markdownText);
+                    preview.innerHTML = html;
+                    throttledRenderMath(preview);
+                }
+                
             } catch (error) {
                 preview.innerHTML = `
                     <div style="color: var(--warning); padding: 20px; text-align: center;">
@@ -1938,16 +2710,29 @@ console.log('Hello World!');
                         <div style="font-size: 14px; margin-top: 8px; opacity: 0.8;">${error.message}</div>
                     </div>
                 `;
+                showParseProgress(false);
             }
         }
 
-        // 防抖的预览更新（300ms延迟）
-        const debouncedUpdatePreview = debounce(updatePreview, 300);
+        // 动态计算防抖延迟 - 根据文档长度调整
+        function calculateDebounceDelay() {
+            const textLength = markdownInput.value.length;
+            if (textLength < 1000) return 300;        // 短文档: 300ms
+            if (textLength < 5000) return 500;        // 中等文档: 500ms
+            if (textLength < 10000) return 800;       // 长文档: 800ms
+            return 1200;                              // 超长文档: 1200ms
+        }
 
-        // 实时预览功能（使用防抖）
+        // 防抖的预览更新（动态延迟）
+        const debouncedUpdatePreview = debounce(updatePreview, 300, calculateDebounceDelay);
+
+        // 防抖的字数统计更新（100ms延迟）
+        const debouncedUpdateWordCount = debounce(updateWordCount, 100);
+
+        // 实时预览功能（优化防抖）
         markdownInput.addEventListener('input', function() {
-            updateWordCount(); // 字数统计立即更新
-            debouncedUpdatePreview(); // 预览更新使用防抖
+            debouncedUpdateWordCount(); // 字数统计也使用防抖
+            debouncedUpdatePreview();   // 预览更新使用动态防抖
         });
 
         // 示例内容库
@@ -2195,8 +2980,61 @@ $$\\lim_{x \\to \\infty} \\frac{1}{x} = 0$$
             }
         }
 
-        // 转换为Word文档
-        function downloadWord() {
+        // 提取文档标题（用于文件命名和文档属性）
+        function extractDocumentTitle(markdownText) {
+            const firstLine = markdownText.split('\n')[0].trim();
+            if (firstLine.startsWith('#')) {
+                return firstLine.replace(/^#+\s*/, '').trim() || '无标题文档';
+            }
+            return '无标题文档';
+        }
+
+        // 分析文档复杂度
+        function analyzeDocumentComplexity(markdownText) {
+            const size = markdownText.length;
+            const lines = markdownText.split('\n').length;
+            const hasTables = /\|/.test(markdownText);
+            const hasCodeBlocks = /```/.test(markdownText);
+            const hasMath = /\$.*?\$|\\\(.*?\\\)|\\\[.*?\\\]|\$\$.*?\$\$/.test(markdownText);
+            
+            return {
+                size: size,
+                lines: lines,
+                isLarge: size > 10000 || lines > 500,
+                hasTables: hasTables,
+                hasCodeBlocks: hasCodeBlocks,
+                hasMath: hasMath
+            };
+        }
+
+        // 显示Word转换进度
+        function showWordConversionProgress(show = true) {
+            const indicator = document.getElementById('wordConversionIndicator');
+            if (indicator) {
+                if (show) {
+                    indicator.classList.add('show');
+                } else {
+                    indicator.classList.remove('show');
+                }
+            }
+        }
+
+        // 更新Word转换进度
+        function updateWordConversionProgress({ step, progress }) {
+            const progressBar = document.querySelector('#wordConversionIndicator .progress-bar-fill');
+            const progressText = document.querySelector('#wordConversionIndicator .progress-text');
+            
+            if (progressBar) {
+                progressBar.style.width = `${progress}%`;
+            }
+            
+            if (progressText) {
+                progressText.textContent = `${step}... ${progress}%`;
+            }
+        }
+
+        // 异步转换Word文档 - 优化用户体验
+        async function downloadWord() {
             const markdownText = markdownInput.value.trim();
             
             if (!markdownText) {
@@ -2204,13 +3042,36 @@ $$\\lim_{x \\to \\infty} \\frac{1}{x} = 0$$
                 return;
             }
 
+            // 预检查：文档大小和复杂度
+            const complexity = analyzeDocumentComplexity(markdownText);
+            if (complexity.isLarge) {
+                const proceed = await showConfirm(
+                    '大文档提醒', 
+                    `检测到较大的文档（${complexity.size}字符），转换可能需要一些时间。是否继续？`,
+                    '📄'
+                );
+                if (!proceed) return;
+            }
+
+            // 显示转换进度
+            showWordConversionProgress(true);
+            updateWordConversionProgress({ step: '解析', progress: 10 });
+
             try {
-                // 解析markdown为HTML
+                // 提取文档标题
+                const documentTitle = extractDocumentTitle(markdownText);
+                
+                // 异步解析markdown为HTML
+                await new Promise(resolve => setTimeout(resolve, 50)); // 给UI一点时间更新
+                updateWordConversionProgress({ step: '解析Markdown', progress: 20 });
+                
                 const html = marked.parse(markdownText);
                 
                 // 将HTML转换为纯文本并保持基本格式
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = html;
+                
+                updateWordConversionProgress({ step: '处理文档结构', progress: 40 });
                 
                 // 提取文档内容
                 const children = [];
@@ -2255,6 +3116,18 @@ $$\\lim_{x \\to \\infty} \\frac{1}{x} = 0$$
                             // 处理段落中的格式（递归处理混合格式）
                             const runs = [];
                             
+                            // 检查是否包含数学公式
+                            const mathFormulas = /\$([^$]+)\$|\\\(([^)]+)\\\)|\\\[([^\]]+)\\\]|\$\$([^$]+)\$\$/g;
+                            const hasMath = mathFormulas.test(element.innerHTML);
+                            if (hasMath) {
+                                // 添加数学公式提示
+                                runs.push(new docx.TextRun({
+                                    text: "[此段落包含数学公式，请在Word中手动添加公式] ",
+                                    color: "FF6600",
+                                    italics: true
+                                }));
+                            }
+                            
                             const processNode = (node) => {
                                 if (node.nodeType === Node.TEXT_NODE) {
                                     const textContent = node.textContent;
@@ -2263,6 +3136,31 @@ $$\\lim_{x \\to \\infty} \\frac{1}{x} = 0$$
                                     }
                                 } else if (node.nodeType === Node.ELEMENT_NODE) {
                                     const tag = node.tagName.toLowerCase();
+                                    
+                                    // 特殊处理链接
+                                    if (tag === 'a') {
+                                        const href = node.getAttribute('href');
+                                        const linkText = node.textContent;
+                                        const displayText = href ? `${linkText} (${href})` : linkText;
+                                        runs.push(new docx.TextRun({
+                                            text: displayText,
+                                            color: "0066CC",
+                                            underline: {}
+                                        }));
+                                        return;
+                                    }
+                                    
+                                    // 特殊处理图片
+                                    if (tag === 'img') {
+                                        const alt = node.getAttribute('alt') || '图片';
+                                        const src = node.getAttribute('src') || '';
+                                        runs.push(new docx.TextRun({
+                                            text: `[图片: ${alt}${src ? ` - ${src}` : ''}] `,
+                                            color: "666666",
+                                            italics: true
+                                        }));
+                                        return;
+                                    }
                                     
                                     // 递归处理嵌套标签
                                     if (node.childNodes.length > 0) {
@@ -2383,27 +3281,79 @@ $$\\lim_{x \\to \\infty} \\frac{1}{x} = 0$$
                             }
                             break;
                         case 'ul':
-                            Array.from(element.querySelectorAll('li')).forEach((li, index) => {
-                                children.push(new docx.Paragraph({
-                                    text: li.textContent.trim(),
-                                    bullet: {
-                                        level: 0
-                                    },
-                                    spacing: { after: 80 }
-                                }));
-                            });
+                            // 改进的无序列表处理，支持嵌套
+                            const processULItems = (listElement, level = 0) => {
+                                Array.from(listElement.children).forEach(li => {
+                                    if (li.tagName.toLowerCase() === 'li') {
+                                        // 获取当前项的直接文本内容
+                                        const directText = Array.from(li.childNodes)
+                                            .filter(node => node.nodeType === Node.TEXT_NODE || 
+                                                   (node.nodeType === Node.ELEMENT_NODE && 
+                                                    !['ul', 'ol'].includes(node.tagName.toLowerCase())))
+                                            .map(node => node.textContent)
+                                            .join('').trim();
+                                        
+                                        if (directText) {
+                                            children.push(new docx.Paragraph({
+                                                text: directText,
+                                                bullet: {
+                                                    level: level
+                                                },
+                                                spacing: { after: 80 }
+                                            }));
+                                        }
+                                        
+                                        // 处理嵌套列表
+                                        const nestedLists = li.querySelectorAll(':scope > ul, :scope > ol');
+                                        nestedLists.forEach(nestedList => {
+                                            if (nestedList.tagName.toLowerCase() === 'ul') {
+                                                processULItems(nestedList, level + 1);
+                                            } else {
+                                                processOLItems(nestedList, level + 1);
+                                            }
+                                        });
+                                    }
+                                });
+                            };
+                            processULItems(element);
                             break;
                         case 'ol':
-                            Array.from(element.querySelectorAll('li')).forEach((li, index) => {
-                                children.push(new docx.Paragraph({
-                                    text: li.textContent.trim(),
-                                    numbering: {
-                                        reference: "default-numbering",
-                                        level: 0
-                                    },
-                                    spacing: { after: 80 }
-                                }));
-                            });
+                            // 改进的有序列表处理，支持嵌套
+                            const processOLItems = (listElement, level = 0) => {
+                                Array.from(listElement.children).forEach(li => {
+                                    if (li.tagName.toLowerCase() === 'li') {
+                                        // 获取当前项的直接文本内容
+                                        const directText = Array.from(li.childNodes)
+                                            .filter(node => node.nodeType === Node.TEXT_NODE || 
+                                                   (node.nodeType === Node.ELEMENT_NODE && 
+                                                    !['ul', 'ol'].includes(node.tagName.toLowerCase())))
+                                            .map(node => node.textContent)
+                                            .join('').trim();
+                                        
+                                        if (directText) {
+                                            children.push(new docx.Paragraph({
+                                                text: directText,
+                                                numbering: {
+                                                    reference: "default-numbering",
+                                                    level: level
+                                                },
+                                                spacing: { after: 80 }
+                                            }));
+                                        }
+                                        
+                                        // 处理嵌套列表
+                                        const nestedLists = li.querySelectorAll(':scope > ul, :scope > ol');
+                                        nestedLists.forEach(nestedList => {
+                                            if (nestedList.tagName.toLowerCase() === 'ul') {
+                                                processULItems(nestedList, level + 1);
+                                            } else {
+                                                processOLItems(nestedList, level + 1);
+                                            }
+                                        });
+                                    }
+                                });
+                            };
+                            processOLItems(element);
                             break;
                         case 'blockquote':
                             children.push(new docx.Paragraph({
@@ -2463,14 +3413,32 @@ $$\\lim_{x \\to \\infty} \\frac{1}{x} = 0$$
                             }));
                             break;
                         case 'table':
-                            // 简单表格处理
+                            // 增强表格处理
                             const rows = Array.from(element.querySelectorAll('tr'));
                             if (rows.length > 0) {
-                                const tableRows = rows.map(row => {
+                                const tableRows = rows.map((row, rowIndex) => {
                                     const cells = Array.from(row.querySelectorAll('td, th'));
+                                    const isHeader = row.querySelector('th') !== null || rowIndex === 0;
+                                    
                                     return new docx.TableRow({
                                         children: cells.map(cell => new docx.TableCell({
-                                            children: [new docx.Paragraph(cell.textContent.trim())]
+                                            children: [new docx.Paragraph({
+                                                text: cell.textContent.trim(),
+                                                run: isHeader ? {
+                                                    bold: true,
+                                                    color: "2F5597"
+                                                } : {}
+                                            })],
+                                            shading: isHeader ? {
+                                                type: docx.ShadingType.SOLID,
+                                                color: "F2F5FF"
+                                            } : undefined,
+                                            margins: {
+                                                top: 120,
+                                                bottom: 120,
+                                                left: 120,
+                                                right: 120
+                                            }
                                         }))
                                     });
                                 });
@@ -2480,7 +3448,21 @@ $$\\lim_{x \\to \\infty} \\frac{1}{x} = 0$$
                                     width: {
                                         size: 100,
                                         type: docx.WidthType.PERCENTAGE
+                                    },
+                                    borders: {
+                                        top: { style: docx.BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+                                        bottom: { style: docx.BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+                                        left: { style: docx.BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+                                        right: { style: docx.BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+                                        insideHorizontal: { style: docx.BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+                                        insideVertical: { style: docx.BorderStyle.SINGLE, size: 1, color: "CCCCCC" }
                                     }
+                                }));
+                                
+                                // 表格后添加空行
+                                children.push(new docx.Paragraph({
+                                    text: "",
+                                    spacing: { after: 200 }
                                 }));
                             }
                             break;
@@ -2497,28 +3479,166 @@ $$\\lim_{x \\to \\infty} \\frac{1}{x} = 0$$
                     children.push(new docx.Paragraph("文档内容"));
                 }
 
+                updateWordConversionProgress({ step: '构建文档', progress: 70 });
+                await new Promise(resolve => setTimeout(resolve, 100)); // 异步间隔
+
                 // 创建Word文档
                 const doc = new docx.Document({
+                    creator: "Markdown转Word转换器",
+                    title: documentTitle,
+                    description: "由Markdown转Word转换器生成",
+                    styles: {
+                        paragraphStyles: [
+                            {
+                                id: "Heading1",
+                                name: "标题 1",
+                                basedOn: "Normal",
+                                next: "Normal",
+                                quickFormat: true,
+                                run: {
+                                    size: 32,
+                                    bold: true,
+                                    color: "2F5597"
+                                },
+                                paragraph: {
+                                    spacing: {
+                                        after: 240,
+                                        before: 240
+                                    }
+                                }
+                            },
+                            {
+                                id: "Heading2", 
+                                name: "标题 2",
+                                basedOn: "Normal",
+                                next: "Normal",
+                                quickFormat: true,
+                                run: {
+                                    size: 28,
+                                    bold: true,
+                                    color: "2F5597"
+                                },
+                                paragraph: {
+                                    spacing: {
+                                        after: 200,
+                                        before: 200
+                                    }
+                                }
+                            },
+                            {
+                                id: "CodeBlock",
+                                name: "代码块",
+                                basedOn: "Normal",
+                                run: {
+                                    font: "Consolas",
+                                    size: 18
+                                },
+                                paragraph: {
+                                    shading: {
+                                        type: docx.ShadingType.SOLID,
+                                        color: "F8F8F8"
+                                    },
+                                    indent: {
+                                        left: 360
+                                    },
+                                    spacing: {
+                                        after: 120
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    numbering: {
+                        config: [
+                            {
+                                reference: "default-numbering",
+                                levels: [
+                                    {
+                                        level: 0,
+                                        format: docx.LevelFormat.DECIMAL,
+                                        text: "%1.",
+                                        alignment: docx.AlignmentType.START,
+                                        style: {
+                                            paragraph: {
+                                                indent: { left: 720, hanging: 360 }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        level: 1,
+                                        format: docx.LevelFormat.DECIMAL,
+                                        text: "%1.%2.",
+                                        alignment: docx.AlignmentType.START,
+                                        style: {
+                                            paragraph: {
+                                                indent: { left: 1080, hanging: 360 }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
                     sections: [{
-                        properties: {},
+                        properties: {
+                            page: {
+                                margin: {
+                                    top: 1440,    // 1 inch = 1440 twips
+                                    right: 1440,
+                                    bottom: 1440,
+                                    left: 1440
+                                }
+                            }
+                        },
                         children: children
                     }]
                 });
 
-                // 生成并下载文件
-                showToast('处理中', '正在生成Word文档...', 'info');
-                docx.Packer.toBlob(doc).then(blob => {
+                updateWordConversionProgress({ step: '生成文档', progress: 90 });
+                
+                // 异步生成并下载文件
+                try {
+                    const blob = await docx.Packer.toBlob(doc);
+                    
+                    updateWordConversionProgress({ step: '准备下载', progress: 95 });
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                    
+                    // 智能文件命名
                     const currentDate = new Date().toISOString().slice(0, 10);
-                    saveAs(blob, `markdown-document-${currentDate}.docx`);
-                    showToast('下载完成', 'Word文档已成功生成并下载');
-                }).catch(error => {
-                    console.error('Word生成失败:', error);
-                    showToast('生成失败', 'Word文档生成过程中出现错误', 'error');
-                });
+                    const safeTitle = documentTitle
+                        .replace(/[<>:"/\\|?*]/g, '-')  // 替换非法字符
+                        .substring(0, 50);              // 限制长度
+                    const fileName = `${safeTitle}-${currentDate}.docx`;
+                    
+                    saveAs(blob, fileName);
+                    
+                    updateWordConversionProgress({ step: '完成', progress: 100 });
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    showWordConversionProgress(false);
+                    showToast('下载完成', `Word文档"${safeTitle}"已成功生成并下载`, 'success', 3000);
+                    
+                } catch (packError) {
+                    console.error('Word生成失败:', packError);
+                    showWordConversionProgress(false);
+                    showToast('生成失败', `Word文档生成过程中出现错误: ${packError.message}`, 'error', 5000);
+                }
 
             } catch (error) {
                 console.error('转换失败:', error);
-                showToast('转换失败', '请检查您的Markdown格式是否正确', 'error');
+                showWordConversionProgress(false);
+                
+                // 增强错误处理
+                let errorMessage = '请检查您的Markdown格式是否正确';
+                if (error.message.includes('marked')) {
+                    errorMessage = 'Markdown解析失败，请检查语法格式';
+                } else if (error.message.includes('docx')) {
+                    errorMessage = 'Word文档生成失败，请重试';
+                } else if (error.name === 'TypeError') {
+                    errorMessage = '文档结构异常，请简化内容后重试';
+                }
+                
+                showToast('转换失败', errorMessage, 'error', 5000);
             }
         }
 
