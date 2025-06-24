@@ -1912,6 +1912,23 @@
                 <div class="author-info">
                     由 <span class="author-name">Boning</span> 开发 · TJUT · <span style="color: #E8F5E8;">内测版</span>
                 </div>
+                
+                <!-- 用户权限状态显示 -->
+                <div class="user-status" id="userStatus" style="margin-top: 10px; padding: 8px 12px; background: var(--glass-bg); border-radius: 8px; border: 1px solid var(--glass-border); backdrop-filter: var(--blur); display: none;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                        <div class="user-info" style="display: flex; align-items: center; gap: 8px;">
+                            <span id="userIcon">👤</span>
+                            <span id="userName" style="font-weight: 600;">用户</span>
+                            <span id="userLevel" style="background: var(--accent-primary); color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px;">Level</span>
+                        </div>
+                        <div class="quota-info" style="display: flex; align-items: center; gap: 12px; font-size: 14px;">
+                            <span id="quotaStatus">配额: --/--</span>
+                            <button onclick="showUserPermissions()" style="background: none; border: none; color: var(--accent-primary); cursor: pointer; padding: 4px 8px; border-radius: 4px; border: 1px solid var(--accent-primary);" title="查看权限详情">详情</button>
+                            <button id="adminButton" onclick="showAdminPanel()" style="background: var(--accent-primary); border: none; color: white; cursor: pointer; padding: 4px 8px; border-radius: 4px; display: none;" title="管理面板">管理</button>
+                            <button onclick="showLogoutConfirm()" style="background: var(--warning); border: none; color: white; cursor: pointer; padding: 4px 8px; border-radius: 4px;" title="退出登录">退出</button>
+                        </div>
+                    </div>
+                </div>
             </header>
 
         <main class="main-content">
@@ -2106,14 +2123,267 @@ console.log('Hello World!');
             </div>
         </div>
         
+        <!-- 管理员面板 -->
+        <div class="admin-panel" id="adminPanel" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; backdrop-filter: blur(5px);">
+            <div style="display: flex; align-items: center; justify-content: center; height: 100%; padding: 20px;">
+                <div style="background: var(--container-bg); border-radius: 15px; padding: 30px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="margin: 0; color: var(--text-primary);">👑 超级管理员面板</h2>
+                        <button onclick="closeAdminPanel()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary);" title="关闭">&times;</button>
+                    </div>
+                    
+                    <!-- 标签页导航 -->
+                    <div class="admin-tabs" style="display: flex; border-bottom: 2px solid var(--border-color); margin-bottom: 20px;">
+                        <button class="admin-tab active" onclick="switchAdminTab('quota')" data-tab="quota" style="padding: 10px 20px; border: none; background: none; cursor: pointer; border-bottom: 2px solid var(--accent-primary); color: var(--accent-primary); font-weight: 600;">配额管理</button>
+                        <button class="admin-tab" onclick="switchAdminTab('password')" data-tab="password" style="padding: 10px 20px; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; color: var(--text-secondary);">密码生成</button>
+                        <button class="admin-tab" onclick="switchAdminTab('statistics')" data-tab="statistics" style="padding: 10px 20px; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; color: var(--text-secondary);">使用统计</button>
+                    </div>
+                    
+                    <!-- 配额管理标签页 -->
+                    <div id="quotaTab" class="admin-tab-content">
+                        <h3 style="color: var(--text-primary); margin-bottom: 15px;">📊 用户配额管理</h3>
+                        <div style="display: grid; gap: 15px;">
+                            <div style="background: var(--preview-bg); padding: 15px; border-radius: 8px; border-left: 4px solid var(--accent-primary);">
+                                <h4 style="margin: 0 0 10px 0;">🆓 基础用户 (basic123)</h4>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span id="basicUserStats">今日使用: --/15 次</span>
+                                    <button onclick="resetUserQuota('basic')" style="background: var(--warning); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">重置配额</button>
+                                </div>
+                            </div>
+                            <div style="background: var(--preview-bg); padding: 15px; border-radius: 8px; border-left: 4px solid var(--accent-secondary);">
+                                <h4 style="margin: 0 0 10px 0;">⭐ 高级用户 (517517)</h4>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span id="advancedUserStats">今日使用: --/50 次</span>
+                                    <button onclick="resetUserQuota('advanced')" style="background: var(--warning); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">重置配额</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 20px; text-align: center;">
+                            <button onclick="resetAllQuotas()" style="background: var(--accent-primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;">重置所有用户配额</button>
+                        </div>
+                        
+                        <!-- 已生成密码管理区域 -->
+                        <div style="margin-top: 30px;">
+                            <h4 style="color: var(--text-primary); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                                🔑 已生成的密码
+                                <span style="background: var(--info); color: white; padding: 2px 6px; border-radius: 12px; font-size: 11px; font-weight: normal;" id="passwordCount">0</span>
+                            </h4>
+                            <div id="quotaPasswordList" style="background: var(--preview-bg); padding: 15px; border-radius: 8px; max-height: 200px; overflow-y: auto;">
+                                <div style="color: var(--text-secondary); text-align: center; font-style: italic;">暂无生成的密码</div>
+                            </div>
+                            <div style="margin-top: 10px; text-align: center;">
+                                <button onclick="clearAllPasswords()" style="background: var(--warning); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">清除所有密码</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 密码生成标签页 -->
+                    <div id="passwordTab" class="admin-tab-content" style="display: none;">
+                        <h3 style="color: var(--text-primary); margin-bottom: 15px;">🔑 密码生成器</h3>
+                        <div style="background: var(--preview-bg); padding: 20px; border-radius: 8px;">
+                            <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 5px; font-weight: 600;">用户类型：</label>
+                                <select id="passwordUserType" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: white;">
+                                    <option value="basic">基础用户</option>
+                                    <option value="advanced">高级用户</option>
+                                </select>
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 5px; font-weight: 600;">密码长度：</label>
+                                <input type="number" id="passwordLength" value="8" min="6" max="20" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                            </div>
+                            <button onclick="generatePassword()" style="background: var(--accent-primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; margin-bottom: 15px;">生成密码</button>
+                            <div id="generatedPassword" style="background: white; padding: 10px; border-radius: 4px; border: 1px solid var(--border-color); font-family: monospace; font-size: 16px; text-align: center; display: none;">
+                                <div style="margin-bottom: 5px; font-weight: 600;">新生成的密码:</div>
+                                <div id="passwordValue" style="font-size: 18px; color: var(--accent-primary); letter-spacing: 2px;"></div>
+                                <button onclick="copyPassword()" style="background: var(--success); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-top: 10px;">复制密码</button>
+                            </div>
+                        </div>
+                        
+                        <!-- 现有密码列表 -->
+                        <div style="margin-top: 20px;">
+                            <h4 style="color: var(--text-primary); margin-bottom: 10px;">📋 已生成的密码</h4>
+                            <div id="passwordList" style="background: var(--preview-bg); padding: 15px; border-radius: 8px; max-height: 200px; overflow-y: auto;">
+                                <div style="color: var(--text-secondary); text-align: center; font-style: italic;">暂无生成的密码</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 使用统计标签页 -->
+                    <div id="statisticsTab" class="admin-tab-content" style="display: none;">
+                        <h3 style="color: var(--text-primary); margin-bottom: 15px;">📈 系统使用统计</h3>
+                        <div style="display: grid; gap: 15px;">
+                            <div style="background: var(--preview-bg); padding: 15px; border-radius: 8px;">
+                                <h4 style="margin: 0 0 10px 0;">📊 今日总体统计</h4>
+                                <div id="todayStats" style="display: grid; gap: 8px;">
+                                    <div>基础用户转换: <span id="basicTodayCount">0</span> 次</div>
+                                    <div>高级用户转换: <span id="advancedTodayCount">0</span> 次</div>
+                                    <div>总转换次数: <span id="totalTodayCount">0</span> 次</div>
+                                </div>
+                            </div>
+                            <div style="background: var(--preview-bg); padding: 15px; border-radius: 8px;">
+                                <h4 style="margin: 0 0 10px 0;">🕒 历史统计</h4>
+                                <div id="historyStats">
+                                    <button onclick="clearAllStatistics()" style="background: var(--warning); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">清除统计数据</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <!-- 主题切换过渡层 -->
         <div class="theme-transition" id="themeTransition"></div>
         </div>
     </div>
 
     <script>
-        // 密码验证功能 - 增强版
-        const validPasswords = ['517517', 'lingling'];
+        // 商业化权限系统 - 3级用户分级
+        const userPermissions = {
+            'basic123': {
+                level: 'basic',
+                name: '基础用户',
+                icon: '🆓',
+                dailyLimit: 15,
+                sizeLimit: 10000,
+                features: {
+                    basicMarkdown: true,
+                    mathFormulas: false,
+                    batchProcess: false,
+                    customExport: false,
+                    priority: 'low'
+                }
+            },
+            '517517': {
+                level: 'advanced',
+                name: '高级用户',
+                icon: '⭐',
+                dailyLimit: 50,
+                sizeLimit: 50000,
+                features: {
+                    basicMarkdown: true,
+                    mathFormulas: true,
+                    batchProcess: true,
+                    customExport: true,
+                    priority: 'high'
+                }
+            },
+            'lingling': {
+                level: 'super_admin',
+                name: '超级管理员',
+                icon: '👑',
+                dailyLimit: -1,
+                sizeLimit: -1,
+                features: {
+                    basicMarkdown: true,
+                    mathFormulas: true,
+                    batchProcess: true,
+                    customExport: true,
+                    priority: 'highest',
+                    adminPanel: true,
+                    quotaManagement: true,
+                    passwordGenerator: true,
+                    userStatistics: true
+                }
+            }
+        };
+        
+        // 当前用户权限
+        let currentUser = null;
+        
+        // 预览配额检查防抖变量
+        let isQuotaCheckScheduled = false;
+        let quotaCheckTimeout = null;
+        
+        // 示例加载标志，避免计入配额
+        let isLoadingExample = false;
+        
+        // 自定义密码管理
+        const customPasswords = {
+            // 从localStorage加载自定义密码
+            load() {
+                const stored = localStorage.getItem('customPasswords');
+                return stored ? JSON.parse(stored) : {};
+            },
+            
+            // 保存自定义密码到localStorage
+            save(passwords) {
+                localStorage.setItem('customPasswords', JSON.stringify(passwords));
+            },
+            
+            // 添加新密码
+            add(password, userLevel) {
+                const passwords = this.load();
+                passwords[password] = {
+                    level: userLevel,
+                    createdAt: new Date().toISOString(),
+                    createdBy: currentUser ? currentUser.level : 'admin'
+                };
+                this.save(passwords);
+                return password;
+            },
+            
+            // 删除密码
+            remove(password) {
+                const passwords = this.load();
+                delete passwords[password];
+                this.save(passwords);
+            },
+            
+            // 获取所有有效密码
+            getAll() {
+                return this.load();
+            },
+            
+            // 检查密码是否存在
+            exists(password) {
+                const passwords = this.load();
+                return passwords.hasOwnProperty(password);
+            },
+            
+            // 获取密码对应的用户权限
+            getPermissions(password) {
+                const passwords = this.load();
+                const customPassword = passwords[password];
+                if (!customPassword) return null;
+                
+                // 基于用户等级返回权限配置
+                const basePermissions = {
+                    basic: {
+                        level: 'basic',
+                        name: '基础用户',
+                        icon: '🆓',
+                        dailyLimit: 15,
+                        sizeLimit: 10000,
+                        features: {
+                            basicMarkdown: true,
+                            mathFormulas: false,
+                            batchProcess: false,
+                            customExport: false,
+                            priority: 'low'
+                        }
+                    },
+                    advanced: {
+                        level: 'advanced',
+                        name: '高级用户',
+                        icon: '⭐',
+                        dailyLimit: 50,
+                        sizeLimit: 50000,
+                        features: {
+                            basicMarkdown: true,
+                            mathFormulas: true,
+                            batchProcess: true,
+                            customExport: true,
+                            priority: 'high'
+                        }
+                    }
+                };
+                
+                return basePermissions[customPassword.level] || null;
+            }
+        };
+        
         let loginAttempts = 0;
         const maxAttempts = 5;
         let lockoutTime = 0;
@@ -2176,7 +2446,20 @@ console.log('Hello World!');
                 return;
             }
             
-            if (validPasswords.includes(password)) {
+            // 检查预设密码或自定义密码
+            let userFound = false;
+            
+            if (userPermissions[password]) {
+                // 预设密码
+                currentUser = userPermissions[password];
+                userFound = true;
+            } else if (customPasswords.exists(password)) {
+                // 自定义密码
+                currentUser = customPasswords.getPermissions(password);
+                userFound = true;
+            }
+            
+            if (userFound && currentUser) {
                 // 密码正确，重置尝试次数
                 loginAttempts = 0;
                 
@@ -2189,10 +2472,15 @@ console.log('Hello World!');
                     document.getElementById('passwordOverlay').style.display = 'none';
                     document.getElementById('mainApp').classList.add('authenticated');
                     
-                    // 保存验证状态到sessionStorage（仅在当前会话有效）
+                    // 保存验证状态和用户权限到sessionStorage
                     sessionStorage.setItem('authenticated', 'true');
+                    sessionStorage.setItem('userLevel', currentUser.level);
+                    sessionStorage.setItem('userPermissions', JSON.stringify(currentUser));
                     
-                    // 初始化应用
+                    // 显示欢迎信息
+                    showWelcomeMessage();
+                    
+                    // 初始化应用（根据权限）
                     initializeApp();
                 }, 500);
                 
@@ -2214,11 +2502,660 @@ console.log('Hello World!');
             }
         }
         
+        // 显示用户欢迎信息
+        function showWelcomeMessage() {
+            if (!currentUser) return;
+            
+            const welcomeMessage = `欢迎，${currentUser.icon} ${currentUser.name}！`;
+            const limits = currentUser.dailyLimit === -1 
+                ? '无限制使用' 
+                : `今日剩余 ${getRemainingQuota()}/${currentUser.dailyLimit} 次转换`;
+            
+            showToast('登录成功', `${welcomeMessage}\n${limits}`, 'success', 3000);
+        }
+        
+        // 配额管理系统
+        function getTodayKey() {
+            return new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        }
+        
+        function getUsageKey() {
+            return `usage_${currentUser.level}_${getTodayKey()}`;
+        }
+        
+        function getTodayUsage() {
+            if (!currentUser || currentUser.dailyLimit === -1) return 0;
+            return parseInt(localStorage.getItem(getUsageKey()) || '0');
+        }
+        
+        function getRemainingQuota() {
+            if (!currentUser || currentUser.dailyLimit === -1) return -1;
+            return Math.max(0, currentUser.dailyLimit - getTodayUsage());
+        }
+        
+        function incrementUsage() {
+            if (!currentUser || currentUser.dailyLimit === -1) return true;
+            
+            const currentUsage = getTodayUsage();
+            if (currentUsage >= currentUser.dailyLimit) {
+                return false;
+            }
+            
+            localStorage.setItem(getUsageKey(), (currentUsage + 1).toString());
+            return true;
+        }
+        
+        // 回滚使用次数（用于转换失败时）
+        function rollbackUsage() {
+            if (!currentUser || currentUser.dailyLimit === -1) return;
+            
+            const currentUsage = getTodayUsage();
+            if (currentUsage > 0) {
+                localStorage.setItem(getUsageKey(), (currentUsage - 1).toString());
+            }
+        }
+        
+        // 检查文档大小限制
+        function checkDocumentSize(content) {
+            if (!currentUser || currentUser.sizeLimit === -1) return { allowed: true };
+            
+            const size = content.length;
+            if (size > currentUser.sizeLimit) {
+                return { 
+                    allowed: false, 
+                    size: size,
+                    limit: currentUser.sizeLimit,
+                    message: `文档大小 ${size} 字符，超出 ${currentUser.name} 限制 (${currentUser.sizeLimit} 字符)`
+                };
+            }
+            
+            return { allowed: true, size: size };
+        }
+        
+        // 检查功能权限
+        function hasFeature(featureName) {
+            return currentUser && currentUser.features && currentUser.features[featureName];
+        }
+        
+        // 更新用户状态显示
+        function updateUserStatus() {
+            if (!currentUser) return;
+            
+            const userStatus = document.getElementById('userStatus');
+            const userIcon = document.getElementById('userIcon');
+            const userName = document.getElementById('userName');
+            const userLevel = document.getElementById('userLevel');
+            const quotaStatus = document.getElementById('quotaStatus');
+            const adminButton = document.getElementById('adminButton');
+            
+            if (userStatus && userIcon && userName && userLevel && quotaStatus) {
+                userStatus.style.display = 'block';
+                userIcon.textContent = currentUser.icon;
+                userName.textContent = currentUser.name;
+                userLevel.textContent = currentUser.level.toUpperCase();
+                
+                // 更新配额显示
+                const remaining = getRemainingQuota();
+                if (remaining === -1) {
+                    quotaStatus.textContent = '无限制使用';
+                } else {
+                    quotaStatus.textContent = `今日剩余: ${remaining}/${currentUser.dailyLimit}`;
+                }
+                
+                // 根据配额状态调整颜色
+                if (remaining === 0) {
+                    quotaStatus.style.color = 'var(--warning)';
+                } else if (remaining <= 2 && remaining !== -1) {
+                    quotaStatus.style.color = 'var(--info)';
+                } else {
+                    quotaStatus.style.color = 'var(--text-secondary)';
+                }
+                
+                // 显示或隐藏管理按钮
+                if (adminButton) {
+                    if (hasFeature('adminPanel')) {
+                        adminButton.style.display = 'block';
+                    } else {
+                        adminButton.style.display = 'none';
+                    }
+                }
+            }
+        }
+        
+        // 显示用户权限详情
+        function showUserPermissions() {
+            if (!currentUser) return;
+            
+            const featuresList = Object.entries(currentUser.features)
+                .filter(([key, value]) => key !== 'priority')
+                .map(([key, value]) => {
+                    const featureNames = {
+                        basicMarkdown: '基础Markdown语法',
+                        mathFormulas: '数学公式支持',
+                        batchProcess: '批量文件处理',
+                        customExport: '自定义导出模板',
+                        adminPanel: '管理员面板'
+                    };
+                    const status = value ? '✅' : '❌';
+                    return `<div style="padding: 4px 0;">${status} ${featureNames[key] || key}</div>`;
+                }).join('');
+            
+            const sizeLimit = currentUser.sizeLimit === -1 ? '无限制' : `${currentUser.sizeLimit} 字符`;
+            const dailyLimit = currentUser.dailyLimit === -1 ? '无限制' : `${currentUser.dailyLimit} 次/日`;
+            const remaining = getRemainingQuota();
+            const remainingText = remaining === -1 ? '无限制' : `${remaining} 次`;
+            
+            showConfirm(
+                `${currentUser.icon} ${currentUser.name} - 权限详情`,
+                `
+                <div style="text-align: left; max-width: 400px;">
+                    <div style="background: var(--preview-bg); padding: 12px; border-radius: 6px; margin-bottom: 12px;">
+                        <strong>使用配额</strong><br>
+                        每日转换限制: ${dailyLimit}<br>
+                        今日剩余: ${remainingText}<br>
+                        文档大小限制: ${sizeLimit}
+                    </div>
+                    <div style="background: var(--preview-bg); padding: 12px; border-radius: 6px;">
+                        <strong>功能权限</strong><br>
+                        ${featuresList}
+                    </div>
+                </div>
+                `,
+                '📊'
+            );
+        }
+        
+        // === 管理员面板功能 ===
+        
+        // 显示管理员面板
+        function showAdminPanel() {
+            if (!hasFeature('adminPanel')) {
+                showToast('权限不足', '只有超级管理员可以访问管理面板', 'warning');
+                return;
+            }
+            
+            document.getElementById('adminPanel').style.display = 'block';
+            updateAdminStats();
+        }
+        
+        // 关闭管理员面板
+        function closeAdminPanel() {
+            document.getElementById('adminPanel').style.display = 'none';
+        }
+        
+        // 切换管理标签页
+        function switchAdminTab(tabName) {
+            // 隐藏所有标签页内容
+            document.querySelectorAll('.admin-tab-content').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            
+            // 移除所有标签页活动状态
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                tab.style.borderBottom = '2px solid transparent';
+                tab.style.color = 'var(--text-secondary)';
+                tab.style.fontWeight = 'normal';
+            });
+            
+            // 显示选中的标签页
+            document.getElementById(tabName + 'Tab').style.display = 'block';
+            
+            // 设置选中标签的活动状态
+            const activeTab = document.querySelector(`[data-tab="${tabName}"]`);
+            if (activeTab) {
+                activeTab.style.borderBottom = '2px solid var(--accent-primary)';
+                activeTab.style.color = 'var(--accent-primary)';
+                activeTab.style.fontWeight = '600';
+            }
+            
+            // 根据标签页更新数据
+            if (tabName === 'quota' || tabName === 'statistics') {
+                updateAdminStats();
+            } else if (tabName === 'password') {
+                updatePasswordList();
+            }
+        }
+        
+        // 更新管理面板统计数据
+        function updateAdminStats() {
+            // 更新配额统计
+            const basicUsage = getSpecificUserUsage('basic');
+            const advancedUsage = getSpecificUserUsage('advanced');
+            
+            const basicUserStats = document.getElementById('basicUserStats');
+            const advancedUserStats = document.getElementById('advancedUserStats');
+            
+            if (basicUserStats) {
+                basicUserStats.textContent = `今日使用: ${basicUsage}/15 次`;
+            }
+            
+            if (advancedUserStats) {
+                advancedUserStats.textContent = `今日使用: ${advancedUsage}/50 次`;
+            }
+            
+            // 更新总体统计
+            const basicTodayCount = document.getElementById('basicTodayCount');
+            const advancedTodayCount = document.getElementById('advancedTodayCount');
+            const totalTodayCount = document.getElementById('totalTodayCount');
+            
+            if (basicTodayCount) basicTodayCount.textContent = basicUsage;
+            if (advancedTodayCount) advancedTodayCount.textContent = advancedUsage;
+            if (totalTodayCount) totalTodayCount.textContent = basicUsage + advancedUsage;
+            
+            // 更新配额管理标签页中的密码列表
+            updateQuotaPasswordList();
+        }
+        
+        // 获取特定用户类型的使用次数
+        function getSpecificUserUsage(userLevel) {
+            const key = `usage_${userLevel}_${getTodayKey()}`;
+            return parseInt(localStorage.getItem(key) || '0');
+        }
+        
+        // 重置用户配额
+        function resetUserQuota(userLevel) {
+            const key = `usage_${userLevel}_${getTodayKey()}`;
+            localStorage.removeItem(key);
+            
+            const userNames = {
+                basic: '基础用户',
+                advanced: '高级用户'
+            };
+            
+            showToast('配额重置', `${userNames[userLevel]}的今日配额已重置`, 'success');
+            updateAdminStats();
+            
+            // 如果当前用户是被重置的类型，更新状态显示
+            if (currentUser && currentUser.level === userLevel) {
+                updateUserStatus();
+            }
+        }
+        
+        // 重置所有配额
+        function resetAllQuotas() {
+            const today = getTodayKey();
+            const keys = [
+                `usage_basic_${today}`,
+                `usage_advanced_${today}`
+            ];
+            
+            keys.forEach(key => localStorage.removeItem(key));
+            
+            showToast('配额重置', '所有用户的今日配额已重置', 'success');
+            updateAdminStats();
+            updateUserStatus(); // 更新当前用户状态
+        }
+        
+        // 生成密码
+        function generatePassword() {
+            const userType = document.getElementById('passwordUserType').value;
+            const length = parseInt(document.getElementById('passwordLength').value);
+            
+            // 生成包含字母和数字的随机密码
+            const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let password = '';
+            
+            for (let i = 0; i < length; i++) {
+                password += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            
+            // 确保密码唯一性
+            while (userPermissions[password] || customPasswords.exists(password)) {
+                password = '';
+                for (let i = 0; i < length; i++) {
+                    password += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+            }
+            
+            // 添加到自定义密码管理中
+            customPasswords.add(password, userType);
+            
+            // 显示生成的密码
+            const generatedPasswordDiv = document.getElementById('generatedPassword');
+            const passwordValueDiv = document.getElementById('passwordValue');
+            
+            if (generatedPasswordDiv && passwordValueDiv) {
+                passwordValueDiv.textContent = password;
+                generatedPasswordDiv.style.display = 'block';
+                
+                // 存储生成的密码供复制使用
+                window.lastGeneratedPassword = password;
+            }
+            
+            // 更新密码列表显示
+            updatePasswordList();
+            updateQuotaPasswordList(); // 同时更新配额管理标签页
+            
+            showToast('密码生成', `已为${userType === 'basic' ? '基础用户' : '高级用户'}生成新密码: ${password}`, 'success', 4000);
+        }
+        
+        // 复制密码
+        function copyPassword() {
+            if (window.lastGeneratedPassword) {
+                navigator.clipboard.writeText(window.lastGeneratedPassword).then(() => {
+                    showToast('复制成功', '密码已复制到剪贴板', 'success');
+                }).catch(() => {
+                    // 兼容性回退
+                    const textarea = document.createElement('textarea');
+                    textarea.value = window.lastGeneratedPassword;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    showToast('复制成功', '密码已复制到剪贴板', 'success');
+                });
+            }
+        }
+        
+        // 更新密码列表显示
+        function updatePasswordList() {
+            const passwordListDiv = document.getElementById('passwordList');
+            if (!passwordListDiv) return;
+            
+            const allPasswords = customPasswords.getAll();
+            const passwordEntries = Object.entries(allPasswords);
+            
+            if (passwordEntries.length === 0) {
+                passwordListDiv.innerHTML = '<div style="color: var(--text-secondary); text-align: center; font-style: italic;">暂无生成的密码</div>';
+                return;
+            }
+            
+            const passwordItems = passwordEntries.map(([password, info]) => {
+                const levelNames = { basic: '基础用户', advanced: '高级用户' };
+                const levelIcons = { basic: '🆓', advanced: '⭐' };
+                const createdDate = new Date(info.createdAt).toLocaleDateString();
+                
+                return `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                        <div style="flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span>${levelIcons[info.level]}</span>
+                                <code style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: 600;">${password}</code>
+                                <span style="color: var(--text-secondary); font-size: 12px;">${levelNames[info.level]}</span>
+                            </div>
+                            <div style="color: var(--text-muted); font-size: 11px; margin-top: 2px;">创建于: ${createdDate}</div>
+                        </div>
+                        <div style="display: flex; gap: 4px;">
+                            <button onclick="copyPasswordToClipboard('${password}')" style="background: var(--info); color: white; border: none; padding: 3px 8px; border-radius: 3px; cursor: pointer; font-size: 11px;" title="复制密码">复制</button>
+                            <button onclick="deleteCustomPassword('${password}')" style="background: var(--warning); color: white; border: none; padding: 3px 8px; border-radius: 3px; cursor: pointer; font-size: 11px;" title="删除密码">删除</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            passwordListDiv.innerHTML = passwordItems;
+        }
+        
+        // 复制密码到剪贴板
+        function copyPasswordToClipboard(password) {
+            navigator.clipboard.writeText(password).then(() => {
+                showToast('复制成功', `密码 ${password} 已复制到剪贴板`, 'success');
+            }).catch(() => {
+                // 兼容性回退
+                const textarea = document.createElement('textarea');
+                textarea.value = password;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast('复制成功', `密码 ${password} 已复制到剪贴板`, 'success');
+            });
+        }
+        
+        // 删除自定义密码
+        function deleteCustomPassword(password) {
+            if (confirm(`确认删除密码 "${password}"？\n删除后该密码将无法再用于登录。`)) {
+                customPasswords.remove(password);
+                updatePasswordList();
+                showToast('密码删除', `密码 ${password} 已删除`, 'success');
+            }
+        }
+        
+        // 更新配额管理标签页中的密码列表
+        function updateQuotaPasswordList() {
+            const quotaPasswordListDiv = document.getElementById('quotaPasswordList');
+            const passwordCountSpan = document.getElementById('passwordCount');
+            
+            if (!quotaPasswordListDiv || !passwordCountSpan) return;
+            
+            const allPasswords = customPasswords.getAll();
+            const passwordEntries = Object.entries(allPasswords);
+            
+            // 更新密码数量
+            passwordCountSpan.textContent = passwordEntries.length;
+            
+            if (passwordEntries.length === 0) {
+                quotaPasswordListDiv.innerHTML = '<div style="color: var(--text-secondary); text-align: center; font-style: italic;">暂无生成的密码</div>';
+                return;
+            }
+            
+            // 按用户类型分组显示
+            const basicPasswords = passwordEntries.filter(([_, info]) => info.level === 'basic');
+            const advancedPasswords = passwordEntries.filter(([_, info]) => info.level === 'advanced');
+            
+            let html = '';
+            
+            if (basicPasswords.length > 0) {
+                html += `
+                    <div style="margin-bottom: 15px;">
+                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                            🆓 基础用户密码 (${basicPasswords.length})
+                        </div>
+                        ${basicPasswords.map(([password, info]) => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; margin: 2px 0; background: white; border-radius: 4px; border-left: 3px solid var(--accent-primary);">
+                                <code style="font-weight: 600; color: var(--accent-primary);">${password}</code>
+                                <div style="display: flex; gap: 4px;">
+                                    <button onclick="copyPasswordToClipboard('${password}')" style="background: var(--info); color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 10px;">复制</button>
+                                    <button onclick="deleteCustomPasswordFromQuota('${password}')" style="background: var(--warning); color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 10px;">删除</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            if (advancedPasswords.length > 0) {
+                html += `
+                    <div>
+                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                            ⭐ 高级用户密码 (${advancedPasswords.length})
+                        </div>
+                        ${advancedPasswords.map(([password, info]) => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; margin: 2px 0; background: white; border-radius: 4px; border-left: 3px solid var(--accent-secondary);">
+                                <code style="font-weight: 600; color: var(--accent-secondary);">${password}</code>
+                                <div style="display: flex; gap: 4px;">
+                                    <button onclick="copyPasswordToClipboard('${password}')" style="background: var(--info); color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 10px;">复制</button>
+                                    <button onclick="deleteCustomPasswordFromQuota('${password}')" style="background: var(--warning); color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 10px;">删除</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            quotaPasswordListDiv.innerHTML = html;
+        }
+        
+        // 从配额管理界面删除密码
+        function deleteCustomPasswordFromQuota(password) {
+            if (confirm(`确认删除密码 "${password}"？\n删除后该密码将无法再用于登录。`)) {
+                customPasswords.remove(password);
+                updateQuotaPasswordList();
+                updatePasswordList(); // 同时更新密码生成标签页的列表
+                showToast('密码删除', `密码 ${password} 已删除`, 'success');
+            }
+        }
+        
+        // 清除所有自定义密码
+        function clearAllPasswords() {
+            const allPasswords = customPasswords.getAll();
+            const passwordCount = Object.keys(allPasswords).length;
+            
+            if (passwordCount === 0) {
+                showToast('提示', '当前没有生成的密码', 'info');
+                return;
+            }
+            
+            if (confirm(`确认清除所有 ${passwordCount} 个生成的密码？\n此操作不可撤销，所有自定义密码将无法再用于登录。`)) {
+                // 清除所有自定义密码
+                localStorage.removeItem('customPasswords');
+                
+                // 更新所有相关显示
+                updateQuotaPasswordList();
+                updatePasswordList();
+                
+                showToast('密码清除', `已清除所有 ${passwordCount} 个自定义密码`, 'success');
+            }
+        }
+        
+        // 清除所有统计数据
+        function clearAllStatistics() {
+            const keys = Object.keys(localStorage).filter(key => key.startsWith('usage_'));
+            keys.forEach(key => localStorage.removeItem(key));
+            
+            showToast('数据清除', '所有使用统计数据已清除', 'success');
+            updateAdminStats();
+        }
+        
+        // === 退出登录功能 ===
+        
+        // 显示退出确认对话框
+        async function showLogoutConfirm() {
+            const confirmed = await showConfirm(
+                '退出登录',
+                `确认退出当前账号 ${currentUser ? currentUser.icon + ' ' + currentUser.name : ''}？\n\n退出后需要重新输入密码才能使用系统。`,
+                '🚪'
+            );
+            
+            if (confirmed) {
+                logout();
+            }
+        }
+        
+        // 执行退出登录
+        function logout() {
+            // 关闭管理面板（如果打开的话）
+            closeAdminPanel();
+            
+            // 清除会话状态
+            sessionStorage.removeItem('authenticated');
+            sessionStorage.removeItem('userLevel');
+            sessionStorage.removeItem('userPermissions');
+            
+            // 清除当前用户信息
+            currentUser = null;
+            
+            // 隐藏用户状态
+            const userStatus = document.getElementById('userStatus');
+            if (userStatus) {
+                userStatus.style.display = 'none';
+            }
+            
+            // 确保密码界面可见，主应用隐藏
+            const mainApp = document.getElementById('mainApp');
+            const passwordOverlay = document.getElementById('passwordOverlay');
+            
+            if (mainApp) {
+                mainApp.classList.remove('authenticated');
+                mainApp.style.display = 'none'; // 强制隐藏
+            }
+            
+            if (passwordOverlay) {
+                passwordOverlay.style.display = 'block'; // 强制显示
+            }
+            
+            // 清空并聚焦密码输入框
+            const passwordInput = document.getElementById('passwordInput');
+            if (passwordInput) {
+                passwordInput.value = '';
+                
+                // 强制刷新界面显示
+                setTimeout(() => {
+                    passwordInput.focus();
+                    // 重置主应用显示
+                    if (mainApp) {
+                        mainApp.style.display = '';
+                    }
+                }, 50);
+            }
+            
+            // 清除内容（可选）
+            const markdownInput = document.getElementById('markdownInput');
+            if (markdownInput && markdownInput.value.trim()) {
+                // 如果有内容，询问是否保存草稿
+                if (confirm('是否将当前内容保存为草稿？')) {
+                    saveToLocal();
+                }
+                markdownInput.value = '';
+            }
+            
+            // 重置预览
+            const preview = document.getElementById('preview');
+            if (preview) {
+                preview.innerHTML = `
+                    <div class="preview-empty">
+                        <div class="preview-empty-icon">📝</div>
+                        <div class="preview-empty-title">开始创作您的文档</div>
+                        <div class="preview-empty-subtitle">
+                            在左侧输入框中输入Markdown内容<br>
+                            或者使用下方的快速操作
+                        </div>
+                        <div class="preview-quick-actions" role="group" aria-label="快速操作">
+                            <button class="quick-action-btn" onclick="loadExample('simple')" aria-label="加载简单示例">📄 简单示例</button>
+                            <button class="quick-action-btn" onclick="loadExample('advanced')" aria-label="加载高级示例">🚀 高级示例</button>
+                            <button class="quick-action-btn" onclick="uploadFile()" aria-label="上传Markdown文件">📁 上传文件</button>
+                            <button class="quick-action-btn" onclick="loadFromLocal()" aria-label="加载本地草稿">📂 加载草稿</button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 重置统计
+            updateWordCount();
+            
+            showToast('退出成功', '已退出登录，请重新输入密码', 'info', 2000);
+        }
+        
+        // 显示升级提示界面
+        function showUpgradePrompt(title, message, type) {
+            // 简化升级选项，只推荐高级用户
+            const upgradeRecommendation = `
+                <div style="padding: 12px; margin: 8px 0; background: var(--preview-bg); border-radius: 8px; border-left: 4px solid var(--accent-primary);">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                        <span style="font-size: 18px;">⭐</span>
+                        <strong style="color: var(--accent-primary);">高级用户</strong>
+                    </div>
+                    <div style="color: var(--text-secondary); margin-bottom: 8px;">
+                        • 每日50次转换 (基础版15次)<br>
+                        • 50K字符文档 (基础版10K)<br>
+                        • 支持数学公式<br>
+                        • 批量处理功能
+                    </div>
+                    <div style="background: var(--accent-primary); color: white; padding: 4px 8px; border-radius: 4px; display: inline-block; font-size: 12px; font-weight: 600;">
+                        联系管理员获取密码
+                    </div>
+                </div>
+            `;
+            
+            showConfirm(
+                title,
+                `${message}<br><br><strong>推荐升级方案：</strong><br>${upgradeRecommendation}`,
+                '💎'
+            );
+        }
+        
         // 检查是否已经验证过
         function checkAuthentication() {
             if (sessionStorage.getItem('authenticated') === 'true') {
+                // 恢复用户权限信息
+                const storedPermissions = sessionStorage.getItem('userPermissions');
+                if (storedPermissions) {
+                    currentUser = JSON.parse(storedPermissions);
+                }
+                
                 document.getElementById('passwordOverlay').style.display = 'none';
                 document.getElementById('mainApp').classList.add('authenticated');
+                updateUserStatus(); // 恢复时更新状态
                 initializeApp();
             } else {
                 // 聚焦到密码输入框
@@ -2252,6 +3189,9 @@ console.log('Hello World!');
             // 清除可能导致弹窗的自动保存数据
             localStorage.removeItem('markdown-auto-save');
             localStorage.removeItem('markdown-auto-save-timestamp');
+            
+            // 更新用户状态显示
+            updateUserStatus();
             
             // 初始化拖拽功能
             initializeDragAndDrop();
@@ -2667,6 +3607,34 @@ console.log('Hello World!');
             }
             lastContentHash = currentHash;
             
+            // 配额检查 - 使用防抖机制，避免频繁消耗配额 (示例加载除外)
+            if (!isLoadingExample && !isQuotaCheckScheduled && currentUser && currentUser.dailyLimit !== -1) {
+                const currentUsage = getTodayUsage();
+                if (currentUsage >= currentUser.dailyLimit) {
+                    // 配额已用完，显示提示信息
+                    preview.innerHTML = `
+                        <div class="preview-empty">
+                            <div class="preview-empty-icon">⚠️</div>
+                            <div class="preview-empty-title">今日配额已用完</div>
+                            <div class="preview-empty-subtitle">
+                                您今日的转换配额已达上限<br>
+                                请明天再试或升级账户获得更多配额
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // 设置防抖，2秒后计算配额
+                isQuotaCheckScheduled = true;
+                clearTimeout(quotaCheckTimeout);
+                quotaCheckTimeout = setTimeout(() => {
+                    incrementUsage();
+                    isQuotaCheckScheduled = false;
+                    updateUserStatus(); // 更新用户状态显示
+                }, 2000);
+            }
+            
             const textLength = markdownText.length;
             
             try {
@@ -2883,6 +3851,9 @@ $$\\lim_{x \\to \\infty} \\frac{1}{x} = 0$$
                 return;
             }
             
+            // 设置示例加载标志，避免计入配额
+            isLoadingExample = true;
+            
             markdownInput.value = example.content;
             updateWordCount();
             updatePreview();
@@ -2892,6 +3863,11 @@ $$\\lim_{x \\to \\infty} \\frac{1}{x} = 0$$
             if (type === 'math') {
                 setTimeout(() => renderMath(preview), 200);
             }
+            
+            // 示例加载完成后重置标志
+            setTimeout(() => {
+                isLoadingExample = false;
+            }, 100);
         }
 
         // 清空内容
@@ -2905,10 +3881,18 @@ $$\\lim_{x \\to \\infty} \\frac{1}{x} = 0$$
                 if (!confirmed) return;
             }
             
+            // 设置示例加载标志，避免清空操作计入配额
+            isLoadingExample = true;
+            
             markdownInput.value = '';
             updatePreview();
             updateWordCount();
             showToast('操作完成', '内容已清空');
+            
+            // 清空完成后重置标志
+            setTimeout(() => {
+                isLoadingExample = false;
+            }, 100);
         }
 
         // 复制富文本内容
@@ -2918,6 +3902,23 @@ $$\\lim_{x \\to \\infty} \\frac{1}{x} = 0$$
             if (!markdownText) {
                 showToast('提示', '请先输入Markdown内容！', 'warning');
                 return;
+            }
+            
+            // 权限检查：文档大小限制（复制功能相对宽松）
+            const sizeCheck = checkDocumentSize(markdownText);
+            if (!sizeCheck.allowed) {
+                showUpgradePrompt(
+                    '文档大小超限',
+                    `${sizeCheck.message}\n升级账户以处理更大的文档！`,
+                    'size'
+                );
+                return;
+            }
+            
+            // 权限检查：数学公式权限
+            const hasMath = /\$.*?\$|\\\(.*?\\\)|\\\[.*?\\\]|\$\$.*?\$\$/.test(markdownText);
+            if (hasMath && !hasFeature('mathFormulas')) {
+                showToast('权限不足', `${currentUser.name} 不支持数学公式功能，将跳过公式渲染`, 'warning');
             }
 
             try {
@@ -3039,6 +4040,30 @@ $$\\lim_{x \\to \\infty} \\frac{1}{x} = 0$$
             
             if (!markdownText) {
                 showToast('提示', '请先输入Markdown内容！', 'warning');
+                return;
+            }
+            
+            // 注意：配额检查已在预览生成时进行，此处无需重复检查
+            
+            // 权限检查2：检查文档大小
+            const sizeCheck = checkDocumentSize(markdownText);
+            if (!sizeCheck.allowed) {
+                showUpgradePrompt(
+                    '文档大小超限',
+                    `${sizeCheck.message}\n升级账户以处理更大的文档！`,
+                    'size'
+                );
+                return;
+            }
+            
+            // 权限检查3：检查数学公式权限
+            const hasMath = /\$.*?\$|\\\(.*?\\\)|\\\[.*?\\\]|\$\$.*?\$\$/.test(markdownText);
+            if (hasMath && !hasFeature('mathFormulas')) {
+                showUpgradePrompt(
+                    '数学公式需要升级',
+                    `检测到数学公式，但 ${currentUser.name} 不支持数学公式功能。\n升级到 VIP 或更高等级即可使用！`,
+                    'math'
+                );
                 return;
             }
 
@@ -3616,17 +4641,20 @@ $$\\lim_{x \\to \\infty} \\frac{1}{x} = 0$$
                     await new Promise(resolve => setTimeout(resolve, 500));
                     
                     showWordConversionProgress(false);
+                    updateUserStatus(); // 更新配额显示
                     showToast('下载完成', `Word文档"${safeTitle}"已成功生成并下载`, 'success', 3000);
                     
                 } catch (packError) {
                     console.error('Word生成失败:', packError);
                     showWordConversionProgress(false);
+                    rollbackUsage(); // 回滚配额
                     showToast('生成失败', `Word文档生成过程中出现错误: ${packError.message}`, 'error', 5000);
                 }
 
             } catch (error) {
                 console.error('转换失败:', error);
                 showWordConversionProgress(false);
+                rollbackUsage(); // 回滚配额
                 
                 // 增强错误处理
                 let errorMessage = '请检查您的Markdown格式是否正确';
@@ -3668,10 +4696,18 @@ $$\\lim_{x \\to \\infty} \\frac{1}{x} = 0$$
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
+                    // 设置示例加载标志，避免文件上传计入配额
+                    isLoadingExample = true;
+                    
                     markdownInput.value = e.target.result;
                     updateWordCount();
                     updatePreview();
                     showToast('上传成功', `文件 ${file.name} ${uploadType}成功`);
+                    
+                    // 上传完成后重置标志
+                    setTimeout(() => {
+                        isLoadingExample = false;
+                    }, 100);
                 } catch (error) {
                     console.error('文件处理错误:', error);
                     showToast('处理失败', '文件内容处理失败，请检查文件格式', 'error');
@@ -3722,10 +4758,18 @@ $$\\lim_{x \\to \\infty} \\frac{1}{x} = 0$$
                 if (!confirmed) return;
             }
             
+            // 设置示例加载标志，避免草稿加载计入配额
+            isLoadingExample = true;
+            
             markdownInput.value = savedContent;
             updateWordCount();
             updatePreview();
             showToast('加载完成', `草稿加载成功 (${timestamp || '未知'})`);
+            
+            // 草稿加载完成后重置标志
+            setTimeout(() => {
+                isLoadingExample = false;
+            }, 100);
         }
 
         // 自动保存功能已移除，避免弹窗问题
@@ -3810,6 +4854,11 @@ $$\\lim_{x \\to \\infty} \\frac{1}{x} = 0$$
                 e.preventDefault();
                 showShortcuts();
             }
+            // Ctrl+Q 退出登录
+            if (e.ctrlKey && e.key === 'q') {
+                e.preventDefault();
+                showLogoutConfirm();
+            }
         });
 
         // 显示快捷键帮助
@@ -3819,6 +4868,7 @@ $$\\lim_{x \\to \\infty} \\frac{1}{x} = 0$$
                 { key: 'Ctrl + O', desc: '打开并上传文件' },
                 { key: 'Ctrl + D', desc: '下载Word文档' },
                 { key: 'Ctrl + Enter', desc: '复制富文本内容' },
+                { key: 'Ctrl + Q', desc: '退出登录' },
                 { key: 'Ctrl + /', desc: '显示快捷键帮助' },
                 { key: 'Esc', desc: '关闭对话框' }
             ];
