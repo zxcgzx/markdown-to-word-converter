@@ -1893,24 +1893,16 @@
             </div>
             <button onclick="verifyPassword()" class="password-btn" aria-describedby="passwordHint">🚀 进入应用</button>
             
-            <!-- 密码导入功能 -->
+            <!-- 简化的分享码导入 -->
             <div style="margin-top: 15px; padding: 12px; background: rgba(116, 185, 255, 0.1); border-radius: 8px; border-left: 4px solid var(--info);">
-                <div style="font-size: 14px; color: var(--text-primary); margin-bottom: 8px; font-weight: 600;">📱 换设备了？导入已有密码</div>
-                <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">
-                    朋友分享了密码？选择对应的导入方式：
+                <div style="font-size: 14px; color: var(--text-primary); margin-bottom: 8px; font-weight: 600;">📱 朋友分享了密码？</div>
+                <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;">
+                    如果朋友给你发了分享码，点击下方按钮快速导入
                 </div>
-                
-                <!-- 导入方式选择 -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-                    <button onclick="pasteShareCode()" style="background: var(--accent-secondary); color: white; border: none; padding: 6px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">
-                        📱 粘贴分享码
-                    </button>
-                    <button onclick="importPasswordsOnLogin()" style="background: var(--info); color: white; border: none; padding: 6px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">
-                        📥 导入文件
-                    </button>
-                </div>
-                
-                <div style="font-size: 10px; color: var(--text-muted); text-align: center;">
+                <button onclick="pasteShareCode()" style="background: var(--accent-secondary); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 12px; width: 100%;">
+                    📱 粘贴分享码
+                </button>
+                <div style="font-size: 10px; color: var(--text-muted); text-align: center; margin-top: 6px;">
                     分享码格式：PWD:abc123|advanced|2025-01-01
                 </div>
             </div>
@@ -2223,7 +2215,7 @@ console.log('Hello World!');
                                 <div style="margin-bottom: 8px; font-weight: 600;">🎉 密码生成成功！</div>
                                 <div id="passwordValue" style="font-size: 18px; color: var(--accent-primary); letter-spacing: 2px; padding: 8px; background: var(--preview-bg); border-radius: 4px; margin-bottom: 15px;"></div>
                                 
-                                <!-- 快速分享选项 -->
+                                <!-- 分享选项 -->
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px;">
                                     <button onclick="copyPassword()" style="background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">📋 复制密码</button>
                                     <button onclick="copyShareText()" style="background: var(--accent-secondary); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">📱 复制分享码</button>
@@ -2237,27 +2229,11 @@ console.log('Hello World!');
                             </div>
                         </div>
                         
-                        <!-- 现有密码列表 -->
+                        <!-- 密码管理 -->
                         <div style="margin-top: 20px;">
                             <h4 style="color: var(--text-primary); margin-bottom: 10px;">📋 已生成的密码</h4>
                             <div id="passwordList" style="background: var(--preview-bg); padding: 15px; border-radius: 8px; max-height: 200px; overflow-y: auto;">
                                 <div style="color: var(--text-secondary); text-align: center; font-style: italic;">暂无生成的密码</div>
-                            </div>
-                            
-                            <!-- 跨设备同步功能 -->
-                            <div style="margin-top: 15px; padding: 15px; background: var(--card-bg); border-radius: 8px; border-left: 4px solid var(--accent-secondary);">
-                                <h5 style="margin: 0 0 10px 0; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
-                                    🔄 跨设备同步
-                                    <span style="background: var(--warning); color: white; padding: 2px 6px; border-radius: 12px; font-size: 10px; font-weight: normal;">解决手机登录问题</span>
-                                </h5>
-                                <div style="color: var(--text-secondary); font-size: 12px; margin-bottom: 10px;">
-                                    密码在不同设备间无法同步？使用导出/导入功能在新设备上使用已生成的密码
-                                </div>
-                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                    <button onclick="exportPasswords()" style="background: var(--accent-secondary); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">📤 导出密码</button>
-                                    <button onclick="importPasswords()" style="background: var(--info); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">📥 导入密码</button>
-                                    <button onclick="generateQRCode()" style="background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">📱 生成二维码</button>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -3050,150 +3026,7 @@ console.log('Hello World!');
             }
         }
         
-        // === 跨设备密码同步功能 ===
-        
-        // 导出密码到文件
-        function exportPasswords() {
-            const allPasswords = customPasswords.getAll();
-            const passwordEntries = Object.entries(allPasswords);
-            
-            if (passwordEntries.length === 0) {
-                showToast('导出失败', '没有可导出的密码', 'warning');
-                return;
-            }
-            
-            // 创建导出数据
-            const exportData = {
-                version: '1.0',
-                exportTime: new Date().toISOString(),
-                passwords: allPasswords,
-                totalCount: passwordEntries.length
-            };
-            
-            // 创建JSON文件
-            const jsonData = JSON.stringify(exportData, null, 2);
-            const blob = new Blob([jsonData], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            
-            // 创建下载链接
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `markdown-converter-passwords-${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            showToast('导出成功', `已导出${passwordEntries.length}个密码到文件`, 'success');
-        }
-        
-        // 导入密码文件
-        function importPasswords() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json';
-            
-            input.onchange = function(event) {
-                const file = event.target.files[0];
-                if (!file) return;
-                
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    try {
-                        const importData = JSON.parse(e.target.result);
-                        
-                        // 验证数据格式
-                        if (!importData.passwords || !importData.version) {
-                            throw new Error('无效的密码文件格式');
-                        }
-                        
-                        // 获取现有密码
-                        const existingPasswords = customPasswords.getAll();
-                        let importCount = 0;
-                        let skipCount = 0;
-                        
-                        // 导入密码
-                        Object.entries(importData.passwords).forEach(([password, info]) => {
-                            if (existingPasswords[password]) {
-                                skipCount++;
-                            } else {
-                                customPasswords.add(password, info.level);
-                                importCount++;
-                            }
-                        });
-                        
-                        // 更新显示
-                        updatePasswordList();
-                        updateQuotaPasswordList();
-                        
-                        const message = `成功导入${importCount}个密码${skipCount > 0 ? `，跳过${skipCount}个重复密码` : ''}`;
-                        showToast('导入完成', message, 'success');
-                        
-                    } catch (error) {
-                        showToast('导入失败', '文件格式错误或数据损坏', 'error');
-                        console.error('导入密码失败:', error);
-                    }
-                };
-                reader.readAsText(file);
-            };
-            
-            input.click();
-        }
-        
-        // 生成二维码分享密码（优化版）
-        function generateQRCode() {
-            const allPasswords = customPasswords.getAll();
-            const passwordEntries = Object.entries(allPasswords);
-            
-            if (passwordEntries.length === 0) {
-                showToast('生成失败', '没有可分享的密码', 'warning');
-                return;
-            }
-            
-            // 生成每个密码的分享码
-            const shareCodes = passwordEntries.map(([password, info]) => {
-                return `PWD:${password}|${info.level}|${info.createdAt.split('T')[0]}`;
-            });
-            
-            const shareText = shareCodes.join('\n');
-            
-            // 优化的分享界面
-            showConfirm(
-                '📱 密码分享码',
-                `
-                <div style="text-align: center; padding: 20px;">
-                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; border: 2px dashed var(--border-color);">
-                        <div style="font-family: monospace; font-size: 12px; line-height: 1.5; color: var(--text-primary); white-space: pre-line;">
-                            ${shareText}
-                        </div>
-                    </div>
-                    <div style="color: var(--text-secondary); font-size: 13px; margin: 15px 0;">
-                        📱 <strong>使用方法</strong>：复制上方分享码 → 微信/QQ发送给朋友<br>
-                        👥 <strong>朋友接收</strong>：在登录界面点击"📱 粘贴分享码" → 自动导入<br>
-                        💡 <strong>批量分享</strong>：可以选择单行或多行分享码
-                    </div>
-                    <div style="display: flex; gap: 8px; justify-content: center;">
-                        <button onclick="copyQRData('${shareText.replace(/'/g, "\\'")}');" style="background: var(--accent-primary); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
-                            📋 复制全部
-                        </button>
-                        <button onclick="copyQRData('${shareCodes[0].replace(/'/g, "\\'")}');" style="background: var(--accent-secondary); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
-                            📱 复制第一个
-                        </button>
-                    </div>
-                </div>
-                `,
-                '🔄'
-            );
-        }
-        
-        // 复制二维码数据
-        function copyQRData(data) {
-            navigator.clipboard.writeText(data).then(() => {
-                showToast('复制成功', '密码数据已复制到剪贴板，可在新设备粘贴导入', 'success');
-            }).catch(() => {
-                showToast('复制失败', '请手动复制显示的文本', 'error');
-            });
-        }
+        // === 核心分享功能 ===
         
         // === 免登录密码导入功能 ===
         
@@ -3285,72 +3118,7 @@ console.log('Hello World!');
             }
         }
         
-        // 在登录界面导入密码（免登录）
-        function importPasswordsOnLogin() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json';
-            
-            input.onchange = function(event) {
-                const file = event.target.files[0];
-                if (!file) return;
-                
-                showPasswordError('正在导入密码文件...', false);
-                
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    try {
-                        const importData = JSON.parse(e.target.result);
-                        
-                        // 验证数据格式
-                        if (!importData.passwords || !importData.version) {
-                            throw new Error('无效的密码文件格式');
-                        }
-                        
-                        // 获取现有密码
-                        const existingPasswords = customPasswords.getAll();
-                        let importCount = 0;
-                        let skipCount = 0;
-                        
-                        // 导入密码
-                        Object.entries(importData.passwords).forEach(([password, info]) => {
-                            if (existingPasswords[password]) {
-                                skipCount++;
-                            } else {
-                                customPasswords.add(password, info.level);
-                                importCount++;
-                            }
-                        });
-                        
-                        // 显示导入结果
-                        if (importCount > 0) {
-                            showPasswordError(`✅ 导入成功！新增${importCount}个密码${skipCount > 0 ? `，跳过${skipCount}个重复密码` : ''}。现在可以使用导入的密码登录了！`, false);
-                            
-                            // 清空密码输入框，提示用户输入导入的密码
-                            const passwordInput = document.getElementById('passwordInput');
-                            if (passwordInput) {
-                                passwordInput.value = '';
-                                passwordInput.placeholder = '请输入刚导入的密码';
-                                setTimeout(() => {
-                                    passwordInput.focus();
-                                }, 1000);
-                            }
-                        } else if (skipCount > 0) {
-                            showPasswordError(`ℹ️ 导入的${skipCount}个密码已存在，可以直接使用。`, false);
-                        } else {
-                            showPasswordError('⚠️ 没有找到有效的密码数据', false);
-                        }
-                        
-                    } catch (error) {
-                        console.error('导入密码失败:', error);
-                        showPasswordError('❌ 导入失败：文件格式错误或数据损坏。请确保选择的是正确的密码导出文件。', false);
-                    }
-                };
-                reader.readAsText(file);
-            };
-            
-            input.click();
-        }
+        // 密码分享功能已简化，文件导入功能已移除
         
         // 更新配额管理标签页中的密码列表
         function updateQuotaPasswordList() {
