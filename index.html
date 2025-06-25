@@ -2156,6 +2156,9 @@ console.log('Hello World!');
                                     <span id="advancedUserStats">今日使用: --/50 次</span>
                                     <button onclick="resetUserQuota('advanced')" style="background: var(--warning); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">重置配额</button>
                                 </div>
+                                <div style="margin-top: 8px; padding: 8px; background: var(--info-bg, rgba(116, 185, 255, 0.1)); border-radius: 4px; font-size: 12px; color: var(--text-secondary);">
+                                    ✅ 已修复：每个生成的密码现在都有独立配额，不再共用限制次数
+                                </div>
                             </div>
                         </div>
                         <div style="margin-top: 20px; text-align: center;">
@@ -2205,6 +2208,22 @@ console.log('Hello World!');
                             <h4 style="color: var(--text-primary); margin-bottom: 10px;">📋 已生成的密码</h4>
                             <div id="passwordList" style="background: var(--preview-bg); padding: 15px; border-radius: 8px; max-height: 200px; overflow-y: auto;">
                                 <div style="color: var(--text-secondary); text-align: center; font-style: italic;">暂无生成的密码</div>
+                            </div>
+                            
+                            <!-- 跨设备同步功能 -->
+                            <div style="margin-top: 15px; padding: 15px; background: var(--card-bg); border-radius: 8px; border-left: 4px solid var(--accent-secondary);">
+                                <h5 style="margin: 0 0 10px 0; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                                    🔄 跨设备同步
+                                    <span style="background: var(--warning); color: white; padding: 2px 6px; border-radius: 12px; font-size: 10px; font-weight: normal;">解决手机登录问题</span>
+                                </h5>
+                                <div style="color: var(--text-secondary); font-size: 12px; margin-bottom: 10px;">
+                                    密码在不同设备间无法同步？使用导出/导入功能在新设备上使用已生成的密码
+                                </div>
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                    <button onclick="exportPasswords()" style="background: var(--accent-secondary); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">📤 导出密码</button>
+                                    <button onclick="importPasswords()" style="background: var(--info); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">📥 导入密码</button>
+                                    <button onclick="generateQRCode()" style="background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">📱 生成二维码</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2291,6 +2310,7 @@ console.log('Hello World!');
         
         // 当前用户权限
         let currentUser = null;
+        let currentPassword = null; // 保存当前使用的密码
         
         // 预览配额检查防抖变量
         let isQuotaCheckScheduled = false;
@@ -2463,6 +2483,9 @@ console.log('Hello World!');
                 // 密码正确，重置尝试次数
                 loginAttempts = 0;
                 
+                // 保存当前使用的密码
+                currentPassword = password;
+                
                 // 显示成功动画
                 const modal = document.querySelector('.password-modal');
                 modal.style.animation = 'fadeOut 0.5s ease-out forwards';
@@ -2475,6 +2498,7 @@ console.log('Hello World!');
                     // 保存验证状态和用户权限到sessionStorage
                     sessionStorage.setItem('authenticated', 'true');
                     sessionStorage.setItem('userLevel', currentUser.level);
+                    sessionStorage.setItem('currentPassword', password); // 保存当前密码
                     sessionStorage.setItem('userPermissions', JSON.stringify(currentUser));
                     
                     // 显示欢迎信息
@@ -2520,7 +2544,8 @@ console.log('Hello World!');
         }
         
         function getUsageKey() {
-            return `usage_${currentUser.level}_${getTodayKey()}`;
+            // 使用密码作为唯一标识，而不是用户等级，确保每个密码有独立配额
+            return `usage_${currentPassword || currentUser.level}_${getTodayKey()}`;
         }
         
         function getTodayUsage() {
@@ -2746,10 +2771,42 @@ console.log('Hello World!');
             updateQuotaPasswordList();
         }
         
-        // 获取特定用户类型的使用次数
+        // 获取特定用户类型的使用次数（兼容旧数据和新的按密码统计）
         function getSpecificUserUsage(userLevel) {
-            const key = `usage_${userLevel}_${getTodayKey()}`;
-            return parseInt(localStorage.getItem(key) || '0');
+            const today = getTodayKey();
+            let totalUsage = 0;
+            
+            // 检查旧的按用户等级统计的数据
+            const oldKey = `usage_${userLevel}_${today}`;
+            const oldUsage = parseInt(localStorage.getItem(oldKey) || '0');
+            totalUsage += oldUsage;
+            
+            // 检查所有按密码统计的数据
+            const allPasswords = customPasswords.getAll();
+            const presetPasswords = {
+                'basic123': 'basic',
+                '517517': 'advanced',
+                'lingling': 'super_admin'
+            };
+            
+            // 统计自定义密码的使用量
+            Object.entries(allPasswords).forEach(([password, info]) => {
+                if (info.level === userLevel) {
+                    const passwordKey = `usage_${password}_${today}`;
+                    totalUsage += parseInt(localStorage.getItem(passwordKey) || '0');
+                }
+            });
+            
+            // 统计预设密码的使用量（新格式）
+            Object.entries(presetPasswords).forEach(([password, level]) => {
+                if (level === userLevel) {
+                    const passwordKey = `usage_${password}_${today}`;
+                    const passwordUsage = parseInt(localStorage.getItem(passwordKey) || '0');
+                    totalUsage += passwordUsage;
+                }
+            });
+            
+            return totalUsage;
         }
         
         // 重置用户配额
@@ -2907,8 +2964,150 @@ console.log('Hello World!');
             if (confirm(`确认删除密码 "${password}"？\n删除后该密码将无法再用于登录。`)) {
                 customPasswords.remove(password);
                 updatePasswordList();
+                updateQuotaPasswordList(); // 同时更新配额管理页面
                 showToast('密码删除', `密码 ${password} 已删除`, 'success');
             }
+        }
+        
+        // === 跨设备密码同步功能 ===
+        
+        // 导出密码到文件
+        function exportPasswords() {
+            const allPasswords = customPasswords.getAll();
+            const passwordEntries = Object.entries(allPasswords);
+            
+            if (passwordEntries.length === 0) {
+                showToast('导出失败', '没有可导出的密码', 'warning');
+                return;
+            }
+            
+            // 创建导出数据
+            const exportData = {
+                version: '1.0',
+                exportTime: new Date().toISOString(),
+                passwords: allPasswords,
+                totalCount: passwordEntries.length
+            };
+            
+            // 创建JSON文件
+            const jsonData = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            // 创建下载链接
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `markdown-converter-passwords-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('导出成功', `已导出${passwordEntries.length}个密码到文件`, 'success');
+        }
+        
+        // 导入密码文件
+        function importPasswords() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const importData = JSON.parse(e.target.result);
+                        
+                        // 验证数据格式
+                        if (!importData.passwords || !importData.version) {
+                            throw new Error('无效的密码文件格式');
+                        }
+                        
+                        // 获取现有密码
+                        const existingPasswords = customPasswords.getAll();
+                        let importCount = 0;
+                        let skipCount = 0;
+                        
+                        // 导入密码
+                        Object.entries(importData.passwords).forEach(([password, info]) => {
+                            if (existingPasswords[password]) {
+                                skipCount++;
+                            } else {
+                                customPasswords.add(password, info.level);
+                                importCount++;
+                            }
+                        });
+                        
+                        // 更新显示
+                        updatePasswordList();
+                        updateQuotaPasswordList();
+                        
+                        const message = `成功导入${importCount}个密码${skipCount > 0 ? `，跳过${skipCount}个重复密码` : ''}`;
+                        showToast('导入完成', message, 'success');
+                        
+                    } catch (error) {
+                        showToast('导入失败', '文件格式错误或数据损坏', 'error');
+                        console.error('导入密码失败:', error);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+        
+        // 生成二维码分享密码
+        function generateQRCode() {
+            const allPasswords = customPasswords.getAll();
+            const passwordEntries = Object.entries(allPasswords);
+            
+            if (passwordEntries.length === 0) {
+                showToast('生成失败', '没有可分享的密码', 'warning');
+                return;
+            }
+            
+            // 创建分享数据
+            const shareData = {
+                passwords: allPasswords,
+                count: passwordEntries.length,
+                created: new Date().toISOString().split('T')[0]
+            };
+            
+            const shareText = JSON.stringify(shareData);
+            
+            // 简单的二维码显示（使用文本）
+            showConfirm(
+                '📱 密码分享二维码',
+                `
+                <div style="text-align: center; padding: 20px;">
+                    <div style="background: white; padding: 20px; border-radius: 8px; margin: 15px 0; border: 2px dashed var(--border-color);">
+                        <div style="font-family: monospace; font-size: 12px; word-break: break-all; color: var(--text-secondary);">
+                            ${shareText}
+                        </div>
+                    </div>
+                    <div style="color: var(--text-secondary); font-size: 14px; margin-top: 10px;">
+                        📋 复制上方文本到新设备，然后使用"导入密码"功能<br>
+                        💡 或者保存为.json文件传输到新设备
+                    </div>
+                    <button onclick="copyQRData('${shareText.replace(/'/g, "\\'")}');" style="background: var(--accent-primary); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-top: 10px;">
+                        📋 复制到剪贴板
+                    </button>
+                </div>
+                `,
+                '🔄'
+            );
+        }
+        
+        // 复制二维码数据
+        function copyQRData(data) {
+            navigator.clipboard.writeText(data).then(() => {
+                showToast('复制成功', '密码数据已复制到剪贴板，可在新设备粘贴导入', 'success');
+            }).catch(() => {
+                showToast('复制失败', '请手动复制显示的文本', 'error');
+            });
         }
         
         // 更新配额管理标签页中的密码列表
@@ -3041,9 +3240,11 @@ console.log('Hello World!');
             sessionStorage.removeItem('authenticated');
             sessionStorage.removeItem('userLevel');
             sessionStorage.removeItem('userPermissions');
+            sessionStorage.removeItem('currentPassword');
             
             // 清除当前用户信息
             currentUser = null;
+            currentPassword = null;
             
             // 隐藏用户状态
             const userStatus = document.getElementById('userStatus');
@@ -3151,6 +3352,12 @@ console.log('Hello World!');
                 const storedPermissions = sessionStorage.getItem('userPermissions');
                 if (storedPermissions) {
                     currentUser = JSON.parse(storedPermissions);
+                }
+                
+                // 恢复当前使用的密码
+                const storedPassword = sessionStorage.getItem('currentPassword');
+                if (storedPassword) {
+                    currentPassword = storedPassword;
                 }
                 
                 document.getElementById('passwordOverlay').style.display = 'none';
