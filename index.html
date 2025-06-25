@@ -2199,6 +2199,24 @@ console.log('Hello World!');
                                 <button onclick="clearAllPasswords()" style="background: var(--warning); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">清除所有密码</button>
                             </div>
                         </div>
+                        
+                        <!-- 撤销密码管理 -->
+                        <div style="margin-top: 25px; border-top: 2px solid var(--border-color); padding-top: 20px;">
+                            <h4 style="color: var(--text-primary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                                🚫 已撤销的密码
+                                <span style="background: var(--warning); color: white; padding: 2px 6px; border-radius: 12px; font-size: 11px; font-weight: normal;" id="revokedCountDisplay">0</span>
+                            </h4>
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;">
+                                撤销的密码无法通过分享码重新激活，确保已删除密码的安全性
+                            </div>
+                            <div id="revokedPasswordList" style="background: var(--preview-bg); padding: 15px; border-radius: 8px; max-height: 150px; overflow-y: auto;">
+                                <div style="color: var(--text-secondary); text-align: center; font-style: italic;">暂无撤销的密码</div>
+                            </div>
+                            <div style="margin-top: 10px; text-align: center; display: flex; gap: 8px; justify-content: center;">
+                                <button onclick="updateRevokedPasswordList()" style="background: var(--info); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">🔄 刷新</button>
+                                <button onclick="clearRevokedPasswords()" style="background: var(--warning); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">🗑️ 清空撤销列表</button>
+                            </div>
+                        </div>
                     </div>
                     
                 </div>
@@ -2339,6 +2357,54 @@ console.log('Hello World!');
                 };
                 
                 return basePermissions[customPassword.level] || null;
+            }
+        };
+        
+        // 撤销密码管理器 - 防止已删除的密码通过分享码重新激活
+        const revokedPasswords = {
+            // 从 localStorage 加载撤销列表
+            load() {
+                const stored = localStorage.getItem('revokedPasswords');
+                return stored ? JSON.parse(stored) : {};
+            },
+            
+            // 保存撤销列表到 localStorage
+            save(revoked) {
+                localStorage.setItem('revokedPasswords', JSON.stringify(revoked));
+            },
+            
+            // 撤销密码
+            revoke(password, reason = '管理员删除') {
+                const revoked = this.load();
+                revoked[password] = {
+                    revokedAt: new Date().toISOString(),
+                    revokedBy: currentUser ? currentUser.level : 'admin',
+                    reason: reason
+                };
+                this.save(revoked);
+            },
+            
+            // 检查密码是否已撤销
+            isRevoked(password) {
+                const revoked = this.load();
+                return revoked.hasOwnProperty(password);
+            },
+            
+            // 获取所有撤销密码
+            getAll() {
+                return this.load();
+            },
+            
+            // 清除所有撤销记录（仅管理员可用）
+            clearAll() {
+                localStorage.removeItem('revokedPasswords');
+            },
+            
+            // 恢复密码（从撤销列表中移除）
+            restore(password) {
+                const revoked = this.load();
+                delete revoked[password];
+                this.save(revoked);
             }
         };
         
@@ -2751,6 +2817,77 @@ console.log('Hello World!');
             }).join('');
             
             passwordListDiv.innerHTML = passwordItems;
+            
+            // 同时更新撤销列表
+            updateRevokedPasswordList();
+        }
+        
+        // 更新撤销密码列表显示
+        function updateRevokedPasswordList() {
+            const revokedPasswordListDiv = document.getElementById('revokedPasswordList');
+            const revokedCountDisplay = document.getElementById('revokedCountDisplay');
+            
+            if (!revokedPasswordListDiv || !revokedCountDisplay) return;
+            
+            const allRevokedPasswords = revokedPasswords.getAll();
+            const revokedEntries = Object.entries(allRevokedPasswords);
+            
+            // 更新撤销数量显示
+            revokedCountDisplay.textContent = revokedEntries.length;
+            
+            if (revokedEntries.length === 0) {
+                revokedPasswordListDiv.innerHTML = '<div style="color: var(--text-secondary); text-align: center; font-style: italic;">暂无撤销的密码</div>';
+                return;
+            }
+            
+            const revokedItems = revokedEntries.map(([password, info]) => {
+                const revokedDate = new Date(info.revokedAt).toLocaleDateString();
+                const revokedTime = new Date(info.revokedAt).toLocaleTimeString();
+                
+                return `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                        <div style="flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span>🚫</span>
+                                <code style="background: #ffebee; padding: 2px 6px; border-radius: 4px; font-weight: 600; color: #c62828;">${password}</code>
+                                <span style="color: var(--text-secondary); font-size: 12px;">${info.reason}</span>
+                            </div>
+                            <div style="color: var(--text-muted); font-size: 11px; margin-top: 2px;">撤销于: ${revokedDate} ${revokedTime}</div>
+                        </div>
+                        <div style="display: flex; gap: 4px;">
+                            <button onclick="restoreRevokedPassword('${password}')" style="background: var(--success); color: white; border: none; padding: 3px 8px; border-radius: 3px; cursor: pointer; font-size: 11px;" title="恢复密码">恢复</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            revokedPasswordListDiv.innerHTML = revokedItems;
+        }
+        
+        // 恢复撤销的密码
+        function restoreRevokedPassword(password) {
+            if (confirm(`确认恢复密码 "${password}"？\n恢复后该密码的分享码将可以再次使用。`)) {
+                revokedPasswords.restore(password);
+                updateRevokedPasswordList();
+                showToast('密码恢复', `密码 ${password} 已从撤销列表中移除`, 'success');
+            }
+        }
+        
+        // 清空所有撤销密码
+        function clearRevokedPasswords() {
+            const allRevokedPasswords = revokedPasswords.getAll();
+            const revokedCount = Object.keys(allRevokedPasswords).length;
+            
+            if (revokedCount === 0) {
+                showToast('提示', '当前没有撤销的密码', 'info');
+                return;
+            }
+            
+            if (confirm(`确认清空所有 ${revokedCount} 个撤销记录？\n清空后，这些密码的分享码将可以再次使用。`)) {
+                revokedPasswords.clearAll();
+                updateRevokedPasswordList();
+                showToast('撤销清空', `已清空所有 ${revokedCount} 个撤销记录`, 'success');
+            }
         }
         
         // 复制密码到剪贴板
@@ -2771,10 +2908,15 @@ console.log('Hello World!');
         
         // 删除自定义密码
         function deleteCustomPassword(password) {
-            if (confirm(`确认删除密码 "${password}"？\n删除后该密码将无法再用于登录。`)) {
+            if (confirm(`确认删除密码 "${password}"？\n删除后该密码将无法再用于登录，包括使用分享码。`)) {
+                // 先将密码加入撤销列表
+                revokedPasswords.revoke(password, '管理员删除');
+                
+                // 再从密码列表中移除
                 customPasswords.remove(password);
+                
                 updatePasswordList();
-                showToast('密码删除', `密码 ${password} 已删除`, 'success');
+                showToast('密码删除', `密码 ${password} 已删除并撤销，相关分享码已失效`, 'success');
             }
         }
         
@@ -2830,6 +2972,11 @@ console.log('Hello World!');
                 // 验证用户类型
                 if (!['basic', 'advanced'].includes(userType)) {
                     throw new Error('分享码格式错误：无效的用户类型');
+                }
+                
+                // 检查密码是否已被撤销
+                if (revokedPasswords.isRevoked(password)) {
+                    throw new Error(`密码 "${password}" 已被撤销，无法使用。\n请联系管理员获取新的密码。`);
                 }
                 
                 // 检查密码是否已存在
@@ -2939,11 +3086,15 @@ console.log('Hello World!');
         
         // 从配额管理界面删除密码
         function deleteCustomPasswordFromQuota(password) {
-            if (confirm(`确认删除密码 "${password}"？\n删除后该密码将无法再用于登录。`)) {
+            if (confirm(`确认删除密码 "${password}"？\n删除后该密码将无法再用于登录，包括使用分享码。`)) {
+                // 先将密码加入撤销列表
+                revokedPasswords.revoke(password, '管理员删除');
+                
+                // 再从密码列表中移除
                 customPasswords.remove(password);
-                updateQuotaPasswordList();
-                updatePasswordList(); // 同时更新密码生成标签页的列表
-                showToast('密码删除', `密码 ${password} 已删除`, 'success');
+                
+                updatePasswordList();
+                showToast('密码删除', `密码 ${password} 已删除并撤销，相关分享码已失效`, 'success');
             }
         }
         
@@ -2957,15 +3108,19 @@ console.log('Hello World!');
                 return;
             }
             
-            if (confirm(`确认清除所有 ${passwordCount} 个生成的密码？\n此操作不可撤销，所有自定义密码将无法再用于登录。`)) {
+            if (confirm(`确认清除所有 ${passwordCount} 个生成的密码？\n此操作不可撤销，所有自定义密码将无法再用于登录，包括使用分享码。`)) {
+                // 先将所有密码加入撤销列表
+                Object.keys(allPasswords).forEach(password => {
+                    revokedPasswords.revoke(password, '批量清除');
+                });
+                
                 // 清除所有自定义密码
                 localStorage.removeItem('customPasswords');
                 
                 // 更新所有相关显示
-                updateQuotaPasswordList();
                 updatePasswordList();
                 
-                showToast('密码清除', `已清除所有 ${passwordCount} 个自定义密码`, 'success');
+                showToast('密码清除', `已清除所有 ${passwordCount} 个自定义密码并撤销，相关分享码已失效`, 'success');
             }
         }
         
