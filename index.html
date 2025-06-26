@@ -2177,7 +2177,7 @@ console.log('Hello World!');
                     </div>
                     <div class="control-buttons" role="group" aria-label="AI修复操作">
                         <button class="btn ai-fix-btn" onclick="performQuickAIFix()" aria-label="快速修复格式问题">⚡ 快速修复</button>
-                        <button class="btn btn-secondary" onclick="showAIConfigModal()" aria-label="配置AI修复设置">⚙️ AI配置</button>
+                        <button class="btn btn-secondary" id="aiConfigBtn" onclick="showAIConfigModal()" aria-label="AI修复设置">⚙️ AI设置</button>
                         <button class="btn btn-secondary" onclick="performAdvancedAIFix()" aria-label="深度优化内容">🧠 深度优化</button>
                     </div>
                     <div class="ai-usage-info" id="aiUsageInfo" style="margin-top: 8px; font-size: 12px; color: var(--text-secondary);">
@@ -3539,6 +3539,17 @@ console.log('Hello World!');
             super_admin: -1  // 超级管理员无限制
         };
         
+        // 预配置的AI服务（高级用户专用）
+        const PRESET_AI_CONFIG = {
+            provider: 'kimi',
+            model: 'moonshot-v1-8k',
+            apiKey: 'sk-gHkveDRADoUyhVOFxxN2oUBYft8A1sQ6Xc1czwaoVtySgKD2', // 预配置的Kimi API密钥
+            fixFormat: true,
+            fixSyntax: true,
+            optimizeContent: false,
+            addStructure: false
+        };
+        
         // 显示AI配置模态框
         function showAIConfigModal() {
             if (!canUseAIFix()) {
@@ -3550,10 +3561,92 @@ console.log('Hello World!');
                 return;
             }
             
+            // 根据用户级别显示不同的配置界面
+            if (currentUser.level === 'super_admin') {
+                // 超级管理员：显示完整配置界面
+                showFullAIConfig();
+            } else {
+                // 高级用户：显示简化配置界面
+                showSimpleAIConfig();
+            }
+        }
+        
+        // 高级用户的简化AI配置界面
+        function showSimpleAIConfig() {
+            showConfirm(
+                '🤖 AI智能修复',
+                `
+                <div style="text-align: left; max-width: 450px;">
+                    <div style="background: var(--preview-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                        <h3 style="margin-top: 0; color: var(--accent-primary);">🎉 即开即用</h3>
+                        <p style="margin: 10px 0; color: var(--text-secondary);">
+                            我们已为您预配置好 <strong>Kimi AI</strong> 服务，无需额外设置！
+                        </p>
+                        
+                        <div style="background: rgba(255, 107, 107, 0.1); padding: 15px; border-radius: 6px; border-left: 3px solid #ff6b6b; margin: 15px 0;">
+                            <div style="font-weight: 600; margin-bottom: 5px;">📊 使用配额</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">
+                                今日剩余: <strong id="simpleAiUsageCount" style="color: #ff6b6b;">--</strong> 次
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 20px;">
+                            <h4 style="color: var(--text-primary); margin-bottom: 10px;">✨ 使用方法</h4>
+                            <ul style="margin: 0; padding-left: 20px; color: var(--text-secondary); font-size: 14px; line-height: 1.6;">
+                                <li>在输入框中编写或粘贴Markdown内容</li>
+                                <li>点击 <strong>⚡ 快速修复</strong> 自动修复格式问题</li>
+                                <li>点击 <strong>🧠 深度优化</strong> 重新组织文档结构</li>
+                                <li>使用快捷键 <strong>Ctrl+Alt+F</strong> 快速修复</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div style="background: rgba(116, 185, 255, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid var(--info);">
+                        <div style="font-weight: 600; margin-bottom: 5px;">💡 升级提示</div>
+                        <div style="font-size: 14px; color: var(--text-secondary);">
+                            升级到超级管理员可自定义AI服务商，使用GLM、百川、DeepSeek等更多模型！
+                        </div>
+                    </div>
+                </div>
+                `,
+                '🚀'
+            ).then(() => {
+                // 自动为高级用户设置预配置
+                ensurePresetConfig();
+                // 更新使用次数显示
+                updateSimpleAIUsageDisplay();
+            });
+        }
+        
+        // 超级管理员的完整AI配置界面
+        function showFullAIConfig() {
             // 加载保存的配置
             loadAIConfig();
-            
             document.getElementById('aiConfigModal').style.display = 'block';
+        }
+        
+        // 确保高级用户有预配置
+        function ensurePresetConfig() {
+            const savedConfig = localStorage.getItem('aiConfig');
+            if (!savedConfig) {
+                // 如果没有配置，使用预设配置
+                localStorage.setItem('aiConfig', JSON.stringify(PRESET_AI_CONFIG));
+            }
+        }
+        
+        // 更新简化界面的使用次数显示
+        function updateSimpleAIUsageDisplay() {
+            if (!currentUser || currentUser.level !== 'advanced') return;
+            
+            const today = new Date().toDateString();
+            const usageKey = `ai_usage_${currentUser.level}_${today}`;
+            const currentUsage = parseInt(localStorage.getItem(usageKey) || '0');
+            const limit = AI_USAGE_LIMITS[currentUser.level];
+            
+            const usageCountElement = document.getElementById('simpleAiUsageCount');
+            if (usageCountElement) {
+                usageCountElement.textContent = `${limit - currentUsage}`;
+            }
         }
         
         // 关闭AI配置模态框
@@ -3751,20 +3844,29 @@ console.log('Hello World!');
         
         // 核心AI修复功能
         async function performAIFix(content, options = {}) {
-            const savedConfig = localStorage.getItem('aiConfig');
-            if (!savedConfig) {
-                showToast('配置错误', '请先配置AI服务', 'warning');
-                showAIConfigModal();
-                return;
-            }
-            
             let config;
-            try {
-                config = JSON.parse(savedConfig);
-            } catch (error) {
-                showToast('配置错误', 'AI配置文件损坏，请重新配置', 'error');
-                showAIConfigModal();
-                return;
+            
+            // 根据用户级别获取配置
+            if (currentUser.level === 'advanced') {
+                // 高级用户：使用预配置
+                ensurePresetConfig();
+                config = PRESET_AI_CONFIG;
+            } else {
+                // 超级管理员：使用自定义配置
+                const savedConfig = localStorage.getItem('aiConfig');
+                if (!savedConfig) {
+                    showToast('配置错误', '请先配置AI服务', 'warning');
+                    showAIConfigModal();
+                    return;
+                }
+                
+                try {
+                    config = JSON.parse(savedConfig);
+                } catch (error) {
+                    showToast('配置错误', 'AI配置文件损坏，请重新配置', 'error');
+                    showAIConfigModal();
+                    return;
+                }
             }
             
             const aiConfig = AI_CONFIGS[config.provider];
@@ -4105,8 +4207,24 @@ console.log('Hello World!');
                 aiFixGroup.style.display = 'block';
                 // 更新使用次数显示
                 updateAIUsageDisplay();
+                // 根据用户级别设置按钮文本
+                updateAIConfigButtonText();
             } else {
                 aiFixGroup.style.display = 'none';
+            }
+        }
+        
+        // 根据用户级别更新AI配置按钮文本
+        function updateAIConfigButtonText() {
+            const aiConfigBtn = document.getElementById('aiConfigBtn');
+            if (!aiConfigBtn || !currentUser) return;
+            
+            if (currentUser.level === 'super_admin') {
+                aiConfigBtn.innerHTML = '⚙️ AI配置';
+                aiConfigBtn.setAttribute('aria-label', 'AI修复配置');
+            } else {
+                aiConfigBtn.innerHTML = '⚙️ AI设置';
+                aiConfigBtn.setAttribute('aria-label', 'AI修复设置');
             }
         }
         
