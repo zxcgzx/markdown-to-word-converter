@@ -386,9 +386,9 @@
 
         .controls-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 24px;
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
@@ -432,7 +432,9 @@
         .control-buttons .btn {
             margin: 0;
             flex: 1;
-            min-width: 120px;
+            min-width: 90px;
+            font-size: 13px;
+            padding: 12px 16px;
         }
 
         @media (max-width: 768px) {
@@ -590,6 +592,11 @@
             .main-content {
                 padding: 15px;
                 gap: 15px;
+            }
+            
+            .controls-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
             }
         }
 
@@ -2150,19 +2157,21 @@ console.log('Hello World!');
                     </div>
                 </div>
 
-                <!-- 文件管理组 -->
+                <!-- 文件与编辑工具组 -->
                 <div class="control-group">
                     <div class="control-group-title">
-                        <span>📁</span>
-                        <span>文件管理</span>
+                        <span>🛠️</span>
+                        <span>文件与编辑</span>
                     </div>
                     <div class="control-group-desc">
-                        上传外部文件或管理本地草稿，保持工作连续性
+                        文件上传、草稿管理和编辑辅助工具
                     </div>
-                    <div class="control-buttons" role="group" aria-label="文件操作">
+                    <div class="control-buttons" role="group" aria-label="文件与编辑操作">
                         <button class="btn btn-secondary" onclick="uploadFile()" aria-label="上传Markdown文件">📁 上传文件</button>
                         <button class="btn btn-secondary" onclick="saveToLocal()" aria-label="保存当前内容为草稿">💾 保存草稿</button>
                         <button class="btn btn-secondary" onclick="loadFromLocal()" aria-label="加载本地保存的草稿">📂 加载草稿</button>
+                        <button class="btn btn-secondary" onclick="clearContent()" aria-label="清空输入框中的所有内容">🗑️ 清空内容</button>
+                        <button class="btn btn-secondary" onclick="showShortcuts()" aria-label="显示键盘快捷键帮助">⌨️ 快捷键</button>
                     </div>
                 </div>
 
@@ -2182,21 +2191,6 @@ console.log('Hello World!');
                     </div>
                     <div class="ai-usage-info" id="aiUsageInfo" style="margin-top: 8px; font-size: 12px; color: var(--text-secondary);">
                         今日剩余: <span id="aiUsageCount">--</span> 次
-                    </div>
-                </div>
-
-                <!-- 编辑工具组 -->
-                <div class="control-group">
-                    <div class="control-group-title">
-                        <span>✏️</span>
-                        <span>编辑工具</span>
-                    </div>
-                    <div class="control-group-desc">
-                        清空当前内容或使用其他编辑辅助功能
-                    </div>
-                    <div class="control-buttons" role="group" aria-label="编辑操作">
-                        <button class="btn btn-secondary" onclick="clearContent()" aria-label="清空输入框中的所有内容">🗑️ 清空内容</button>
-                        <button class="btn btn-secondary" onclick="showShortcuts()" aria-label="显示键盘快捷键帮助">⌨️ 快捷键</button>
                     </div>
                 </div>
             </div>
