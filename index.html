@@ -3309,22 +3309,111 @@ console.log('Hello World!');
             // 更新用户状态显示
             updateUserStatus();
             
+            // 等待DOM完全可见后初始化事件绑定
+            setTimeout(() => {
+                initializeEventBindings();
+            }, 100);
+            
             // 初始化拖拽功能
             initializeDragAndDrop();
             
             // 直接加载示例，不检查自动保存内容避免弹窗
             loadExample();
         }
+        
+        // 初始化事件绑定 - 确保在主界面显示后执行
+        function initializeEventBindings() {
+            try {
+                // 获取DOM元素（在主界面显示后重新获取）
+                const markdownInput = document.getElementById('markdownInput');
+                const preview = document.getElementById('preview');
+                
+                // 验证元素存在且可见
+                if (!markdownInput || !preview) {
+                    console.warn('关键DOM元素未找到，延迟重试...');
+                    setTimeout(initializeEventBindings, 200);
+                    return;
+                }
+                
+                // 检查元素是否真正可见
+                const isVisible = markdownInput.offsetParent !== null && 
+                                 markdownInput.style.display !== 'none' &&
+                                 getComputedStyle(markdownInput).visibility !== 'hidden';
+                
+                if (!isVisible) {
+                    console.warn('DOM元素尚未完全可见，延迟重试...');
+                    setTimeout(initializeEventBindings, 200);
+                    return;
+                }
+                
+                // 移除可能的重复监听器（防止重复绑定）
+                markdownInput.removeEventListener('input', handleInputChange);
+                
+                // 绑定实时预览事件
+                markdownInput.addEventListener('input', handleInputChange);
+                
+                console.log('✅ 实时预览事件绑定成功');
+                
+                // 触发一次初始预览更新
+                if (markdownInput.value.trim()) {
+                    debouncedUpdatePreview();
+                }
+                
+            } catch (error) {
+                console.error('事件绑定失败:', error);
+                // 失败重试机制
+                setTimeout(initializeEventBindings, 500);
+            }
+        }
+        
+        // 输入变化处理函数
+        function handleInputChange() {
+            try {
+                debouncedUpdateWordCount(); // 字数统计使用防抖
+                debouncedUpdatePreview();   // 预览更新使用动态防抖
+                
+                // 调试信息（仅在开发模式下显示）
+                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                    console.log('📝 实时预览触发');
+                }
+            } catch (error) {
+                console.error('实时预览处理失败:', error);
+                // 尝试重新初始化事件绑定
+                setTimeout(initializeEventBindings, 1000);
+            }
+        }
+        
+        // 检查实时预览状态的调试函数
+        function checkPreviewStatus() {
+            const markdownInput = document.getElementById('markdownInput');
+            const preview = document.getElementById('preview');
+            
+            const status = {
+                markdownInputExists: !!markdownInput,
+                previewExists: !!preview,
+                markdownInputVisible: markdownInput ? markdownInput.offsetParent !== null : false,
+                previewVisible: preview ? preview.offsetParent !== null : false,
+                hasEventListeners: markdownInput ? getEventListeners(markdownInput).input?.length > 0 : false,
+                currentValue: markdownInput ? markdownInput.value.length : 0
+            };
+            
+            console.table(status);
+            return status;
+        }
+        
+        // 全局暴露调试函数（仅在开发环境）
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            window.checkPreviewStatus = checkPreviewStatus;
+            window.reinitializePreview = initializeEventBindings;
+        }
+        
         // 配置marked选项
         marked.setOptions({
             breaks: true,
             gfm: true
         });
 
-        const markdownInput = document.getElementById('markdownInput');
-        const preview = document.getElementById('preview');
-        const wordCount = document.getElementById('wordCount');
-        const statusIndicator = document.getElementById('statusIndicator');
+        // DOM元素引用 - 移动到函数中按需获取，避免过早引用
 
         // 数学公式缓存系统
         const mathCache = new Map();
@@ -3786,11 +3875,7 @@ console.log('Hello World!');
         // 防抖的字数统计更新（100ms延迟）
         const debouncedUpdateWordCount = debounce(updateWordCount, 100);
 
-        // 实时预览功能（优化防抖）
-        markdownInput.addEventListener('input', function() {
-            debouncedUpdateWordCount(); // 字数统计也使用防抖
-            debouncedUpdatePreview();   // 预览更新使用动态防抖
-        });
+        // 实时预览功能初始化 - 移动到initializeApp中进行绑定
 
         // 示例内容库
         const examples = {
@@ -5058,7 +5143,46 @@ $$\\lim_{x \\to \\infty} \\frac{1}{x} = 0$$
             setTimeout(() => {
                 loadSavedTheme();
             }, 100);
+            
+            // 额外的安全检查：确保实时预览功能正常工作
+            setTimeout(() => {
+                ensurePreviewFunctionality();
+            }, 2000);
         });
+        
+        // 确保实时预览功能正常工作的安全检查
+        function ensurePreviewFunctionality() {
+            // 只有在用户已登录时才进行检查
+            const isAuthenticated = sessionStorage.getItem('authenticated') === 'true';
+            if (!isAuthenticated) return;
+            
+            const markdownInput = document.getElementById('markdownInput');
+            if (!markdownInput) return;
+            
+            // 检查事件绑定是否成功
+            let hasInputListener = false;
+            try {
+                // 简单的测试：检查是否有input事件监听器
+                const listeners = getEventListeners && getEventListeners(markdownInput);
+                hasInputListener = listeners && listeners.input && listeners.input.length > 0;
+            } catch (error) {
+                // 在某些浏览器中getEventListeners可能不可用，改用其他方法检查
+                hasInputListener = false;
+            }
+            
+            // 如果没有监听器或不确定，尝试重新初始化
+            if (!hasInputListener) {
+                console.warn('🔧 检测到实时预览可能未正确初始化，尝试修复...');
+                initializeEventBindings();
+                
+                // 显示用户友好的提示
+                setTimeout(() => {
+                    showToast('系统检查', '已自动优化实时预览功能', 'info', 2000);
+                }, 500);
+            } else {
+                console.log('✅ 实时预览功能运行正常');
+            }
+        }
     </script>
 </body>
 </html>
