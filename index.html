@@ -498,6 +498,74 @@
             box-shadow: 0 4px 14px var(--shadow-hover);
         }
 
+        /* AI修复按钮特殊样式 */
+        .ai-fix-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53) !important;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ai-fix-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.6s;
+        }
+
+        .ai-fix-btn:hover::before {
+            left: 100%;
+        }
+
+        .ai-fix-btn:hover {
+            background: linear-gradient(135deg, #ff5252, #ff7043) !important;
+            transform: translateY(-2px);
+            box-shadow: 
+                0 8px 24px rgba(255, 107, 107, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            filter: brightness(1.1) saturate(1.2);
+        }
+
+        .ai-fix-btn:active {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(255, 107, 107, 0.3);
+        }
+
+        /* AI修复功能组样式 */
+        .ai-usage-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(255, 107, 107, 0.1);
+            border-radius: 6px;
+            border-left: 3px solid #ff6b6b;
+        }
+
+        .ai-usage-info span {
+            font-weight: 600;
+            color: #ff6b6b;
+        }
+
+        /* AI配置模态框动画 */
+        .ai-config-modal {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
         .example-section {
             margin: 20px 0;
         }
@@ -2098,6 +2166,25 @@ console.log('Hello World!');
                     </div>
                 </div>
 
+                <!-- AI智能修复组 -->
+                <div class="control-group" id="aiFixGroup" style="display: none;">
+                    <div class="control-group-title">
+                        <span>🤖</span>
+                        <span>AI智能修复</span>
+                    </div>
+                    <div class="control-group-desc">
+                        使用AI自动修复Markdown格式问题，优化文档结构
+                    </div>
+                    <div class="control-buttons" role="group" aria-label="AI修复操作">
+                        <button class="btn ai-fix-btn" onclick="performQuickAIFix()" aria-label="快速修复格式问题">⚡ 快速修复</button>
+                        <button class="btn btn-secondary" onclick="showAIConfigModal()" aria-label="配置AI修复设置">⚙️ AI配置</button>
+                        <button class="btn btn-secondary" onclick="performAdvancedAIFix()" aria-label="深度优化内容">🧠 深度优化</button>
+                    </div>
+                    <div class="ai-usage-info" id="aiUsageInfo" style="margin-top: 8px; font-size: 12px; color: var(--text-secondary);">
+                        今日剩余: <span id="aiUsageCount">--</span> 次
+                    </div>
+                </div>
+
                 <!-- 编辑工具组 -->
                 <div class="control-group">
                     <div class="control-group-title">
@@ -2133,6 +2220,91 @@ console.log('Hello World!');
                 <div class="dialog-buttons">
                     <button class="dialog-btn dialog-btn-secondary" id="dialogCancel">取消</button>
                     <button class="dialog-btn dialog-btn-primary" id="dialogConfirm">确认</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- AI配置模态框 -->
+        <div class="ai-config-modal" id="aiConfigModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; backdrop-filter: blur(5px);">
+            <div style="display: flex; align-items: center; justify-content: center; height: 100%; padding: 20px;">
+                <div style="background: var(--container-bg); border-radius: 15px; padding: 30px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="margin: 0; color: var(--text-primary);">🤖 AI智能修复配置</h2>
+                        <button onclick="closeAIConfigModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary);" title="关闭">&times;</button>
+                    </div>
+                    
+                    <div style="background: var(--preview-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                        <h3 style="margin-top: 0; color: var(--text-primary);">🔧 AI服务配置</h3>
+                        
+                        <!-- AI服务商选择 -->
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">AI服务商：</label>
+                            <select id="aiProvider" onchange="updateAIModels()" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: white;">
+                                <option value="kimi">Kimi (moonshot)</option>
+                                <option value="glm">智谱GLM</option>
+                                <option value="baichuan">百川AI</option>
+                                <option value="deepseek">DeepSeek</option>
+                                <option value="openai">OpenAI</option>
+                            </select>
+                        </div>
+                        
+                        <!-- 模型选择 -->
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">AI模型：</label>
+                            <select id="aiModel" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: white;">
+                                <option value="moonshot-v1-8k">moonshot-v1-8k</option>
+                            </select>
+                        </div>
+                        
+                        <!-- API密钥输入 -->
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">API密钥：</label>
+                            <div style="position: relative;">
+                                <input type="password" id="aiApiKey" placeholder="输入您的API密钥" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; padding-right: 40px;">
+                                <button type="button" onclick="toggleAPIKeyVisibility()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px;" title="显示/隐藏API密钥">👁️</button>
+                            </div>
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 5px;">
+                                ⚠️ API密钥仅在本地存储，不会上传到服务器
+                            </div>
+                        </div>
+                        
+                        <!-- 修复选项 -->
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 10px; font-weight: 600;">修复选项：</label>
+                            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                                <label style="display: flex; align-items: center; gap: 5px; font-size: 14px;">
+                                    <input type="checkbox" id="fixFormat" checked> 格式规范化
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 5px; font-size: 14px;">
+                                    <input type="checkbox" id="fixSyntax" checked> 语法修复
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 5px; font-size: 14px;">
+                                    <input type="checkbox" id="optimizeContent"> 内容优化
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 5px; font-size: 14px;">
+                                    <input type="checkbox" id="addStructure"> 添加标题层次
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- 操作按钮组 -->
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="testAIConnection()" style="background: var(--info); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; flex: 1;">🔗 测试连接</button>
+                            <button onclick="showAIHelp()" style="background: var(--warning); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; flex: 1;">📖 帮助</button>
+                        </div>
+                        <button onclick="saveAIConfig()" style="background: var(--accent-primary); color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; margin-top: 10px;">💾 保存配置</button>
+                    </div>
+                    
+                    <!-- 使用说明 -->
+                    <div style="background: rgba(116, 185, 255, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid var(--info);">
+                        <h4 style="margin-top: 0; color: var(--text-primary);">💡 使用说明</h4>
+                        <ul style="margin: 0; padding-left: 20px; color: var(--text-secondary); font-size: 14px;">
+                            <li><strong>快速修复</strong>：自动修复常见的Markdown格式问题</li>
+                            <li><strong>深度优化</strong>：使用AI重新组织和优化文档结构</li>
+                            <li><strong>API密钥</strong>：获取密钥请访问对应AI服务商官网</li>
+                            <li><strong>使用限制</strong>：高级用户每日10次，超级管理员无限制</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2240,6 +2412,7 @@ console.log('Hello World!');
                     mathFormulas: false,
                     batchProcess: false,
                     customExport: false,
+                    aiFix: false,        // 基础用户不支持AI修复
                     priority: 'low'
                 }
             },
@@ -2252,6 +2425,7 @@ console.log('Hello World!');
                     mathFormulas: true,
                     batchProcess: true,
                     customExport: true,
+                    aiFix: true,         // 高级用户支持AI修复
                     priority: 'high'
                 }
             },
@@ -2264,6 +2438,7 @@ console.log('Hello World!');
                     mathFormulas: true,
                     batchProcess: true,
                     customExport: true,
+                    aiFix: true,         // 超级管理员支持AI修复
                     priority: 'highest',
                     adminPanel: true,
                     passwordGenerator: true
@@ -2590,6 +2765,7 @@ console.log('Hello World!');
                         mathFormulas: '数学公式支持',
                         batchProcess: '批量文件处理',
                         customExport: '自定义导出模板',
+                        aiFix: 'AI智能修复',
                         adminPanel: '管理员面板',
                         passwordGenerator: '密码生成器'
                     };
@@ -3281,6 +3457,601 @@ console.log('Hello World!');
             }
         }
         
+        // === AI智能修复系统 ===
+        
+        // AI服务商配置
+        const AI_CONFIGS = {
+            kimi: {
+                name: 'Kimi (moonshot)',
+                endpoint: 'https://api.moonshot.cn/v1/chat/completions',
+                models: [
+                    { value: 'moonshot-v1-8k', label: 'moonshot-v1-8k (8K上下文)' },
+                    { value: 'moonshot-v1-32k', label: 'moonshot-v1-32k (32K上下文)' },
+                    { value: 'moonshot-v1-128k', label: 'moonshot-v1-128k (128K上下文)' }
+                ]
+            },
+            glm: {
+                name: '智谱GLM',
+                endpoint: 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
+                models: [
+                    { value: 'glm-4-plus', label: 'GLM-4-Plus (高性能版)' },
+                    { value: 'glm-4-flash', label: 'GLM-4-Flash (快速版)' }
+                ]
+            },
+            baichuan: {
+                name: '百川AI',
+                endpoint: 'https://api.baichuan-ai.com/v1/chat/completions',
+                models: [
+                    { value: 'Baichuan3-Turbo-128k', label: 'Baichuan3-Turbo-128k' }
+                ]
+            },
+            deepseek: {
+                name: 'DeepSeek',
+                endpoint: 'https://api.deepseek.com/v1/chat/completions',
+                models: [
+                    { value: 'deepseek-chat', label: 'deepseek-chat' }
+                ]
+            },
+            openai: {
+                name: 'OpenAI',
+                endpoint: 'https://oapio.asia/v1/chat/completions',
+                models: [
+                    { value: 'gpt-4o-mini', label: 'GPT-4o-mini' },
+                    { value: 'gpt-4o-2024-11-20', label: 'GPT-4o-2024-11-20' },
+                    { value: 'claude-3-5-sonnet-20241022', label: 'Claude-3.5-Sonnet' },
+                    { value: 'claude-sonnet-4-20250514', label: 'Claude-4.0-Sonnet' }
+                ]
+            }
+        };
+        
+        // AI修复的系统提示词
+        const AI_SYSTEM_PROMPTS = {
+            quick_fix: `你是一个Markdown格式修复专家。请修复用户提供的文本，使其符合标准Markdown语法：
+
+1. 修复标题格式 (确保 # 后有空格)
+2. 修复列表格式 (确保 - 或 1. 后有空格)  
+3. 修复代码块格式 (确保正确的\`\`\`包围)
+4. 修复链接格式 [text](url)
+5. 修复表格格式 (确保正确的|分隔)
+6. 修复引用格式 (确保 > 后有空格)
+7. 保持原有内容含义不变
+8. 只返回修复后的Markdown文本，不要添加解释
+
+请修复以下内容：`,
+
+            advanced_optimize: `你是一个文档优化专家。请优化用户的Markdown文档：
+
+1. 完善标题层次结构
+2. 优化段落结构和逻辑
+3. 添加适当的分割线和空行
+4. 改进表格和列表的可读性
+5. 添加合适的引用和强调
+6. 保持原有核心内容不变
+7. 返回优化后的Markdown文本
+
+请优化以下内容：`
+        };
+        
+        // AI使用配额管理
+        const AI_USAGE_LIMITS = {
+            basic: 0,        // 基础用户无法使用
+            advanced: 10,    // 高级用户每日10次
+            super_admin: -1  // 超级管理员无限制
+        };
+        
+        // 显示AI配置模态框
+        function showAIConfigModal() {
+            if (!canUseAIFix()) {
+                showUpgradePrompt(
+                    'AI修复需要升级',
+                    'AI智能修复功能仅对高级用户开放。\n升级后可享受每日10次AI修复服务！',
+                    'ai'
+                );
+                return;
+            }
+            
+            // 加载保存的配置
+            loadAIConfig();
+            
+            document.getElementById('aiConfigModal').style.display = 'block';
+        }
+        
+        // 关闭AI配置模态框
+        function closeAIConfigModal() {
+            document.getElementById('aiConfigModal').style.display = 'none';
+        }
+        
+        // 更新AI模型选择
+        function updateAIModels() {
+            const provider = document.getElementById('aiProvider').value;
+            const modelSelect = document.getElementById('aiModel');
+            const config = AI_CONFIGS[provider];
+            
+            // 清空当前选项
+            modelSelect.innerHTML = '';
+            
+            // 添加新的模型选项
+            config.models.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model.value;
+                option.textContent = model.label;
+                modelSelect.appendChild(option);
+            });
+        }
+        
+        // 切换API密钥可见性
+        function toggleAPIKeyVisibility() {
+            const apiKeyInput = document.getElementById('aiApiKey');
+            const toggleBtn = apiKeyInput.nextElementSibling;
+            
+            if (apiKeyInput.type === 'password') {
+                apiKeyInput.type = 'text';
+                toggleBtn.textContent = '🙈';
+                toggleBtn.title = '隐藏API密钥';
+            } else {
+                apiKeyInput.type = 'password';
+                toggleBtn.textContent = '👁️';
+                toggleBtn.title = '显示API密钥';
+            }
+        }
+        
+        // 保存AI配置
+        function saveAIConfig() {
+            const provider = document.getElementById('aiProvider').value;
+            const model = document.getElementById('aiModel').value;
+            const apiKey = document.getElementById('aiApiKey').value.trim();
+            
+            if (!apiKey) {
+                showToast('配置错误', '请输入API密钥', 'warning');
+                return;
+            }
+            
+            // 保存配置到本地存储
+            const config = {
+                provider: provider,
+                model: model,
+                apiKey: apiKey,
+                fixFormat: document.getElementById('fixFormat').checked,
+                fixSyntax: document.getElementById('fixSyntax').checked,
+                optimizeContent: document.getElementById('optimizeContent').checked,
+                addStructure: document.getElementById('addStructure').checked,
+                timestamp: Date.now()
+            };
+            
+            localStorage.setItem('aiConfig', JSON.stringify(config));
+            
+            showToast('配置保存', 'AI修复配置已保存', 'success');
+            closeAIConfigModal();
+            
+            // 更新使用次数显示
+            updateAIUsageDisplay();
+        }
+        
+        // 加载AI配置
+        function loadAIConfig() {
+            const savedConfig = localStorage.getItem('aiConfig');
+            if (savedConfig) {
+                try {
+                    const config = JSON.parse(savedConfig);
+                    
+                    document.getElementById('aiProvider').value = config.provider || 'kimi';
+                    updateAIModels();
+                    document.getElementById('aiModel').value = config.model || AI_CONFIGS[config.provider].models[0].value;
+                    document.getElementById('aiApiKey').value = config.apiKey || '';
+                    document.getElementById('fixFormat').checked = config.fixFormat !== false;
+                    document.getElementById('fixSyntax').checked = config.fixSyntax !== false;
+                    document.getElementById('optimizeContent').checked = config.optimizeContent || false;
+                    document.getElementById('addStructure').checked = config.addStructure || false;
+                } catch (error) {
+                    console.error('加载AI配置失败:', error);
+                }
+            } else {
+                // 默认配置
+                updateAIModels();
+            }
+        }
+        
+        // 检查是否可以使用AI修复功能
+        function canUseAIFix() {
+            return currentUser && currentUser.features && currentUser.features.aiFix;
+        }
+        
+        // 检查AI使用配额
+        function checkAIUsageLimit() {
+            if (!currentUser) return false;
+            
+            const today = new Date().toDateString();
+            const usageKey = `ai_usage_${currentUser.level}_${today}`;
+            const currentUsage = parseInt(localStorage.getItem(usageKey) || '0');
+            const limit = AI_USAGE_LIMITS[currentUser.level];
+            
+            return limit === -1 || currentUsage < limit;
+        }
+        
+        // 增加AI使用次数
+        function incrementAIUsage() {
+            if (!currentUser) return;
+            
+            const today = new Date().toDateString();
+            const usageKey = `ai_usage_${currentUser.level}_${today}`;
+            const currentUsage = parseInt(localStorage.getItem(usageKey) || '0');
+            
+            localStorage.setItem(usageKey, (currentUsage + 1).toString());
+            updateAIUsageDisplay();
+        }
+        
+        // 更新AI使用次数显示
+        function updateAIUsageDisplay() {
+            if (!currentUser || !canUseAIFix()) return;
+            
+            const today = new Date().toDateString();
+            const usageKey = `ai_usage_${currentUser.level}_${today}`;
+            const currentUsage = parseInt(localStorage.getItem(usageKey) || '0');
+            const limit = AI_USAGE_LIMITS[currentUser.level];
+            
+            const usageCountElement = document.getElementById('aiUsageCount');
+            if (usageCountElement) {
+                if (limit === -1) {
+                    usageCountElement.textContent = '无限制';
+                } else {
+                    usageCountElement.textContent = `${limit - currentUsage}`;
+                }
+            }
+        }
+        
+        // 快速AI修复功能
+        async function performQuickAIFix() {
+            if (!canUseAIFix()) {
+                showUpgradePrompt(
+                    'AI修复需要升级',
+                    'AI智能修复功能仅对高级用户开放。\n升级后可享受每日10次AI修复服务！',
+                    'ai'
+                );
+                return;
+            }
+            
+            const markdownText = document.getElementById('markdownInput').value.trim();
+            if (!markdownText) {
+                showToast('提示', '请先输入需要修复的Markdown内容', 'warning');
+                return;
+            }
+            
+            if (!checkAIUsageLimit()) {
+                showToast('配额不足', '今日AI修复次数已用完，请明天再试', 'warning');
+                return;
+            }
+            
+            await performAIFix(markdownText, { type: 'quick_fix', mode: '快速修复' });
+        }
+        
+        // 深度AI优化功能
+        async function performAdvancedAIFix() {
+            if (!canUseAIFix()) {
+                showUpgradePrompt(
+                    'AI修复需要升级',
+                    'AI智能修复功能仅对高级用户开放。\n升级后可享受每日10次AI修复服务！',
+                    'ai'
+                );
+                return;
+            }
+            
+            const markdownText = document.getElementById('markdownInput').value.trim();
+            if (!markdownText) {
+                showToast('提示', '请先输入需要优化的Markdown内容', 'warning');
+                return;
+            }
+            
+            if (!checkAIUsageLimit()) {
+                showToast('配额不足', '今日AI修复次数已用完，请明天再试', 'warning');
+                return;
+            }
+            
+            await performAIFix(markdownText, { type: 'advanced_optimize', mode: '深度优化' });
+        }
+        
+        // 核心AI修复功能
+        async function performAIFix(content, options = {}) {
+            const savedConfig = localStorage.getItem('aiConfig');
+            if (!savedConfig) {
+                showToast('配置错误', '请先配置AI服务', 'warning');
+                showAIConfigModal();
+                return;
+            }
+            
+            let config;
+            try {
+                config = JSON.parse(savedConfig);
+            } catch (error) {
+                showToast('配置错误', 'AI配置文件损坏，请重新配置', 'error');
+                showAIConfigModal();
+                return;
+            }
+            
+            const aiConfig = AI_CONFIGS[config.provider];
+            if (!aiConfig) {
+                showToast('配置错误', '不支持的AI服务商', 'error');
+                return;
+            }
+            
+            const systemPrompt = AI_SYSTEM_PROMPTS[options.type] || AI_SYSTEM_PROMPTS.quick_fix;
+            const mode = options.mode || '修复';
+            
+            try {
+                // 显示修复进度
+                showToast('AI修复中', `正在使用${aiConfig.name}进行${mode}...`, 'info', 0);
+                
+                const response = await fetch(aiConfig.endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${config.apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: config.model,
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            { role: 'user', content: content }
+                        ],
+                        temperature: 0.3,
+                        max_tokens: 4000,
+                        stream: false
+                    })
+                });
+                
+                if (!response.ok) {
+                    let errorMessage = `API调用失败 (${response.status})`;
+                    try {
+                        const errorData = await response.json();
+                        errorMessage += `: ${errorData.error?.message || errorData.message || '未知错误'}`;
+                    } catch (e) {
+                        errorMessage += `: ${response.statusText}`;
+                    }
+                    throw new Error(errorMessage);
+                }
+                
+                const data = await response.json();
+                
+                if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+                    throw new Error('AI返回的数据格式不正确');
+                }
+                
+                const fixedContent = data.choices[0].message.content.trim();
+                
+                if (!fixedContent) {
+                    throw new Error('AI返回了空的修复结果');
+                }
+                
+                // 更新输入框内容
+                const markdownInput = document.getElementById('markdownInput');
+                const originalContent = markdownInput.value;
+                markdownInput.value = fixedContent;
+                
+                // 触发预览更新
+                debouncedUpdatePreview();
+                debouncedUpdateWordCount();
+                
+                // 增加使用次数
+                incrementAIUsage();
+                
+                // 显示成功信息
+                showToast('修复完成', `AI已成功${mode}您的文档`, 'success', 3000);
+                
+                // 提供撤销功能
+                const undoBtn = document.createElement('button');
+                undoBtn.textContent = '撤销修复';
+                undoBtn.style.cssText = 'background: var(--warning); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; margin-left: 10px; font-size: 12px;';
+                undoBtn.onclick = () => {
+                    markdownInput.value = originalContent;
+                    debouncedUpdatePreview();
+                    debouncedUpdateWordCount();
+                    showToast('已撤销', '已恢复到修复前的内容', 'info');
+                };
+                
+                // 创建带有撤销按钮的提示
+                setTimeout(() => {
+                    const lastToast = document.querySelector('.toast:last-child');
+                    if (lastToast && lastToast.textContent.includes('修复完成')) {
+                        lastToast.appendChild(undoBtn);
+                    }
+                }, 100);
+                
+                return fixedContent;
+                
+            } catch (error) {
+                console.error('AI修复失败:', error);
+                
+                let userMessage = 'AI修复过程中出现错误';
+                if (error.message.includes('401')) {
+                    userMessage = 'API密钥无效，请检查配置';
+                } else if (error.message.includes('403')) {
+                    userMessage = 'API访问被拒绝，请检查权限';
+                } else if (error.message.includes('429')) {
+                    userMessage = 'API调用频率过高，请稍后重试';
+                } else if (error.message.includes('timeout')) {
+                    userMessage = 'AI服务响应超时，请重试';
+                } else if (error.message.includes('网络')) {
+                    userMessage = '网络连接失败，请检查网络';
+                } else {
+                    userMessage = `修复失败: ${error.message}`;
+                }
+                
+                showToast('修复失败', userMessage, 'error', 5000);
+                
+                // 如果是配置问题，引导用户重新配置
+                if (error.message.includes('401') || error.message.includes('403') || error.message.includes('API密钥')) {
+                    setTimeout(() => {
+                        showAIConfigModal();
+                    }, 2000);
+                }
+                
+                return null;
+            }
+        }
+        
+        // === AI修复用户体验优化 ===
+        
+        // 点击背景关闭AI配置模态框
+        document.addEventListener('click', function(e) {
+            const aiConfigModal = document.getElementById('aiConfigModal');
+            if (e.target === aiConfigModal) {
+                closeAIConfigModal();
+            }
+        });
+        
+        // 键盘快捷键支持
+        document.addEventListener('keydown', function(e) {
+            // Esc键关闭AI配置模态框
+            if (e.key === 'Escape') {
+                const aiConfigModal = document.getElementById('aiConfigModal');
+                if (aiConfigModal && aiConfigModal.style.display === 'block') {
+                    closeAIConfigModal();
+                }
+            }
+            
+            // Ctrl+Alt+F 快速AI修复
+            if (e.ctrlKey && e.altKey && e.key === 'f' || e.key === 'F') {
+                e.preventDefault();
+                if (canUseAIFix()) {
+                    performQuickAIFix();
+                }
+            }
+            
+            // Ctrl+Alt+O AI深度优化
+            if (e.ctrlKey && e.altKey && e.key === 'o' || e.key === 'O') {
+                e.preventDefault();
+                if (canUseAIFix()) {
+                    performAdvancedAIFix();
+                }
+            }
+        });
+        
+        // API配置验证功能
+        async function validateAIConfig(config) {
+            const aiConfig = AI_CONFIGS[config.provider];
+            if (!aiConfig) {
+                throw new Error('不支持的AI服务商');
+            }
+            
+            if (!config.apiKey || config.apiKey.trim().length < 10) {
+                throw new Error('API密钥格式不正确');
+            }
+            
+            // 简单的API密钥格式验证
+            const keyPatterns = {
+                kimi: /^sk-[a-zA-Z0-9]{32,}$/,
+                glm: /^[a-f0-9]{32}\.[a-zA-Z0-9]{16}$/,
+                baichuan: /^sk-[a-f0-9]{32}$/,
+                deepseek: /^sk-[a-f0-9]{32}$/,
+                openai: /^sk-[a-zA-Z0-9]{32,}$/
+            };
+            
+            const pattern = keyPatterns[config.provider];
+            if (pattern && !pattern.test(config.apiKey)) {
+                console.warn(`API密钥格式可能不正确: ${config.provider}`);
+            }
+            
+            return true;
+        }
+        
+        // 测试AI配置连接
+        async function testAIConnection() {
+            const savedConfig = localStorage.getItem('aiConfig');
+            if (!savedConfig) {
+                showToast('配置错误', '请先保存AI配置', 'warning');
+                return;
+            }
+            
+            let config;
+            try {
+                config = JSON.parse(savedConfig);
+                await validateAIConfig(config);
+            } catch (error) {
+                showToast('配置验证失败', error.message, 'error');
+                return;
+            }
+            
+            const aiConfig = AI_CONFIGS[config.provider];
+            
+            try {
+                showToast('连接测试', '正在测试AI服务连接...', 'info', 0);
+                
+                const response = await fetch(aiConfig.endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${config.apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: config.model,
+                        messages: [
+                            { role: 'user', content: '测试连接' }
+                        ],
+                        max_tokens: 10
+                    })
+                });
+                
+                if (response.ok) {
+                    showToast('连接成功', `${aiConfig.name} 连接正常`, 'success');
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    const errorMsg = errorData.error?.message || errorData.message || `HTTP ${response.status}`;
+                    showToast('连接失败', `${aiConfig.name} 连接失败: ${errorMsg}`, 'error');
+                }
+            } catch (error) {
+                showToast('连接失败', `网络错误: ${error.message}`, 'error');
+            }
+        }
+        
+        // 增强的错误处理和用户引导
+        function showAIHelp() {
+            const helpContent = `
+                <div style="text-align: left; max-width: 500px;">
+                    <h3 style="color: var(--accent-primary); margin-top: 0;">🤖 AI智能修复帮助</h3>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h4>📋 功能说明</h4>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li><strong>快速修复</strong>：自动修复Markdown格式问题</li>
+                            <li><strong>深度优化</strong>：AI重新组织和优化文档结构</li>
+                            <li><strong>配置管理</strong>：支持多个AI服务商切换</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h4>🔑 API密钥获取</h4>
+                        <ul style="margin: 10px 0; padding-left: 20px; font-size: 14px;">
+                            <li><strong>Kimi</strong>: <a href="https://platform.moonshot.cn" target="_blank">platform.moonshot.cn</a></li>
+                            <li><strong>智谱GLM</strong>: <a href="https://bigmodel.cn" target="_blank">bigmodel.cn</a></li>
+                            <li><strong>百川AI</strong>: <a href="https://platform.baichuan-ai.com" target="_blank">platform.baichuan-ai.com</a></li>
+                            <li><strong>DeepSeek</strong>: <a href="https://platform.deepseek.com" target="_blank">platform.deepseek.com</a></li>
+                            <li><strong>OpenAI</strong>: 需要代理服务</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h4>⌨️ 快捷键</h4>
+                        <ul style="margin: 10px 0; padding-left: 20px; font-size: 14px;">
+                            <li><strong>Ctrl+Alt+F</strong>: 快速修复</li>
+                            <li><strong>Ctrl+Alt+O</strong>: 深度优化</li>
+                            <li><strong>Esc</strong>: 关闭配置面板</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: rgba(255, 193, 7, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107;">
+                        <h4 style="margin-top: 0;">💡 使用建议</h4>
+                        <ul style="margin: 5px 0; padding-left: 20px; font-size: 14px;">
+                            <li>首次使用请先配置AI服务</li>
+                            <li>建议先测试连接再使用</li>
+                            <li>API密钥仅在本地存储，不会上传</li>
+                            <li>高级用户每日10次，超级管理员无限制</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+            
+            showConfirm('AI智能修复帮助', helpContent, '💡');
+        }
+        
         // 添加事件监听器
         document.addEventListener('DOMContentLoaded', function() {
             // 密码显示/隐藏切换
@@ -3309,6 +4080,9 @@ console.log('Hello World!');
             // 更新用户状态显示
             updateUserStatus();
             
+            // 初始化AI修复功能组显示
+            initializeAIFixFeatures();
+            
             // 等待DOM完全可见后初始化事件绑定
             setTimeout(() => {
                 initializeEventBindings();
@@ -3319,6 +4093,21 @@ console.log('Hello World!');
             
             // 直接加载示例，不检查自动保存内容避免弹窗
             loadExample();
+        }
+        
+        // 初始化AI修复功能
+        function initializeAIFixFeatures() {
+            const aiFixGroup = document.getElementById('aiFixGroup');
+            if (!aiFixGroup) return;
+            
+            // 根据用户权限显示或隐藏AI修复功能组
+            if (canUseAIFix()) {
+                aiFixGroup.style.display = 'block';
+                // 更新使用次数显示
+                updateAIUsageDisplay();
+            } else {
+                aiFixGroup.style.display = 'none';
+            }
         }
         
         // 初始化事件绑定 - 确保在主界面显示后执行
