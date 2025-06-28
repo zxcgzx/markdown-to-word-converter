@@ -5187,29 +5187,45 @@ $$\\\\lim_{x \\\\to \\\\infty} \\\\frac{1}{x} = 0$$
                     switch(tagName) {
                         case 'h1':
                             children.push(new docx.Paragraph({
-                                text: text,
-                                style: "Heading1",
+                                children: [new docx.TextRun({
+                                    text: text,
+                                    color: "000000",
+                                    bold: true,
+                                    size: 32
+                                })],
                                 spacing: { after: 200 }
                             }));
                             break;
                         case 'h2':
                             children.push(new docx.Paragraph({
-                                text: text,
-                                style: "Heading2",
+                                children: [new docx.TextRun({
+                                    text: text,
+                                    color: "000000",
+                                    bold: true,
+                                    size: 28
+                                })],
                                 spacing: { after: 200 }
                             }));
                             break;
                         case 'h3':
                             children.push(new docx.Paragraph({
-                                text: text,
-                                style: "Heading3",
+                                children: [new docx.TextRun({
+                                    text: text,
+                                    color: "000000",
+                                    bold: true,
+                                    size: 24
+                                })],
                                 spacing: { after: 200 }
                             }));
                             break;
                         case 'h4':
                             children.push(new docx.Paragraph({
-                                text: text,
-                                style: "Heading4",
+                                children: [new docx.TextRun({
+                                    text: text,
+                                    color: "000000",
+                                    bold: true,
+                                    size: 20
+                                })],
                                 spacing: { after: 200 }
                             }));
                             break;
