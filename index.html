@@ -3731,8 +3731,8 @@ console.log('Hello World!');
                     document.getElementById('aiApiKey').value = config.apiKey || '';
                     document.getElementById('fixFormat').checked = config.fixFormat !== false;
                     document.getElementById('fixSyntax').checked = config.fixSyntax !== false;
-                    document.getElementById('optimizeContent').checked = config.optimizeContent || false;
-                    document.getElementById('addStructure').checked = config.addStructure || false;
+                    document.getElementById('optimizeContent').checked = config.optimizeContent !== false;
+                    document.getElementById('addStructure').checked = config.addStructure !== false;
                 } catch (error) {
                     console.error('加载AI配置失败:', error);
                 }
