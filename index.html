@@ -2249,7 +2249,68 @@ console.log('Hello World!');
                                 <option value="baichuan">百川AI</option>
                                 <option value="deepseek">DeepSeek</option>
                                 <option value="openai">OpenAI</option>
+                                <option value="gemini">Gemini-2.5-Flash</option>
+                                <option value="custom" style="font-weight: bold; color: var(--accent-primary);">🔧 自定义服务商</option>
                             </select>
+                        </div>
+                        
+                        <!-- 自定义服务商配置区域 -->
+                        <div id="customConfigSection" style="display: none; margin-bottom: 15px; padding: 15px; background: rgba(116, 185, 255, 0.05); border: 1px solid rgba(116, 185, 255, 0.2); border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h4 style="margin: 0; color: var(--accent-primary);">🔧 自定义AI服务配置</h4>
+                                <div style="display: flex; gap: 8px;">
+                                    <button onclick="showConfigTemplates()" style="background: var(--accent-secondary); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;" title="选择配置模板">📋 模板</button>
+                                    <button onclick="importCustomConfig()" style="background: var(--info); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;" title="导入配置">📥 导入</button>
+                                </div>
+                            </div>
+                            
+                            <!-- 服务商名称 -->
+                            <div style="margin-bottom: 12px;">
+                                <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px;">服务商名称：</label>
+                                <input type="text" id="customProviderName" placeholder="例如：My Custom AI" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 14px;">
+                            </div>
+                            
+                            <!-- API端点 -->
+                            <div style="margin-bottom: 12px;">
+                                <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px;">API端点URL：</label>
+                                <input type="url" id="customEndpoint" placeholder="https://api.example.com/v1/chat/completions" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 14px;">
+                                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 3px;">
+                                    💡 支持OpenAI兼容格式的API端点
+                                </div>
+                            </div>
+                            
+                            <!-- 模型配置 -->
+                            <div style="margin-bottom: 12px;">
+                                <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px;">
+                                    可用模型：
+                                    <button onclick="addCustomModel()" style="background: var(--success); color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 11px; margin-left: 8px;">＋ 添加</button>
+                                </label>
+                                <div id="customModelsList" style="max-height: 120px; overflow-y: auto;">
+                                    <!-- 默认模型输入框将通过JavaScript动态添加 -->
+                                </div>
+                            </div>
+                            
+                            <!-- 高级选项 -->
+                            <details style="margin-bottom: 12px;">
+                                <summary style="cursor: pointer; font-weight: 600; font-size: 14px; color: var(--text-secondary);">⚙️ 高级选项</summary>
+                                <div style="margin-top: 10px; padding: 10px; background: var(--preview-bg); border-radius: 6px;">
+                                    <div style="margin-bottom: 8px;">
+                                        <label style="display: block; margin-bottom: 3px; font-weight: 600; font-size: 13px;">自定义请求头 (JSON格式)：</label>
+                                        <textarea id="customHeaders" placeholder='{"Authorization": "Bearer your-key", "Custom-Header": "value"}' style="width: 100%; height: 60px; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; font-family: monospace; resize: vertical;"></textarea>
+                                    </div>
+                                    <div style="margin-bottom: 8px;">
+                                        <label style="display: block; margin-bottom: 3px; font-weight: 600; font-size: 13px;">请求参数 (JSON格式)：</label>
+                                        <textarea id="customParams" placeholder='{"temperature": 0.7, "max_tokens": 1000}' style="width: 100%; height: 60px; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; font-family: monospace; resize: vertical;"></textarea>
+                                    </div>
+                                </div>
+                            </details>
+                            
+                            <!-- 操作按钮 -->
+                            <div style="display: flex; gap: 8px; margin-top: 15px;">
+                                <button onclick="validateCustomConfig()" style="background: var(--info); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; flex: 1; font-size: 13px;">🔍 验证配置</button>
+                                <button onclick="saveCustomConfig()" style="background: var(--success); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; flex: 1; font-size: 13px;">💾 保存自定义</button>
+                                <button onclick="exportCustomConfig()" style="background: var(--accent-secondary); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; flex: 1; font-size: 13px;">📤 导出</button>
+                            </div>
                         </div>
                         
                         <!-- 模型选择 -->
@@ -2305,10 +2366,31 @@ console.log('Hello World!');
                         <ul style="margin: 0; padding-left: 20px; color: var(--text-secondary); font-size: 14px;">
                             <li><strong>快速修复</strong>：自动修复常见的Markdown格式问题</li>
                             <li><strong>深度优化</strong>：使用AI重新组织和优化文档结构</li>
+                            <li><strong>预设服务商</strong>：Kimi、GLM、百川、DeepSeek、OpenAI、Gemini</li>
+                            <li><strong>自定义服务商</strong>：支持添加任何OpenAI兼容的AI服务</li>
+                            <li><strong>配置模板</strong>：内置Anthropic、Ollama、Groq等模板</li>
+                            <li><strong>配置管理</strong>：支持导入/导出配置文件</li>
                             <li><strong>API密钥</strong>：获取密钥请访问对应AI服务商官网</li>
-                            <li><strong>使用限制</strong>：高级用户每日10次，超级管理员无限制</li>
+                            <li><strong>使用限制</strong>：高级用户每日20次，超级管理员无限制</li>
                         </ul>
                     </div>
+                    
+                    <!-- 自定义配置示例 -->
+                    <details style="margin-top: 15px;">
+                        <summary style="cursor: pointer; font-weight: 600; color: var(--text-primary); padding: 8px;">📚 配置示例</summary>
+                        <div style="margin-top: 10px; padding: 12px; background: var(--preview-bg); border-radius: 6px;">
+                            <h5 style="margin: 0 0 8px 0; color: var(--accent-primary);">OpenAI兼容端点示例：</h5>
+                            <code style="display: block; font-size: 12px; color: var(--text-secondary); background: white; padding: 8px; border-radius: 4px; margin-bottom: 8px;">
+                                端点: https://api.openai.com/v1/chat/completions<br>
+                                模型: gpt-4, gpt-3.5-turbo
+                            </code>
+                            <h5 style="margin: 8px 0 8px 0; color: var(--accent-primary);">本地Ollama示例：</h5>
+                            <code style="display: block; font-size: 12px; color: var(--text-secondary); background: white; padding: 8px; border-radius: 4px;">
+                                端点: http://localhost:11434/v1/chat/completions<br>
+                                模型: llama3.2, mistral, codellama
+                            </code>
+                        </div>
+                    </details>
                 </div>
             </div>
         </div>
@@ -3536,6 +3618,137 @@ console.log('Hello World!');
             }
         };
         
+        // 自定义AI配置模板库
+        const AI_CONFIG_TEMPLATES = {
+            anthropic: {
+                name: 'Anthropic Claude',
+                endpoint: 'https://api.anthropic.com/v1/messages',
+                models: [
+                    { value: 'claude-3-5-sonnet-20241022', label: 'Claude-3.5-Sonnet' },
+                    { value: 'claude-3-opus-20240229', label: 'Claude-3-Opus' },
+                    { value: 'claude-3-haiku-20240307', label: 'Claude-3-Haiku' }
+                ],
+                headers: {
+                    'anthropic-version': '2023-06-01'
+                }
+            },
+            ollama: {
+                name: 'Ollama (本地)',
+                endpoint: 'http://localhost:11434/v1/chat/completions',
+                models: [
+                    { value: 'llama3.2', label: 'Llama 3.2' },
+                    { value: 'mistral', label: 'Mistral' },
+                    { value: 'codellama', label: 'Code Llama' }
+                ]
+            },
+            groq: {
+                name: 'Groq',
+                endpoint: 'https://api.groq.com/openai/v1/chat/completions',
+                models: [
+                    { value: 'llama-3.1-405b-reasoning', label: 'Llama 3.1 405B' },
+                    { value: 'llama-3.1-70b-versatile', label: 'Llama 3.1 70B' },
+                    { value: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B' }
+                ]
+            },
+            together: {
+                name: 'Together AI',
+                endpoint: 'https://api.together.xyz/v1/chat/completions',
+                models: [
+                    { value: 'meta-llama/Llama-3-70b-chat-hf', label: 'Llama 3 70B Chat' },
+                    { value: 'mistralai/Mixtral-8x7B-Instruct-v0.1', label: 'Mixtral 8x7B' },
+                    { value: 'NousResearch/Nous-Hermes-2-Yi-34B', label: 'Nous Hermes 2 Yi 34B' }
+                ]
+            },
+            perplexity: {
+                name: 'Perplexity',
+                endpoint: 'https://api.perplexity.ai/chat/completions',
+                models: [
+                    { value: 'llama-3.1-sonar-small-128k-online', label: 'Llama 3.1 Sonar Small (在线)' },
+                    { value: 'llama-3.1-sonar-large-128k-online', label: 'Llama 3.1 Sonar Large (在线)' },
+                    { value: 'llama-3.1-sonar-huge-128k-online', label: 'Llama 3.1 Sonar Huge (在线)' }
+                ]
+            }
+        };
+        
+        // 自定义AI配置管理器
+        const customAIConfigs = {
+            // 从localStorage加载自定义配置
+            load() {
+                const stored = localStorage.getItem('customAIConfigs');
+                return stored ? JSON.parse(stored) : {};
+            },
+            
+            // 保存自定义配置到localStorage
+            save(configs) {
+                localStorage.setItem('customAIConfigs', JSON.stringify(configs));
+            },
+            
+            // 添加新的自定义配置
+            add(id, config) {
+                const configs = this.load();
+                configs[id] = {
+                    ...config,
+                    isCustom: true,
+                    createdAt: new Date().toISOString()
+                };
+                this.save(configs);
+                return id;
+            },
+            
+            // 删除自定义配置
+            remove(id) {
+                const configs = this.load();
+                delete configs[id];
+                this.save(configs);
+            },
+            
+            // 获取所有配置（预设+自定义）
+            getAll() {
+                const customConfigs = this.load();
+                return { ...AI_CONFIGS, ...customConfigs };
+            },
+            
+            // 获取单个配置
+            get(id) {
+                const allConfigs = this.getAll();
+                return allConfigs[id] || null;
+            },
+            
+            // 验证配置格式
+            validate(config) {
+                const errors = [];
+                
+                if (!config.name || typeof config.name !== 'string' || config.name.trim().length === 0) {
+                    errors.push('服务商名称不能为空');
+                }
+                
+                if (!config.endpoint || typeof config.endpoint !== 'string') {
+                    errors.push('API端点不能为空');
+                } else {
+                    try {
+                        new URL(config.endpoint);
+                    } catch {
+                        errors.push('API端点格式不正确，请输入有效的URL');
+                    }
+                }
+                
+                if (!config.models || !Array.isArray(config.models) || config.models.length === 0) {
+                    errors.push('至少需要一个模型');
+                } else {
+                    config.models.forEach((model, index) => {
+                        if (!model.value || typeof model.value !== 'string') {
+                            errors.push(`模型${index + 1}的值不能为空`);
+                        }
+                        if (!model.label || typeof model.label !== 'string') {
+                            errors.push(`模型${index + 1}的显示名称不能为空`);
+                        }
+                    });
+                }
+                
+                return errors;
+            }
+        };
+        
         // AI修复的系统提示词
         const AI_SYSTEM_PROMPTS = {
             quick_fix: `你是Markdown格式修复专家。请修复用户提供的文本，使其符合标准Markdown语法和中文写作规范：
@@ -3758,6 +3971,8 @@ console.log('Hello World!');
         
         // 超级管理员的完整AI配置界面
         function showFullAIConfig() {
+            // 更新服务商选择器（加载自定义配置）
+            updateProviderSelector();
             // 加载保存的配置
             loadAIConfig();
             document.getElementById('aiConfigModal').style.display = 'block';
@@ -3796,7 +4011,31 @@ console.log('Hello World!');
         function updateAIModels() {
             const provider = document.getElementById('aiProvider').value;
             const modelSelect = document.getElementById('aiModel');
-            const config = AI_CONFIGS[provider];
+            const customConfigSection = document.getElementById('customConfigSection');
+            
+            // 处理自定义服务商
+            if (provider === 'custom') {
+                customConfigSection.style.display = 'block';
+                modelSelect.innerHTML = '<option value="">请先配置自定义服务商</option>';
+                
+                // 确保有至少一个模型输入框
+                const modelsList = document.getElementById('customModelsList');
+                if (modelsList.children.length === 0) {
+                    addCustomModelItem('', '');
+                }
+                return;
+            } else {
+                customConfigSection.style.display = 'none';
+            }
+            
+            // 获取配置（预设或自定义）
+            const allConfigs = customAIConfigs.getAll();
+            const config = allConfigs[provider];
+            
+            if (!config) {
+                console.error('未找到AI配置:', provider);
+                return;
+            }
             
             // 清空当前选项
             modelSelect.innerHTML = '';
@@ -3808,6 +4047,357 @@ console.log('Hello World!');
                 option.textContent = model.label;
                 modelSelect.appendChild(option);
             });
+        }
+        
+        // 显示配置模板选择器
+        function showConfigTemplates() {
+            const templates = Object.keys(AI_CONFIG_TEMPLATES);
+            let templateOptions = templates.map(key => {
+                const template = AI_CONFIG_TEMPLATES[key];
+                return `<option value="${key}">${template.name}</option>`;
+            }).join('');
+            
+            showConfirm(
+                '📋 选择配置模板',
+                `
+                <div style="text-align: left; max-width: 400px;">
+                    <p style="margin-bottom: 15px; color: var(--text-secondary);">选择一个预设模板快速配置：</p>
+                    <select id="templateSelector" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 15px;">
+                        <option value="">请选择模板...</option>
+                        ${templateOptions}
+                    </select>
+                    <div style="background: var(--preview-bg); padding: 12px; border-radius: 6px; margin-bottom: 15px;">
+                        <div id="templatePreview" style="font-size: 14px; color: var(--text-secondary);">
+                            选择模板后将显示配置预览...
+                        </div>
+                    </div>
+                </div>
+                `,
+                '🚀'
+            ).then(() => {
+                const selectedTemplate = document.getElementById('templateSelector').value;
+                if (selectedTemplate) {
+                    loadConfigTemplate(selectedTemplate);
+                }
+            });
+            
+            // 添加模板预览功能
+            setTimeout(() => {
+                const selector = document.getElementById('templateSelector');
+                if (selector) {
+                    selector.addEventListener('change', function() {
+                        const templateKey = this.value;
+                        const preview = document.getElementById('templatePreview');
+                        if (templateKey && preview) {
+                            const template = AI_CONFIG_TEMPLATES[templateKey];
+                            preview.innerHTML = `
+                                <strong>${template.name}</strong><br>
+                                <span style="font-size: 12px;">端点：${template.endpoint}</span><br>
+                                <span style="font-size: 12px;">模型数量：${template.models.length} 个</span>
+                            `;
+                        }
+                    });
+                }
+            }, 100);
+        }
+        
+        // 加载配置模板
+        function loadConfigTemplate(templateKey) {
+            const template = AI_CONFIG_TEMPLATES[templateKey];
+            if (!template) return;
+            
+            // 填充表单
+            document.getElementById('customProviderName').value = template.name;
+            document.getElementById('customEndpoint').value = template.endpoint;
+            
+            // 清空并重新填充模型列表
+            const modelsList = document.getElementById('customModelsList');
+            modelsList.innerHTML = '';
+            
+            template.models.forEach(model => {
+                addCustomModelItem(model.value, model.label);
+            });
+            
+            // 填充高级选项
+            if (template.headers) {
+                document.getElementById('customHeaders').value = JSON.stringify(template.headers, null, 2);
+            }
+            
+            showToast('模板加载成功', `已加载 ${template.name} 配置模板`, 'success');
+        }
+        
+        // 添加自定义模型
+        function addCustomModel() {
+            addCustomModelItem('', '');
+        }
+        
+        // 添加自定义模型项
+        function addCustomModelItem(modelValue = '', labelValue = '') {
+            const modelsList = document.getElementById('customModelsList');
+            const modelItem = document.createElement('div');
+            modelItem.className = 'custom-model-item';
+            modelItem.style.cssText = 'display: flex; gap: 8px; margin-bottom: 8px; align-items: center;';
+            
+            modelItem.innerHTML = `
+                <input type="text" placeholder="模型ID (如: gpt-4)" value="${modelValue}" style="flex: 1; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px;">
+                <input type="text" placeholder="显示名称 (如: GPT-4)" value="${labelValue}" style="flex: 1; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px;">
+                <button onclick="removeCustomModel(this)" style="background: var(--warning); color: white; border: none; padding: 4px 6px; border-radius: 3px; cursor: pointer; font-size: 11px;">🗑️</button>
+            `;
+            
+            modelsList.appendChild(modelItem);
+        }
+        
+        // 移除自定义模型
+        function removeCustomModel(button) {
+            const modelItem = button.closest('.custom-model-item');
+            const modelsList = document.getElementById('customModelsList');
+            
+            // 确保至少保留一个模型输入框
+            if (modelsList.children.length > 1) {
+                modelItem.remove();
+            } else {
+                showToast('提示', '至少需要保留一个模型配置', 'warning');
+            }
+        }
+        
+        // 验证自定义配置
+        function validateCustomConfig() {
+            const config = getCustomConfigFromForm();
+            if (!config) return;
+            
+            const errors = customAIConfigs.validate(config);
+            
+            if (errors.length > 0) {
+                showToast('配置验证失败', errors.join('\\n'), 'error', 5000);
+                return false;
+            }
+            
+            showToast('配置验证成功', '自定义配置格式正确！', 'success');
+            return true;
+        }
+        
+        // 从表单获取自定义配置
+        function getCustomConfigFromForm() {
+            const name = document.getElementById('customProviderName').value.trim();
+            const endpoint = document.getElementById('customEndpoint').value.trim();
+            
+            if (!name || !endpoint) {
+                showToast('配置不完整', '请填写服务商名称和API端点', 'warning');
+                return null;
+            }
+            
+            // 获取模型列表
+            const modelItems = document.querySelectorAll('.custom-model-item');
+            const models = [];
+            
+            modelItems.forEach(item => {
+                const inputs = item.querySelectorAll('input');
+                const modelValue = inputs[0].value.trim();
+                const labelValue = inputs[1].value.trim();
+                
+                if (modelValue && labelValue) {
+                    models.push({ value: modelValue, label: labelValue });
+                }
+            });
+            
+            if (models.length === 0) {
+                showToast('配置不完整', '请至少添加一个模型', 'warning');
+                return null;
+            }
+            
+            const config = {
+                name: name,
+                endpoint: endpoint,
+                models: models
+            };
+            
+            // 处理高级选项
+            const headersText = document.getElementById('customHeaders').value.trim();
+            const paramsText = document.getElementById('customParams').value.trim();
+            
+            if (headersText) {
+                try {
+                    config.headers = JSON.parse(headersText);
+                } catch (error) {
+                    showToast('JSON格式错误', '自定义请求头格式不正确', 'error');
+                    return null;
+                }
+            }
+            
+            if (paramsText) {
+                try {
+                    config.params = JSON.parse(paramsText);
+                } catch (error) {
+                    showToast('JSON格式错误', '请求参数格式不正确', 'error');
+                    return null;
+                }
+            }
+            
+            return config;
+        }
+        
+        // 保存自定义配置
+        function saveCustomConfig() {
+            const config = getCustomConfigFromForm();
+            if (!config) return;
+            
+            if (!validateCustomConfig()) return;
+            
+            // 生成唯一ID
+            const configId = 'custom_' + Date.now();
+            
+            // 保存配置
+            customAIConfigs.add(configId, config);
+            
+            // 更新服务商选择器
+            updateProviderSelector();
+            
+            // 选择新添加的配置
+            document.getElementById('aiProvider').value = configId;
+            updateAIModels();
+            
+            showToast('保存成功', `自定义配置"${config.name}"已保存`, 'success');
+        }
+        
+        // 更新服务商选择器
+        function updateProviderSelector() {
+            const providerSelect = document.getElementById('aiProvider');
+            const currentValue = providerSelect.value;
+            
+            // 重新构建选项
+            const allConfigs = customAIConfigs.getAll();
+            
+            // 保存原有选项
+            const defaultOptions = [
+                { value: 'kimi', label: 'Kimi (moonshot)' },
+                { value: 'glm', label: '智谱GLM' },
+                { value: 'baichuan', label: '百川AI' },
+                { value: 'deepseek', label: 'DeepSeek' },
+                { value: 'openai', label: 'OpenAI' },
+                { value: 'gemini', label: 'Gemini-2.5-Flash' }
+            ];
+            
+            providerSelect.innerHTML = '';
+            
+            // 添加预设选项
+            defaultOptions.forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option.value;
+                optionElement.textContent = option.label;
+                providerSelect.appendChild(optionElement);
+            });
+            
+            // 添加自定义配置
+            Object.keys(allConfigs).forEach(key => {
+                const config = allConfigs[key];
+                if (config.isCustom) {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = key;
+                    optionElement.textContent = `🔧 ${config.name}`;
+                    optionElement.style.color = 'var(--accent-primary)';
+                    providerSelect.appendChild(optionElement);
+                }
+            });
+            
+            // 添加自定义选项
+            const customOption = document.createElement('option');
+            customOption.value = 'custom';
+            customOption.textContent = '🔧 自定义服务商';
+            customOption.style.fontWeight = 'bold';
+            customOption.style.color = 'var(--accent-primary)';
+            providerSelect.appendChild(customOption);
+            
+            // 恢复选择
+            if (currentValue) {
+                providerSelect.value = currentValue;
+            }
+        }
+        
+        // 导出自定义配置
+        function exportCustomConfig() {
+            const config = getCustomConfigFromForm();
+            if (!config) return;
+            
+            const exportData = {
+                version: '1.0',
+                config: config,
+                exportedAt: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `ai-config-${config.name.replace(/[^a-zA-Z0-9]/g, '_')}.json`;
+            link.click();
+            
+            showToast('导出成功', '配置文件已下载', 'success');
+        }
+        
+        // 导入自定义配置
+        function importCustomConfig() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const importData = JSON.parse(e.target.result);
+                        
+                        if (!importData.config) {
+                            throw new Error('配置文件格式不正确');
+                        }
+                        
+                        const config = importData.config;
+                        
+                        // 验证配置
+                        const errors = customAIConfigs.validate(config);
+                        if (errors.length > 0) {
+                            throw new Error('配置验证失败: ' + errors.join(', '));
+                        }
+                        
+                        // 填充表单
+                        document.getElementById('customProviderName').value = config.name || '';
+                        document.getElementById('customEndpoint').value = config.endpoint || '';
+                        
+                        // 清空并填充模型列表
+                        const modelsList = document.getElementById('customModelsList');
+                        modelsList.innerHTML = '';
+                        
+                        if (config.models && config.models.length > 0) {
+                            config.models.forEach(model => {
+                                addCustomModelItem(model.value, model.label);
+                            });
+                        } else {
+                            addCustomModelItem('', '');
+                        }
+                        
+                        // 填充高级选项
+                        if (config.headers) {
+                            document.getElementById('customHeaders').value = JSON.stringify(config.headers, null, 2);
+                        }
+                        
+                        if (config.params) {
+                            document.getElementById('customParams').value = JSON.stringify(config.params, null, 2);
+                        }
+                        
+                        showToast('导入成功', `配置"${config.name}"已导入`, 'success');
+                        
+                    } catch (error) {
+                        console.error('导入配置失败:', error);
+                        showToast('导入失败', error.message, 'error');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            
+            input.click();
         }
         
         // 切换API密钥可见性
@@ -4007,7 +4597,9 @@ console.log('Hello World!');
                 }
             }
             
-            const aiConfig = AI_CONFIGS[config.provider];
+            // 获取AI配置（支持自定义配置）
+            const allConfigs = customAIConfigs.getAll();
+            const aiConfig = allConfigs[config.provider];
             if (!aiConfig) {
                 showToast('配置错误', '不支持的AI服务商', 'error');
                 return;
@@ -4020,22 +4612,38 @@ console.log('Hello World!');
                 // 显示修复进度
                 showToast('AI修复中', `正在使用${aiConfig.name}进行${mode}...`, 'info', 0);
                 
+                // 构建请求头
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${decodeApiKey(config.apiKey)}`
+                };
+                
+                // 添加自定义请求头
+                if (aiConfig.headers) {
+                    Object.assign(headers, aiConfig.headers);
+                }
+                
+                // 构建请求体
+                const requestBody = {
+                    model: config.model,
+                    messages: [
+                        { role: 'system', content: systemPrompt },
+                        { role: 'user', content: content }
+                    ],
+                    temperature: 0.3,
+                    max_tokens: 4000,
+                    stream: false
+                };
+                
+                // 添加自定义参数
+                if (aiConfig.params) {
+                    Object.assign(requestBody, aiConfig.params);
+                }
+                
                 const response = await fetch(aiConfig.endpoint, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${decodeApiKey(config.apiKey)}`
-                    },
-                    body: JSON.stringify({
-                        model: config.model,
-                        messages: [
-                            { role: 'system', content: systemPrompt },
-                            { role: 'user', content: content }
-                        ],
-                        temperature: 0.3,
-                        max_tokens: 4000,
-                        stream: false
-                    })
+                    headers: headers,
+                    body: JSON.stringify(requestBody)
                 });
                 
                 if (!response.ok) {
@@ -4210,24 +4818,47 @@ console.log('Hello World!');
                 return;
             }
             
-            const aiConfig = AI_CONFIGS[config.provider];
+            // 获取AI配置（支持自定义配置）
+            const allConfigs = customAIConfigs.getAll();
+            const aiConfig = allConfigs[config.provider];
+            
+            if (!aiConfig) {
+                showToast('配置错误', '不支持的AI服务商', 'error');
+                return;
+            }
             
             try {
                 showToast('连接测试', '正在测试AI服务连接...', 'info', 0);
                 
+                // 构建请求头
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${decodeApiKey(config.apiKey)}`
+                };
+                
+                // 添加自定义请求头
+                if (aiConfig.headers) {
+                    Object.assign(headers, aiConfig.headers);
+                }
+                
+                // 构建请求体
+                const requestBody = {
+                    model: config.model,
+                    messages: [
+                        { role: 'user', content: '测试连接' }
+                    ],
+                    max_tokens: 10
+                };
+                
+                // 添加自定义参数
+                if (aiConfig.params) {
+                    Object.assign(requestBody, aiConfig.params);
+                }
+                
                 const response = await fetch(aiConfig.endpoint, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${decodeApiKey(config.apiKey)}`
-                    },
-                    body: JSON.stringify({
-                        model: config.model,
-                        messages: [
-                            { role: 'user', content: '测试连接' }
-                        ],
-                        max_tokens: 10
-                    })
+                    headers: headers,
+                    body: JSON.stringify(requestBody)
                 });
                 
                 if (response.ok) {
@@ -6253,11 +6884,31 @@ $$\\\\lim_{x \\\\to \\\\infty} \\\\frac{1}{x} = 0$$
                 loadSavedTheme();
             }, 100);
             
+            // 初始化自定义AI配置功能
+            setTimeout(() => {
+                initializeCustomAIConfigs();
+            }, 500);
+            
             // 额外的安全检查：确保实时预览功能正常工作
             setTimeout(() => {
                 ensurePreviewFunctionality();
             }, 2000);
         });
+        
+        // 初始化自定义AI配置功能
+        function initializeCustomAIConfigs() {
+            // 只有在用户已登录时才初始化
+            const isAuthenticated = sessionStorage.getItem('authenticated') === 'true';
+            if (!isAuthenticated) return;
+            
+            // 确保AI配置界面的服务商选择器包含自定义配置
+            try {
+                updateProviderSelector();
+                console.log('✅ 自定义AI配置功能已初始化');
+            } catch (error) {
+                console.warn('⚠️ 自定义AI配置初始化失败:', error);
+            }
+        }
         
         // 确保实时预览功能正常工作的安全检查
         function ensurePreviewFunctionality() {
