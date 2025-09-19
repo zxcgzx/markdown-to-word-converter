@@ -51,6 +51,9 @@
         // 示例加载标志
         let isLoadingExample = false;
 
+        // 实时预览事件绑定状态标记
+        let markdownInputHasListener = false;
+
         // 导出设置与 AI 历史相关常量
         const EXPORT_SETTINGS_KEY = 'export-settings:v1';
         const defaultExportSettings = {
@@ -1067,6 +1070,7 @@
             // 清除当前用户信息
             currentUser = null;
             currentPassword = null;
+            markdownInputHasListener = false;
             
             // 隐藏用户状态
             const userStatus = document.getElementById('userStatus');
@@ -2700,9 +2704,11 @@
                 
                 // 移除可能的重复监听器（防止重复绑定）
                 markdownInput.removeEventListener('input', handleInputChange);
+                markdownInputHasListener = false;
                 
                 // 绑定实时预览事件
                 markdownInput.addEventListener('input', handleInputChange);
+                markdownInputHasListener = true;
                 
                 console.log('✅ 实时预览事件绑定成功');
                 
@@ -2745,7 +2751,7 @@
                 previewExists: !!preview,
                 markdownInputVisible: markdownInput ? markdownInput.offsetParent !== null : false,
                 previewVisible: preview ? preview.offsetParent !== null : false,
-                hasEventListeners: markdownInput ? getEventListeners(markdownInput).input?.length > 0 : false,
+                hasEventListeners: markdownInputHasListener,
                 currentValue: markdownInput ? markdownInput.value.length : 0
             };
             
@@ -4680,89 +4686,49 @@ $$\\\\lim_{x \\\\to \\\\infty} \\\\frac{1}{x} = 0$$
         }
 
         // 主题管理功能
-        let currentTheme = 'amber'; // 默认温暖琥珀主题
-        
-        function toggleTheme(event) {
-            const themes = [
-                { name: 'amber', text: '温暖琥珀', dataTheme: null, bg: '#ffeaa7' },
-                { name: 'classic', text: '经典绿色', dataTheme: 'classic', bg: '#667eea' }
-            ];
-            
-            const currentIndex = themes.findIndex(theme => theme.name === currentTheme);
-            const nextIndex = (currentIndex + 1) % themes.length;
-            const nextTheme = themes[nextIndex];
-            
-            // 获取鼠标位置
-            const rect = event.target.getBoundingClientRect();
-            const x = ((rect.left + rect.width / 2) / window.innerWidth) * 100;
-            const y = ((rect.top + rect.height / 2) / window.innerHeight) * 100;
-            
-            // 设置过渡效果的起始位置和颜色
-            const transition = document.getElementById('themeTransition');
-            const themeToggle = event.target.closest('.theme-toggle');
-            
-            transition.style.setProperty('--mouse-x', x + '%');
-            transition.style.setProperty('--mouse-y', y + '%');
-            transition.style.setProperty('--new-bg', nextTheme.bg);
-            
-            // 添加切换动画类
-            themeToggle.classList.add('switching');
-            
-            // 开始过渡动画
-            transition.classList.add('active');
-            
-            // 延迟切换主题，让过渡动画先开始
-            setTimeout(() => {
-                currentTheme = nextTheme.name;
-                
-                // 更新body的data-theme属性
-                if (nextTheme.dataTheme) {
-                    document.body.setAttribute('data-theme', nextTheme.dataTheme);
-                } else {
-                    document.body.removeAttribute('data-theme');
-                }
-                
-                // 更新按钮文本
-                document.getElementById('themeText').textContent = nextTheme.text;
-                
-                // 保存到localStorage
-                localStorage.setItem('selectedTheme', currentTheme);
-            }, 200);
-            
-            // 结束过渡动画
-            setTimeout(() => {
-                transition.classList.remove('active');
-                themeToggle.classList.remove('switching');
-                showToast('主题已切换', `已切换到${nextTheme.text}主题`);
-            }, 600);
-        }
-        
-        function loadSavedTheme() {
-            const savedTheme = localStorage.getItem('selectedTheme');
-            if (savedTheme && savedTheme !== 'amber') {
-                currentTheme = savedTheme;
-                const themes = [
-                    { name: 'amber', text: '温暖琥珀', dataTheme: null },
-                    { name: 'classic', text: '经典绿色', dataTheme: 'classic' }
-                ];
-                
-                const theme = themes.find(t => t.name === savedTheme);
-                if (theme) {
-                    if (theme.dataTheme) {
-                        document.body.setAttribute('data-theme', theme.dataTheme);
-                    }
-                    document.getElementById('themeText').textContent = theme.text;
-                }
+        const THEMES = [
+            { name: 'classic', text: '经典绿色', dataTheme: 'classic' },
+            { name: 'light', text: '简洁浅色', dataTheme: null },
+            { name: 'modern-dark', text: '现代暗色', dataTheme: 'modern-dark' }
+        ];
+        let currentTheme = THEMES[0].name;
+
+        function applyTheme(theme, { persist = true } = {}) {
+            if (theme.dataTheme) {
+                document.body.setAttribute('data-theme', theme.dataTheme);
+            } else {
+                document.body.removeAttribute('data-theme');
             }
+
+            const themeText = document.getElementById('themeText');
+            if (themeText) {
+                themeText.textContent = theme.text;
+            }
+
+            if (persist) {
+                localStorage.setItem('selectedTheme', theme.name);
+            }
+        }
+
+        function toggleTheme() {
+            const currentIndex = THEMES.findIndex(theme => theme.name === currentTheme);
+            const nextTheme = THEMES[(currentIndex + 1) % THEMES.length];
+            currentTheme = nextTheme.name;
+            applyTheme(nextTheme);
+            showToast('主题已切换', `已切换到${nextTheme.text}主题`);
+        }
+
+        function loadSavedTheme() {
+            const savedThemeName = localStorage.getItem('selectedTheme');
+            const theme = THEMES.find(t => t.name === savedThemeName) || THEMES[0];
+            currentTheme = theme.name;
+            applyTheme(theme, { persist: false });
         }
 
         // 页面加载时检查认证状态
         window.addEventListener('load', function() {
+            loadSavedTheme();
             checkAuthentication();
-            // 加载保存的主题（在认证后）
-            setTimeout(() => {
-                loadSavedTheme();
-            }, 100);
             
             // 初始化自定义AI配置功能
             setTimeout(() => {
@@ -4800,15 +4766,7 @@ $$\\\\lim_{x \\\\to \\\\infty} \\\\frac{1}{x} = 0$$
             if (!markdownInput) return;
             
             // 检查事件绑定是否成功
-            let hasInputListener = false;
-            try {
-                // 简单的测试：检查是否有input事件监听器
-                const listeners = getEventListeners && getEventListeners(markdownInput);
-                hasInputListener = listeners && listeners.input && listeners.input.length > 0;
-            } catch (error) {
-                // 在某些浏览器中getEventListeners可能不可用，改用其他方法检查
-                hasInputListener = false;
-            }
+            const hasInputListener = markdownInputHasListener;
             
             // 如果没有监听器或不确定，尝试重新初始化
             if (!hasInputListener) {
