@@ -22,84 +22,162 @@
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
     <style>
-        /* 温暖琥珀主题作为默认主题 */
+        /* 暖阳琥珀主题作为默认主题 */
         :root {
-            --bg-gradient-start: #ffeaa7;
-            --bg-gradient-end: #fab1a0;
-            --container-bg: rgba(255, 255, 255, 0.95);
-            --header-gradient-start: #0984e3;
-            --header-gradient-end: #00b894;
-            --text-primary: #2d3436;
-            --text-secondary: #636e72;
-            --text-muted: #b2bec3;
+            --bg-gradient-start: #fdf4e7;
+            --bg-gradient-end: #f7d6dd;
+            --container-bg: rgba(255, 255, 255, 0.92);
+            --header-gradient-start: #f67062;
+            --header-gradient-end: #feba4a;
+            --text-primary: #2e2a27;
+            --text-secondary: #5f5a54;
+            --text-muted: #9b9287;
             --text-white: #ffffff;
-            --border-color: rgba(255, 234, 167, 0.6);
-            --border-focus: #0984e3;
-            --preview-bg: rgba(255, 255, 255, 0.8);
-            --controls-bg: rgba(255, 255, 255, 0.9);
-            --card-bg: rgba(255, 255, 255, 0.85);
-            --accent-primary: #0984e3;
-            --accent-secondary: #00b894;
-            --success: #00b894;
-            --warning: #e17055;
-            --info: #74b9ff;
-            --shadow: rgba(255, 177, 160, 0.2);
-            --shadow-hover: rgba(9, 132, 227, 0.15);
-            --shadow-focus: rgba(9, 132, 227, 0.25);
+            --border-color: rgba(246, 176, 149, 0.45);
+            --border-focus: #f67062;
+            --preview-bg: rgba(255, 255, 255, 0.85);
+            --controls-bg: rgba(255, 255, 255, 0.92);
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --accent-primary: #f67062;
+            --accent-secondary: #43cea2;
+            --success: #2ecc71;
+            --warning: #ffb347;
+            --info: #3da9fc;
+            --shadow: rgba(246, 112, 98, 0.16);
+            --shadow-hover: rgba(246, 112, 98, 0.25);
+            --shadow-focus: rgba(67, 206, 162, 0.28);
             --transition: all 0.18s ease-out;
-            --blur: blur(15px);
-            --glass-bg: rgba(255, 255, 255, 0.85);
-            --glass-border: rgba(255, 234, 167, 0.3);
+            --blur: blur(14px);
+            --glass-bg: rgba(255, 255, 255, 0.88);
+            --glass-border: rgba(246, 176, 149, 0.32);
         }
 
-        /* 经典主题 - 原始配色方案 */
+        /* 经典浅林主题（更新配色） */
         [data-theme="classic"] {
-            --bg-gradient-start: #667eea;
-            --bg-gradient-end: #764ba2;
-            --container-bg: #ffffff;
-            --header-gradient-start: #4CAF50;
-            --header-gradient-end: #45a049;
-            --text-primary: #333333;
-            --text-secondary: #666666;
-            --text-muted: #999999;
+            --bg-gradient-start: #dfe9f3;
+            --bg-gradient-end: #eef5ed;
+            --container-bg: rgba(255, 255, 255, 0.95);
+            --header-gradient-start: #3aa58f;
+            --header-gradient-end: #5ab0df;
+            --text-primary: #24303f;
+            --text-secondary: #5a6c7e;
+            --text-muted: #9aa8b8;
             --text-white: #ffffff;
-            --border-color: #e0e0e0;
-            --border-focus: #4CAF50;
-            --preview-bg: #fafafa;
-            --controls-bg: #f8f9fa;
-            --card-bg: #ffffff;
-            --accent-primary: #4CAF50;
-            --accent-secondary: #2196F3;
-            --success: #4CAF50;
-            --warning: #ff9800;
-            --info: #2196F3;
-            --shadow: rgba(0, 0, 0, 0.1);
-            --shadow-hover: rgba(76, 175, 80, 0.3);
-            --shadow-focus: rgba(76, 175, 80, 0.4);
-            --transition: all 0.3s ease;
-            --blur: blur(8px);
-            --glass-bg: #ffffff;
-            --glass-border: #e0e0e0;
+            --border-color: rgba(82, 168, 185, 0.35);
+            --border-focus: #3aa58f;
+            --preview-bg: rgba(255, 255, 255, 0.9);
+            --controls-bg: rgba(252, 254, 255, 0.95);
+            --card-bg: rgba(255, 255, 255, 0.94);
+            --accent-primary: #3aa58f;
+            --accent-secondary: #5ab0df;
+            --success: #3aa58f;
+            --warning: #ffb74d;
+            --info: #5ab0df;
+            --shadow: rgba(58, 165, 143, 0.18);
+            --shadow-hover: rgba(90, 176, 223, 0.25);
+            --shadow-focus: rgba(58, 165, 143, 0.32);
+            --transition: all 0.22s ease;
+            --blur: blur(10px);
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(90, 176, 223, 0.25);
         }
 
-        /* 经典主题特殊样式处理 */
+        /* 现代黑金主题 */
+        [data-theme="noir"] {
+            --bg-gradient-start: #111827;
+            --bg-gradient-end: #090e1a;
+            --container-bg: rgba(19, 24, 33, 0.88);
+            --header-gradient-start: #1f2937;
+            --header-gradient-end: #0f172a;
+            --text-primary: #e5e7eb;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --text-white: #f9fafb;
+            --border-color: rgba(148, 163, 184, 0.28);
+            --border-focus: #facc15;
+            --preview-bg: rgba(17, 24, 39, 0.85);
+            --controls-bg: rgba(15, 23, 42, 0.88);
+            --card-bg: rgba(24, 32, 45, 0.88);
+            --accent-primary: #facc15;
+            --accent-secondary: #38bdf8;
+            --success: #22c55e;
+            --warning: #f97316;
+            --info: #38bdf8;
+            --shadow: rgba(8, 145, 178, 0.18);
+            --shadow-hover: rgba(250, 204, 21, 0.25);
+            --shadow-focus: rgba(56, 189, 248, 0.28);
+            --transition: all 0.2s ease;
+            --blur: blur(20px);
+            --glass-bg: rgba(17, 24, 39, 0.82);
+            --glass-border: rgba(250, 204, 21, 0.18);
+        }
+
+        /* 极光幻彩主题 */
+        [data-theme="aurora"] {
+            --bg-gradient-start: #6a85b6;
+            --bg-gradient-end: #bac8e0;
+            --container-bg: rgba(250, 252, 255, 0.9);
+            --header-gradient-start: #7f5af0;
+            --header-gradient-end: #0ea5e9;
+            --text-primary: #1f2333;
+            --text-secondary: #4c5475;
+            --text-muted: #8b92b2;
+            --text-white: #f8fafc;
+            --border-color: rgba(127, 90, 240, 0.28);
+            --border-focus: #7f5af0;
+            --preview-bg: rgba(245, 248, 255, 0.92);
+            --controls-bg: rgba(243, 247, 255, 0.94);
+            --card-bg: rgba(247, 249, 255, 0.94);
+            --accent-primary: #7f5af0;
+            --accent-secondary: #22d3ee;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --info: #38bdf8;
+            --shadow: rgba(127, 90, 240, 0.18);
+            --shadow-hover: rgba(34, 211, 238, 0.22);
+            --shadow-focus: rgba(127, 90, 240, 0.3);
+            --transition: all 0.2s ease;
+            --blur: blur(12px);
+            --glass-bg: rgba(247, 249, 255, 0.92);
+            --glass-border: rgba(127, 90, 240, 0.2);
+        }
+
+        /* 主题特殊处理 */
         [data-theme="classic"] .container {
             background: var(--container-bg);
-            border-radius: 15px;
-            box-shadow: 0 20px 40px var(--shadow);
-            backdrop-filter: none;
-            border: none;
+            border-radius: 20px;
+            box-shadow: 0 22px 44px var(--shadow);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
         }
 
-        [data-theme="classic"] .btn {
+        [data-theme="classic"] .btn,
+        [data-theme="aurora"] .btn,
+        [data-theme="noir"] .btn {
             backdrop-filter: none;
             border: none;
-            box-shadow: 0 4px 15px var(--shadow-hover);
+            box-shadow: 0 6px 18px var(--shadow-hover);
         }
 
-        [data-theme="classic"] .btn-secondary {
+        [data-theme="classic"] .btn-secondary,
+        [data-theme="aurora"] .btn-secondary {
             backdrop-filter: none;
-            box-shadow: 0 1px 3px var(--shadow);
+            box-shadow: 0 2px 6px var(--shadow);
+        }
+
+        [data-theme="noir"] .container {
+            background: var(--glass-bg);
+            border-radius: 22px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+            border: 1px solid var(--glass-border);
+        }
+
+        [data-theme="noir"] .btn-secondary {
+            backdrop-filter: none;
+            background: rgba(17, 24, 39, 0.75);
+            border: 1px solid rgba(250, 204, 21, 0.25);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            color: var(--text-white);
         }
 
         * {
@@ -130,6 +208,14 @@
             background-size: 20px 20px;
             animation: float 20s ease-in-out infinite;
             z-index: -1;
+        }
+
+        body[data-theme="noir"]::before {
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+        }
+
+        body[data-theme="aurora"]::before {
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
         }
 
         @keyframes float {
@@ -211,6 +297,28 @@
             background: rgba(255, 255, 255, 0.15);
             border-color: rgba(255, 255, 255, 0.3);
             transform: translateY(-1px) scale(1.02);
+        }
+
+        [data-theme="noir"] .theme-toggle {
+            background: rgba(17, 24, 39, 0.7);
+            border: 1px solid rgba(250, 204, 21, 0.28);
+            color: var(--text-white);
+        }
+
+        [data-theme="noir"] .theme-toggle:hover {
+            background: rgba(15, 23, 42, 0.82);
+            border-color: rgba(250, 204, 21, 0.4);
+        }
+
+        [data-theme="aurora"] .theme-toggle {
+            background: rgba(127, 90, 240, 0.18);
+            border: 1px solid rgba(127, 90, 240, 0.3);
+            color: var(--text-white);
+        }
+
+        [data-theme="aurora"] .theme-toggle:hover {
+            background: rgba(127, 90, 240, 0.25);
+            border-color: rgba(34, 211, 238, 0.35);
         }
 
         .theme-toggle:hover::after {
@@ -385,6 +493,36 @@
             overflow-y: auto;
             transition: var(--transition);
             color: var(--text-primary);
+            position: relative;
+        }
+
+        .preview-status-stack {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: flex-end;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .preview-status-stack > * {
+            pointer-events: auto;
+        }
+
+        .status-card {
+            background: var(--glass-bg);
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 
+                0 12px 32px rgba(0, 0, 0, 0.12),
+                0 0 0 1px rgba(255, 255, 255, 0.08);
+            backdrop-filter: var(--blur);
+            color: var(--text-primary);
+            padding: 12px 16px;
+            width: min(320px, 100%);
         }
 
         .controls {
@@ -396,10 +534,11 @@
 
         .controls-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 24px;
             max-width: 1200px;
             margin: 0 auto;
+            grid-auto-flow: row dense;
         }
 
         .control-group {
@@ -605,7 +744,6 @@
             }
             
             .controls-grid {
-                grid-template-columns: repeat(2, 1fr);
                 gap: 20px;
             }
         }
@@ -660,7 +798,23 @@
                 padding: 20px 15px;
                 text-align: center;
             }
-            
+
+            .controls-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .preview-status-stack {
+                top: 12px;
+                right: 12px;
+                left: 12px;
+                align-items: stretch;
+            }
+
+            .preview-status-stack > .status-card {
+                width: 100%;
+            }
+
             .btn {
                 margin: 5px;
                 padding: 12px 20px;
@@ -1105,24 +1259,21 @@
 
         /* 数学公式渲染状态指示器 */
         .math-rendering-indicator {
-            position: absolute;
-            top: 10px;
-            right: 10px;
             background: var(--info);
             color: var(--text-white);
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 11px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 12px;
             font-weight: 500;
             display: none;
             align-items: center;
-            gap: 4px;
-            z-index: 5;
+            gap: 6px;
             animation: pulse 1.5s infinite;
+            box-shadow: 0 6px 18px rgba(116, 185, 255, 0.3);
         }
 
         .math-rendering-indicator.show {
-            display: flex;
+            display: inline-flex;
         }
 
         @keyframes pulse {
@@ -1194,6 +1345,409 @@
 
         .status-indicator.info {
             background: #2196F3;
+        }
+
+        [data-theme="noir"] .status-indicator {
+            background: rgba(250, 204, 21, 0.92);
+            color: #111827;
+        }
+
+        [data-theme="aurora"] .status-indicator {
+            background: rgba(127, 90, 240, 0.88);
+        }
+
+        /* 通用模态框组件 */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(6px);
+            padding: 20px;
+            z-index: 10000;
+        }
+
+        .modal-shell {
+            background: var(--container-bg);
+            border-radius: 16px;
+            padding: 30px;
+            width: min(100%, 640px);
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.3),
+                0 0 0 1px var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+
+        .modal-close:hover,
+        .modal-close:focus {
+            color: var(--accent-primary);
+        }
+
+        .modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .ai-config-modal .modal-shell {
+            width: min(100%, 600px);
+        }
+
+        .admin-panel .modal-shell {
+            width: min(100%, 800px);
+        }
+
+        /* AI模式选择弹层与结果比对 */
+        .ai-mode-shell {
+            width: min(100%, 480px);
+        }
+
+        .ai-mode-body {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .ai-mode-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .ai-mode-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--glass-bg);
+            transition: var(--transition);
+        }
+
+        .ai-mode-option:hover {
+            border-color: var(--border-focus);
+            transform: translateY(-1px);
+        }
+
+        .ai-mode-option strong {
+            display: block;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .ai-mode-option span {
+            display: block;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+            line-height: 1.5;
+        }
+
+        .ai-mode-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .ai-mode-actions .btn-secondary {
+            min-width: 120px;
+        }
+
+        .ai-result-shell {
+            width: min(100%, 860px);
+        }
+
+        .ai-result-body {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .ai-result-tabs {
+            display: flex;
+            gap: 8px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .ai-result-tab {
+            padding: 8px 14px;
+            border-radius: 20px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .ai-result-tab.active {
+            color: var(--accent-primary);
+            border-color: var(--accent-primary);
+            background: rgba(9, 132, 227, 0.08);
+        }
+
+        .ai-result-panels {
+            position: relative;
+        }
+
+        .ai-result-panel {
+            display: none;
+        }
+
+        .ai-result-panel.active {
+            display: block;
+        }
+
+        .ai-result-description {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .ai-result-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .ai-result-summary span {
+            background: var(--preview-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 4px 10px;
+        }
+
+        .diff-view {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 13px;
+            background: var(--preview-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            max-height: 360px;
+            overflow: auto;
+            padding: 16px;
+            line-height: 1.5;
+        }
+
+        .diff-line {
+            display: block;
+            white-space: pre-wrap;
+            padding: 2px 6px;
+            border-radius: 6px;
+            margin: 0;
+        }
+
+        .diff-line.diff-added {
+            background: rgba(0, 184, 148, 0.12);
+            color: #00664d;
+        }
+
+        .diff-line.diff-removed {
+            background: rgba(225, 112, 85, 0.12);
+            color: #792312;
+        }
+
+        .diff-line.diff-unchanged {
+            color: var(--text-secondary);
+            opacity: 0.85;
+        }
+
+        .diff-line.diff-skip {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .ai-result-code {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 13px;
+            background: var(--preview-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            max-height: 360px;
+            overflow: auto;
+            padding: 16px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        .ai-result-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .ai-result-footer .btn-secondary {
+            min-width: 120px;
+        }
+
+        /* 官网介绍模态框 */
+        .intro-modal-shell {
+            width: min(720px, 95%);
+        }
+
+        .intro-modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .intro-modal-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .intro-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: 0 12px 28px var(--shadow-hover);
+        }
+
+        [data-theme="noir"] .intro-card {
+            background: rgba(17, 24, 39, 0.88);
+        }
+
+        .intro-card h4 {
+            margin: 0;
+            font-size: 16px;
+            color: var(--text-primary);
+        }
+
+        .intro-card p,
+        .intro-card li {
+            margin: 0;
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .intro-updates {
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            background: var(--preview-bg);
+            padding: 18px;
+        }
+
+        .intro-updates h3 {
+            margin: 0 0 12px 0;
+            font-size: 16px;
+            color: var(--accent-primary);
+        }
+
+        .intro-updates ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .intro-updates li {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .intro-updates li strong {
+            color: var(--text-primary);
+        }
+
+        .intro-modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .intro-modal-actions .btn-secondary {
+            min-width: 130px;
+        }
+
+        .ai-status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 6px;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        .ai-status-header button {
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 4px 10px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .ai-status-header button:hover {
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .ai-status-message {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-status-progress {
+            width: 100%;
+            height: 6px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .ai-status-progress .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 4px;
+            width: 5%;
+            transition: width 0.3s ease;
         }
 
         /* 改进按钮样式 */
@@ -1276,28 +1830,21 @@
 
         /* 长文档解析进度指示器样式 */
         .parse-progress-indicator {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--glass-bg);
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--glass-border);
             backdrop-filter: var(--blur);
             padding: 16px 20px;
             border-radius: 12px;
-            min-width: 280px;
+            width: min(320px, 100%);
             box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.1),
+                0 8px 24px rgba(0, 0, 0, 0.12),
                 0 0 0 1px var(--glass-border);
-            z-index: 10;
             display: none;
-            opacity: 0;
-            transition: all 0.3s ease;
         }
 
         .parse-progress-indicator.show {
-            display: block;
-            opacity: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
         .parse-progress-indicator .progress-bar {
@@ -1306,7 +1853,6 @@
             background: var(--border-color);
             border-radius: 3px;
             overflow: hidden;
-            margin-bottom: 12px;
         }
 
         .parse-progress-indicator .progress-bar-fill {
@@ -1333,34 +1879,26 @@
 
         /* Word转换进度指示器样式 */
         .word-conversion-indicator {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--glass-bg);
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--glass-border);
             backdrop-filter: var(--blur);
-            padding: 20px 24px;
-            border-radius: 16px;
-            min-width: 320px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            width: min(320px, 100%);
             box-shadow: 
-                0 12px 40px rgba(0, 0, 0, 0.15),
+                0 12px 32px rgba(0, 0, 0, 0.15),
                 0 0 0 1px var(--glass-border);
-            z-index: 1000;
             display: none;
-            opacity: 0;
-            transition: all 0.3s ease;
         }
 
         .word-conversion-indicator.show {
-            display: block;
-            opacity: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
         .word-conversion-indicator .conversion-icon {
             text-align: center;
             font-size: 32px;
-            margin-bottom: 16px;
             animation: bounce 1.5s infinite;
         }
 
@@ -1370,7 +1908,6 @@
             background: var(--border-color);
             border-radius: 4px;
             overflow: hidden;
-            margin-bottom: 16px;
         }
 
         .word-conversion-indicator .progress-bar-fill {
@@ -1480,194 +2017,203 @@
             }
         }
 
-        /* 密码验证界面样式 - 玻璃拟态升级版 */
+        /* 密码验证界面样式优化 */
         .password-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            background-attachment: fixed;
+            inset: 0;
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            padding: 32px 20px;
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            backdrop-filter: blur(14px);
             z-index: 10000;
-            animation: backgroundShift 20s ease-in-out infinite;
+        }
+
+        .password-overlay::before,
+        .password-overlay::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
         }
 
         .password-overlay::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.1) 0%, transparent 50%);
-            animation: float 15s ease-in-out infinite;
+            background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.18), transparent 45%),
+                        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.14), transparent 50%),
+                        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.08), transparent 55%);
+            opacity: 0.85;
+        }
+
+        .password-overlay::after {
+            background: linear-gradient(120deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 40%),
+                        linear-gradient(-135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 35%);
+            mix-blend-mode: screen;
+            opacity: 0.6;
+        }
+
+        [data-theme="noir"] .password-overlay {
+            background: radial-gradient(circle at top, rgba(250, 204, 21, 0.12), transparent 55%),
+                        linear-gradient(135deg, #0f172a 0%, #020617 100%);
+        }
+
+        [data-theme="noir"] .password-overlay::before {
+            background: radial-gradient(circle at 15% 25%, rgba(250, 204, 21, 0.22), transparent 45%),
+                        radial-gradient(circle at 80% 80%, rgba(56, 189, 248, 0.18), transparent 55%);
         }
 
         .password-modal {
-            background: var(--glass-bg);
-            backdrop-filter: var(--blur);
-            border: 1px solid var(--glass-border);
-            padding: 48px;
-            border-radius: 24px;
-            box-shadow: 
-                0 32px 64px rgba(0, 0, 0, 0.15),
-                0 0 0 1px rgba(255, 255, 255, 0.05);
-            text-align: center;
-            max-width: 420px;
-            width: 90%;
             position: relative;
-            overflow: hidden;
-            animation: modalEntrance 0.6s ease-out;
+            width: min(440px, 100%);
+            padding: 40px 36px 32px;
+            border-radius: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            background: var(--container-bg);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow:
+                0 28px 60px rgba(15, 23, 42, 0.12),
+                0 0 0 1px rgba(255, 255, 255, 0.08);
         }
 
-        .password-modal::before {
+        [data-theme="noir"] .password-modal {
+            background: rgba(17, 24, 39, 0.92);
+            border: 1px solid rgba(250, 204, 21, 0.18);
+            box-shadow: 0 30px 70px rgba(2, 6, 23, 0.55);
+        }
+
+        [data-theme="aurora"] .password-modal {
+            background: rgba(247, 249, 255, 0.96);
+            border: 1px solid rgba(127, 90, 240, 0.18);
+        }
+
+        .password-modal::after {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            inset: 0;
+            border-radius: 28px;
+            background: linear-gradient(140deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0));
+            pointer-events: none;
         }
 
         .password-modal h2 {
-            color: var(--text-primary);
-            margin-bottom: 12px;
-            font-size: 2em;
+            margin: 0;
+            font-size: 1.9rem;
             font-weight: 700;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            animation: titleSlideIn 0.8s ease-out 0.2s both;
+            color: var(--text-primary);
         }
 
         .password-modal .subtitle {
+            margin-top: -8px;
+            margin-bottom: 0;
+            font-size: 1rem;
             color: var(--text-secondary);
-            margin-bottom: 32px;
-            font-size: 1.1em;
-            font-weight: 500;
-            animation: titleSlideIn 0.8s ease-out 0.3s both;
         }
 
         .password-modal .beta-info {
-            background: linear-gradient(135deg, rgba(255, 243, 205, 0.9), rgba(255, 234, 167, 0.8));
-            border: 1px solid rgba(255, 234, 167, 0.6);
-            color: #856404;
-            padding: 18px;
-            border-radius: 12px;
-            margin-bottom: 28px;
-            font-size: 0.95em;
-            backdrop-filter: blur(8px);
-            box-shadow: 0 4px 12px rgba(255, 234, 167, 0.3);
-            animation: fadeInUp 0.8s ease-out 0.4s both;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            text-align: left;
+            padding: 18px 20px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.55);
+            border: 1px solid rgba(255, 213, 121, 0.45);
+            color: var(--text-primary);
+        }
+
+        [data-theme="noir"] .password-modal .beta-info {
+            background: rgba(250, 204, 21, 0.12);
+            border-color: rgba(250, 204, 21, 0.32);
+            color: rgba(250, 204, 21, 0.92);
+        }
+
+        .password-thanks {
+            padding: 16px 18px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px dashed rgba(146, 151, 179, 0.35);
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-align: left;
+        }
+
+        .password-thanks strong {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+        }
+
+        [data-theme="noir"] .password-thanks {
+            background: rgba(15, 23, 42, 0.78);
+            border-color: rgba(148, 163, 184, 0.32);
+            color: rgba(229, 231, 235, 0.72);
         }
 
         .password-input-wrapper {
             position: relative;
-            margin-bottom: 20px;
-            animation: fadeInUp 0.8s ease-out 0.5s both;
         }
 
         .password-input {
             width: 100%;
-            padding: 18px 24px;
-            border: 2px solid var(--border-color);
-            border-radius: 16px;
-            font-size: 16px;
-            text-align: center;
-            box-sizing: border-box;
-            background: var(--glass-bg);
-            backdrop-filter: blur(8px);
+            padding: 16px 48px 16px 18px;
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.92);
             color: var(--text-primary);
-            transition: all 0.3s ease;
-            box-shadow: 
-                0 4px 12px rgba(0, 0, 0, 0.05),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+
+        [data-theme="noir"] .password-input {
+            background: rgba(15, 23, 42, 0.85);
+            border-color: rgba(148, 163, 184, 0.32);
+            color: var(--text-white);
         }
 
         .password-input:focus {
-            outline: none;
-            border-color: var(--accent-primary);
-            box-shadow: 
-                0 0 0 3px rgba(9, 132, 227, 0.2),
-                0 8px 24px rgba(9, 132, 227, 0.15);
-            transform: translateY(-1px);
-        }
-
-        .password-input::placeholder {
-            color: var(--text-muted);
-            transition: opacity 0.3s ease;
-        }
-
-        .password-input:focus::placeholder {
-            opacity: 0.6;
+            border-color: var(--border-focus);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
         }
 
         .password-toggle {
             position: absolute;
-            right: 16px;
             top: 50%;
+            right: 14px;
             transform: translateY(-50%);
-            background: none;
             border: none;
+            background: transparent;
             color: var(--text-secondary);
-            cursor: pointer;
             font-size: 18px;
+            cursor: pointer;
             padding: 4px;
-            border-radius: 4px;
-            transition: all 0.2s ease;
+            border-radius: 8px;
+            transition: var(--transition);
         }
 
         .password-toggle:hover {
             color: var(--accent-primary);
-            background: rgba(9, 132, 227, 0.1);
+            background: rgba(9, 132, 227, 0.08);
         }
 
         .password-btn {
             width: 100%;
-            padding: 18px;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            color: var(--text-white);
+            padding: 16px;
+            border-radius: 14px;
             border: none;
-            border-radius: 16px;
             font-size: 16px;
-            cursor: pointer;
-            margin-bottom: 20px;
             font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 
-                0 8px 20px rgba(9, 132, 227, 0.3),
-                0 0 0 1px rgba(255, 255, 255, 0.1);
-            animation: fadeInUp 0.8s ease-out 0.6s both;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .password-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .password-btn:hover::before {
-            left: 100%;
+            color: var(--text-white);
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            box-shadow: 0 18px 32px rgba(9, 132, 227, 0.25);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .password-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 
-                0 12px 28px rgba(9, 132, 227, 0.4),
-                0 0 0 1px rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 36px rgba(9, 132, 227, 0.32);
         }
 
         .password-btn:active {
@@ -1675,24 +2221,31 @@
         }
 
         .password-error {
-            color: #d32f2f;
-            background: linear-gradient(135deg, rgba(255, 235, 238, 0.9), rgba(255, 205, 210, 0.8));
-            border: 1px solid rgba(244, 67, 54, 0.3);
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 16px;
             display: none;
-            font-weight: 500;
-            backdrop-filter: blur(8px);
-            box-shadow: 0 4px 12px rgba(244, 67, 54, 0.2);
-            animation: errorShake 0.6s ease-out;
+            margin: 0;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(224, 58, 62, 0.25);
+            background: rgba(224, 58, 62, 0.12);
+            color: #9f1f24;
+        }
+
+        [data-theme="noir"] .password-error {
+            background: rgba(224, 58, 62, 0.18);
+            border-color: rgba(224, 58, 62, 0.32);
+            color: #fca5a5;
         }
 
         .password-hint {
+            margin: 0;
+            font-size: 0.85rem;
             color: var(--text-secondary);
-            font-size: 0.9em;
             line-height: 1.6;
-            animation: fadeInUp 0.8s ease-out 0.7s both;
+            text-align: left;
+        }
+
+        [data-theme="noir"] .password-hint {
+            color: rgba(229, 231, 235, 0.72);
         }
 
         /* 隐藏主内容 */
@@ -1971,6 +2524,10 @@
                 <strong>⚠️ 个人内测版本</strong><br>
                 此版本仅供内部测试使用，请输入访问密码
             </div>
+            <div class="password-thanks">
+                <strong>🙌 致谢名单（内测伙伴）</strong>
+                感谢所有在内测阶段提出宝贵建议与反馈的朋友，正式名单将在下一阶段更新于此。
+            </div>
             <div class="password-input-wrapper">
                 <label for="passwordInput" class="visually-hidden">访问密码</label>
                 <input type="password" id="passwordInput" class="password-input" placeholder="请输入访问密码" maxlength="20" aria-describedby="passwordHint passwordError" autocomplete="current-password">
@@ -2005,7 +2562,7 @@
         <div class="container">
             <header class="header">
                 <button class="theme-toggle" onclick="toggleTheme(event)" title="切换主题" aria-label="切换颜色主题">
-                    <span id="themeText">温暖琥珀</span>
+                    <span id="themeText">暖阳琥珀</span>
                 </button>
                 <h1>🤖 AI智能Markdown转Word转换器</h1>
                 <p>🌟 集成多AI服务商智能修复 · 📊 分级权限管理 · ⚡ 实时预览转换</p>
@@ -2035,32 +2592,7 @@
                 <h2 class="section-title">📝 输入Markdown内容</h2>
                 <div style="position: relative;">
                     <label for="markdownInput" class="visually-hidden">Markdown内容输入框</label>
-                    <textarea id="markdownInput" placeholder="在这里输入您的Markdown内容..." aria-describedby="inputHelp"
-
-例如:
-# 标题一
-## 标题二
-### 标题三
-
-**粗体文本**
-*斜体文本*
-
-- 列表项1
-- 列表项2
-- 列表项3
-
-> 这是一个引用块
-
-```javascript
-console.log('Hello World!');
-```
-
-[链接文本](https://example.com)
-
-| 表格 | 示例 |
-|------|------|
-| 单元格1 | 单元格2 |
-| 单元格3 | 单元格4 |"></textarea>
+                    <textarea id="markdownInput" placeholder="在这里输入您的Markdown内容..." aria-describedby="inputHelp"></textarea>
                     
                     <!-- 拖拽覆盖层 -->
                     <div class="drag-overlay" id="dragOverlay">
@@ -2124,27 +2656,29 @@ console.log('Hello World!');
                         </div>
                     </div>
                     
-                    <!-- 数学公式渲染状态指示器 -->
-                    <div class="math-rendering-indicator" id="mathIndicator" aria-live="polite" aria-label="数学公式渲染状态">
-                        <span>⚡</span>
-                        <span>渲染数学公式...</span>
-                    </div>
-                    
-                    <!-- 长文档解析进度指示器 -->
-                    <div class="parse-progress-indicator" id="parseIndicator" aria-live="polite" aria-label="文档解析进度">
-                        <div class="progress-bar">
-                            <div class="progress-bar-fill"></div>
+                    <div class="preview-status-stack" id="previewStatusStack" aria-live="polite" aria-atomic="false">
+                        <!-- 数学公式渲染状态指示器 -->
+                        <div class="math-rendering-indicator" id="mathIndicator" aria-label="数学公式渲染状态" aria-live="polite">
+                            <span>⚡</span>
+                            <span>渲染数学公式...</span>
                         </div>
-                        <div class="progress-text">解析中...</div>
-                    </div>
-                    
-                    <!-- Word转换进度指示器 -->
-                    <div class="word-conversion-indicator" id="wordConversionIndicator" aria-live="polite" aria-label="Word转换进度">
-                        <div class="conversion-icon">📄</div>
-                        <div class="progress-bar">
-                            <div class="progress-bar-fill"></div>
+
+                        <!-- 长文档解析进度指示器 -->
+                        <div class="status-card parse-progress-indicator" id="parseIndicator" aria-label="文档解析进度" aria-live="polite">
+                            <div class="progress-bar">
+                                <div class="progress-bar-fill"></div>
+                            </div>
+                            <div class="progress-text">解析中...</div>
                         </div>
-                        <div class="progress-text">转换中...</div>
+
+                        <!-- Word转换进度指示器 -->
+                        <div class="status-card word-conversion-indicator" id="wordConversionIndicator" aria-label="Word转换进度" aria-live="polite">
+                            <div class="conversion-icon">📄</div>
+                            <div class="progress-bar">
+                                <div class="progress-bar-fill"></div>
+                            </div>
+                            <div class="progress-text">转换中...</div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -2229,15 +2763,14 @@ console.log('Hello World!');
         </div>
         
         <!-- AI配置模态框 -->
-        <div class="ai-config-modal" id="aiConfigModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; backdrop-filter: blur(5px);">
-            <div style="display: flex; align-items: center; justify-content: center; height: 100%; padding: 20px;">
-                <div style="background: var(--container-bg); border-radius: 15px; padding: 30px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2 style="margin: 0; color: var(--text-primary);">🤖 AI智能修复配置</h2>
-                        <button onclick="closeAIConfigModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary);" title="关闭">&times;</button>
-                    </div>
-                    
-                    <div style="background: var(--preview-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <div id="aiConfigModal" class="modal-overlay ai-config-modal" style="display: none;">
+            <div class="modal-shell">
+                <div class="modal-header">
+                    <h2>🤖 AI智能修复配置</h2>
+                    <button onclick="closeAIConfigModal()" class="modal-close" title="关闭" aria-label="关闭">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div style="background: var(--preview-bg); padding: 20px; border-radius: 8px;">
                         <h3 style="margin-top: 0; color: var(--text-primary);">🔧 AI服务配置</h3>
                         
                         <!-- AI服务商选择 -->
@@ -2394,16 +2927,155 @@ console.log('Hello World!');
                 </div>
             </div>
         </div>
-        
-        <!-- 管理员面板 -->
-        <div class="admin-panel" id="adminPanel" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; backdrop-filter: blur(5px);">
-            <div style="display: flex; align-items: center; justify-content: center; height: 100%; padding: 20px;">
-                <div style="background: var(--container-bg); border-radius: 15px; padding: 30px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2 style="margin: 0; color: var(--text-primary);">👑 超级管理员面板</h2>
-                        <button onclick="closeAdminPanel()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary);" title="关闭">&times;</button>
+
+        <!-- AI模式选择弹层 -->
+        <div id="aiModeModal" class="modal-overlay" style="display: none;">
+            <div class="modal-shell ai-mode-shell">
+                <div class="modal-header">
+                    <h2>🎛️ 选择AI修复模式</h2>
+                    <button onclick="closeAIModeModal()" class="modal-close" title="关闭" aria-label="关闭">&times;</button>
+                </div>
+                <div class="modal-body ai-mode-body">
+                    <p class="ai-result-description" id="aiModeIntro">为当前修复选择关注重点，AI 将按照指令处理文档。</p>
+                    <div class="ai-mode-options" role="group" aria-label="AI修复侧重点">
+                        <label class="ai-mode-option">
+                            <input type="checkbox" id="aiModeFormat" checked>
+                            <div>
+                                <strong>格式修复</strong>
+                                <span>严格对齐Markdown语法、表格、列表与代码块书写规范。</span>
+                            </div>
+                        </label>
+                        <label class="ai-mode-option">
+                            <input type="checkbox" id="aiModeLanguage" checked>
+                            <div>
+                                <strong>文案润色</strong>
+                                <span>优化措辞与语法，提升可读性但保持原意不变。</span>
+                            </div>
+                        </label>
+                        <label class="ai-mode-option">
+                            <input type="checkbox" id="aiModeStructure">
+                            <div>
+                                <strong>结构强化</strong>
+                                <span>允许调整段落层次、标题与列表布局，增强整体逻辑。</span>
+                            </div>
+                        </label>
                     </div>
-                    
+                    <div class="ai-mode-options" role="group" aria-label="附加约束">
+                        <label class="ai-mode-option">
+                            <input type="checkbox" id="aiModePreserveCode" checked>
+                            <div>
+                                <strong>保持代码块原样</strong>
+                                <span>不修改代码块内容，仅在块外进行格式修复。</span>
+                            </div>
+                        </label>
+                        <label class="ai-mode-option">
+                            <input type="checkbox" id="aiModePreserveQuotes">
+                            <div>
+                                <strong>保留引用语句</strong>
+                                <span>尽量不要改写引用块及引用内容，只微调标点格式。</span>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="ai-mode-actions">
+                        <button class="btn-secondary" onclick="closeAIModeModal()">取消</button>
+                        <button class="btn" onclick="confirmAIModeSelection()">继续修复</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI修复结果对比面板 -->
+        <div id="aiResultModal" class="modal-overlay ai-result-modal" style="display: none;">
+            <div class="modal-shell ai-result-shell">
+                <div class="modal-header">
+                    <h2>🧠 AI修复结果预览</h2>
+                    <button onclick="rejectAIResult()" class="modal-close" title="关闭" aria-label="关闭">&times;</button>
+                </div>
+                <div class="modal-body ai-result-body">
+                    <div class="ai-result-summary" id="aiResultSummary"></div>
+                    <div class="ai-result-tabs" role="tablist">
+                        <button id="aiResultTabDiff" class="ai-result-tab active" data-view="diff" onclick="switchAIResultView('diff')" role="tab" aria-selected="true">差异视图</button>
+                        <button id="aiResultTabOriginal" class="ai-result-tab" data-view="original" onclick="switchAIResultView('original')" role="tab" aria-selected="false">原始文档</button>
+                        <button id="aiResultTabImproved" class="ai-result-tab" data-view="improved" onclick="switchAIResultView('improved')" role="tab" aria-selected="false">AI结果</button>
+                    </div>
+                    <div class="ai-result-panels">
+                        <div id="aiResultViewDiff" class="ai-result-panel active" role="tabpanel" aria-labelledby="aiResultTabDiff">
+                            <div class="diff-view" id="aiDiffContainer"></div>
+                        </div>
+                        <div id="aiResultViewOriginal" class="ai-result-panel" role="tabpanel" aria-labelledby="aiResultTabOriginal">
+                            <pre class="ai-result-code" id="aiOriginalPreview"></pre>
+                        </div>
+                        <div id="aiResultViewImproved" class="ai-result-panel" role="tabpanel" aria-labelledby="aiResultTabImproved">
+                            <pre class="ai-result-code" id="aiImprovedPreview"></pre>
+                        </div>
+                    </div>
+                    <div class="ai-result-footer">
+                        <button class="btn-secondary" onclick="rejectAIResult()">放弃</button>
+                        <button class="btn" onclick="applyAIResult()">套用结果</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 首次登录介绍模态框 -->
+        <div id="introModal" class="modal-overlay" style="display: none;">
+            <div class="modal-shell intro-modal-shell">
+                <div class="modal-header">
+                    <h2>👋 欢迎使用 AI Markdown 转 Word</h2>
+                    <button onclick="closeIntroModal('once')" class="modal-close" title="关闭" aria-label="关闭">&times;</button>
+                </div>
+                <div class="modal-body intro-modal-body">
+                    <div class="intro-modal-summary">
+                        <div class="intro-card">
+                            <h4>📝 主面板</h4>
+                            <p>左侧编写 Markdown，右侧实时预览，底部工具可导出 Word、保存草稿或快速加载示例。</p>
+                        </div>
+                        <div class="intro-card">
+                            <h4>🤖 AI 智能修复</h4>
+                            <p>使用「快速修复」「深度优化」一键润色文档，可自定义修复侧重点，结果支持差异预览再决定是否套用。</p>
+                        </div>
+                        <div class="intro-card">
+                            <h4>🎨 主题配色</h4>
+                            <p>右上角可循环切换四套主题（暖阳琥珀、浅林绿意、现代黑金、极光幻彩），偏好自动保存在本地。</p>
+                        </div>
+                        <div class="intro-card">
+                            <h4>🔐 权限 & 管理</h4>
+                            <p>根据密码等级解锁更多功能，高级用户可配置 AI 服务，自定义模板或查看管理员面板。</p>
+                        </div>
+                    </div>
+                    <div class="intro-updates">
+                        <h3>📌 最近更新</h3>
+                        <ul>
+                            <li>
+                                <strong>2025-09-20 · UI 体验升级</strong>
+                                <span>新增多主题配色、优化锁屏界面，并在 AI 修复中引入模式多选与结果差异视图。</span>
+                            </li>
+                            <li>
+                                <strong>2025-09-18 · AI 工作流强化</strong>
+                                <span>AI 修复流程支持进度卡片与取消操作，优化导出前的对比与撤销体验。</span>
+                            </li>
+                            <li>
+                                <strong>2025-07-11 · 配置中心扩展</strong>
+                                <span>引入多服务商预设、导入导出自定义模板，提升团队协同效率。</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="intro-modal-actions">
+                        <button class="btn-secondary" onclick="closeIntroModal('once')">本次关闭</button>
+                        <button class="btn" onclick="closeIntroModal('today')">今日不再提示</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 管理员面板 -->
+        <div id="adminPanel" class="modal-overlay admin-panel" style="display: none;">
+            <div class="modal-shell">
+                <div class="modal-header">
+                    <h2>👑 超级管理员面板</h2>
+                    <button onclick="closeAdminPanel()" class="modal-close" title="关闭" aria-label="关闭">&times;</button>
+                </div>
+                <div class="modal-body">
                     <!-- 标签页导航 -->
                     <div class="admin-tabs" style="display: flex; border-bottom: 2px solid var(--border-color); margin-bottom: 20px;">
                         <button class="admin-tab active" onclick="switchAdminTab('password')" data-tab="password" style="padding: 10px 20px; border: none; background: none; cursor: pointer; border-bottom: 2px solid var(--accent-primary); color: var(--accent-primary); font-weight: 600;">密码管理</button>
@@ -3406,7 +4078,7 @@ console.log('Hello World!');
         function logout() {
             // 关闭管理面板（如果打开的话）
             closeAdminPanel();
-            
+
             // 清除会话状态
             sessionStorage.removeItem('authenticated');
             sessionStorage.removeItem('userLevel');
@@ -3484,8 +4156,10 @@ console.log('Hello World!');
             
             // 重置统计
             updateWordCount();
-            
+
             showToast('退出成功', '已退出登录，请重新输入密码', 'info', 2000);
+
+            introModalShown = false;
         }
         
         // 显示升级提示界面
@@ -4519,9 +5193,27 @@ console.log('Hello World!');
                 }
             }
         }
+
+        // AI修复交互状态
+        let pendingAIRequest = null;
+        let pendingAIResult = null;
+        let currentAIFixController = null;
+        let aiStatusCard = null;
+        let aiStatusMessageEl = null;
+        let aiStatusProgressFill = null;
+        let aiStatusCancelBtn = null;
+        let aiStatusProgress = 0;
+        let aiStatusTarget = 0;
+        let aiStatusInterval = null;
+        let introModalShown = false;
         
         // 快速AI修复功能
         async function performQuickAIFix() {
+            if (currentAIFixController) {
+                showToast('提示', 'AI修复正在进行，请等待当前操作完成', 'info');
+                return;
+            }
+
             if (!canUseAIFix()) {
                 showUpgradePrompt(
                     'AI修复需要升级',
@@ -4530,23 +5222,33 @@ console.log('Hello World!');
                 );
                 return;
             }
-            
+
             const markdownText = document.getElementById('markdownInput').value.trim();
             if (!markdownText) {
                 showToast('提示', '请先输入需要修复的Markdown内容', 'warning');
                 return;
             }
-            
+
             if (!checkAIUsageLimit()) {
                 showToast('配额不足', '今日AI修复次数已用完，请明天再试', 'warning');
                 return;
             }
-            
-            await performAIFix(markdownText, { type: 'quick_fix', mode: '快速修复' });
+
+            pendingAIRequest = {
+                content: markdownText,
+                type: 'quick_fix',
+                label: '快速修复'
+            };
+            openAIModeModal('快速修复');
         }
-        
+
         // 深度AI优化功能
         async function performAdvancedAIFix() {
+            if (currentAIFixController) {
+                showToast('提示', 'AI修复正在进行，请等待当前操作完成', 'info');
+                return;
+            }
+
             if (!canUseAIFix()) {
                 showUpgradePrompt(
                     'AI修复需要升级',
@@ -4555,97 +5257,103 @@ console.log('Hello World!');
                 );
                 return;
             }
-            
+
             const markdownText = document.getElementById('markdownInput').value.trim();
             if (!markdownText) {
                 showToast('提示', '请先输入需要优化的Markdown内容', 'warning');
                 return;
             }
-            
+
             if (!checkAIUsageLimit()) {
                 showToast('配额不足', '今日AI修复次数已用完，请明天再试', 'warning');
                 return;
             }
-            
-            await performAIFix(markdownText, { type: 'advanced_optimize', mode: '深度优化' });
+
+            pendingAIRequest = {
+                content: markdownText,
+                type: 'advanced_optimize',
+                label: '深度优化'
+            };
+            openAIModeModal('深度优化');
         }
         
         // 核心AI修复功能
         async function performAIFix(content, options = {}) {
+            if (!content) return null;
+
             let config;
-            
-            // 根据用户级别获取配置
+
             if (currentUser.level === 'advanced') {
-                // 高级用户：使用预配置
                 ensurePresetConfig();
                 config = PRESET_AI_CONFIG;
             } else {
-                // 超级管理员：使用自定义配置
                 const savedConfig = localStorage.getItem('aiConfig');
                 if (!savedConfig) {
                     showToast('配置错误', '请先配置AI服务', 'warning');
                     showAIConfigModal();
-                    return;
+                    return null;
                 }
-                
+
                 try {
                     config = JSON.parse(savedConfig);
                 } catch (error) {
                     showToast('配置错误', 'AI配置文件损坏，请重新配置', 'error');
                     showAIConfigModal();
-                    return;
+                    return null;
                 }
             }
-            
-            // 获取AI配置（支持自定义配置）
+
             const allConfigs = customAIConfigs.getAll();
             const aiConfig = allConfigs[config.provider];
             if (!aiConfig) {
                 showToast('配置错误', '不支持的AI服务商', 'error');
-                return;
+                return null;
             }
-            
-            const systemPrompt = AI_SYSTEM_PROMPTS[options.type] || AI_SYSTEM_PROMPTS.quick_fix;
-            const mode = options.mode || '修复';
-            
+
+            const basePrompt = AI_SYSTEM_PROMPTS[options.type] || AI_SYSTEM_PROMPTS.quick_fix;
+            const directives = buildAIModeDirectives(options);
+            const finalSystemPrompt = directives ? `${basePrompt}\n\n${directives}` : basePrompt;
+
+            const controller = new AbortController();
+            currentAIFixController = controller;
+
+            resetAIStatus();
+            updateAIStatus('准备发送请求...', 10, true);
+
             try {
-                // 显示修复进度
-                showToast('AI修复中', `正在使用${aiConfig.name}进行${mode}...`, 'info', 0);
-                
-                // 构建请求头
                 const headers = {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${decodeApiKey(config.apiKey)}`
                 };
-                
-                // 添加自定义请求头
+
                 if (aiConfig.headers) {
                     Object.assign(headers, aiConfig.headers);
                 }
-                
-                // 构建请求体
+
                 const requestBody = {
                     model: config.model,
                     messages: [
-                        { role: 'system', content: systemPrompt },
+                        { role: 'system', content: finalSystemPrompt },
                         { role: 'user', content: content }
                     ],
                     temperature: 0.3,
                     max_tokens: 4000,
                     stream: false
                 };
-                
-                // 添加自定义参数
+
                 if (aiConfig.params) {
                     Object.assign(requestBody, aiConfig.params);
                 }
-                
+
+                updateAIStatus(`正在连接 ${aiConfig.name} ...`, 30, true);
+
                 const response = await fetch(aiConfig.endpoint, {
                     method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify(requestBody)
+                    headers,
+                    body: JSON.stringify(requestBody),
+                    signal: controller.signal
                 });
-                
+
                 if (!response.ok) {
                     let errorMessage = `API调用失败 (${response.status})`;
                     try {
@@ -4656,108 +5364,607 @@ console.log('Hello World!');
                     }
                     throw new Error(errorMessage);
                 }
-                
-                const data = await response.json();
-                
+
+                updateAIStatus('解析AI响应...', 65, false);
+
+                let data;
+                const contentType = response.headers.get('content-type') || '';
+                if (contentType.includes('application/json')) {
+                    data = await response.json();
+                } else {
+                    const rawText = await response.text();
+                    try {
+                        data = JSON.parse(rawText);
+                    } catch (parseError) {
+                        throw new Error('AI返回数据无法解析');
+                    }
+                }
+
                 if (!data.choices || !data.choices[0] || !data.choices[0].message) {
                     throw new Error('AI返回的数据格式不正确');
                 }
-                
-                const fixedContent = data.choices[0].message.content.trim();
-                
+
+                const fixedContent = (data.choices[0].message.content || '').trim();
                 if (!fixedContent) {
                     throw new Error('AI返回了空的修复结果');
                 }
-                
-                // 更新输入框内容
-                const markdownInput = document.getElementById('markdownInput');
-                const originalContent = markdownInput.value;
-                markdownInput.value = fixedContent;
-                
-                // 触发预览更新
-                debouncedUpdatePreview();
-                debouncedUpdateWordCount();
-                
-                // 增加使用次数
-                incrementAIUsage();
-                
-                // 显示成功信息
-                showToast('修复完成', `AI已成功${mode}您的文档`, 'success', 3000);
-                
-                // 提供撤销功能
-                const undoBtn = document.createElement('button');
-                undoBtn.textContent = '撤销修复';
-                undoBtn.style.cssText = 'background: var(--warning); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; margin-left: 10px; font-size: 12px;';
-                undoBtn.onclick = () => {
-                    markdownInput.value = originalContent;
-                    debouncedUpdatePreview();
-                    debouncedUpdateWordCount();
-                    showToast('已撤销', '已恢复到修复前的内容', 'info');
-                };
-                
-                // 创建带有撤销按钮的提示
-                setTimeout(() => {
-                    const lastToast = document.querySelector('.toast:last-child');
-                    if (lastToast && lastToast.textContent.includes('修复完成')) {
-                        lastToast.appendChild(undoBtn);
+
+                updateAIStatus('生成对比视图...', 85, false);
+
+                const resultPacket = {
+                    original: content,
+                    improved: fixedContent,
+                    provider: aiConfig.name,
+                    options: {
+                        ...options,
+                        baseLabel: options.baseLabel || options.modeLabel || options.mode || 'AI修复',
+                        modeVariantLabel: options.modeVariantLabel || '默认策略'
                     }
-                }, 100);
-                
+                };
+
+                showAIResultModal(resultPacket);
+                completeAIStatus('AI修复完成，等待确认', true);
+
                 return fixedContent;
-                
             } catch (error) {
-                console.error('AI修复失败:', error);
-                
-                let userMessage = 'AI修复过程中出现错误';
-                if (error.message.includes('401')) {
-                    userMessage = 'API密钥无效，请检查配置';
-                } else if (error.message.includes('403')) {
-                    userMessage = 'API访问被拒绝，请检查权限';
-                } else if (error.message.includes('429')) {
-                    userMessage = 'API调用频率过高，请稍后重试';
-                } else if (error.message.includes('timeout')) {
-                    userMessage = 'AI服务响应超时，请重试';
-                } else if (error.message.includes('网络')) {
-                    userMessage = '网络连接失败，请检查网络';
+                if (error.name === 'AbortError') {
+                    completeAIStatus('AI修复已取消', false);
+                    showToast('已取消', 'AI修复已取消，文档未改动', 'info');
                 } else {
-                    userMessage = `修复失败: ${error.message}`;
+                    completeAIStatus('AI修复失败', false);
+                    const friendly = mapAIErrorMessage(error);
+                    showToast('修复失败', friendly, 'error', 5000);
+
+                    if (/401|403|API密钥/.test(error.message)) {
+                        setTimeout(() => {
+                            showAIConfigModal();
+                        }, 2000);
+                    }
                 }
-                
-                showToast('修复失败', userMessage, 'error', 5000);
-                
-                // 如果是配置问题，引导用户重新配置
-                if (error.message.includes('401') || error.message.includes('403') || error.message.includes('API密钥')) {
-                    setTimeout(() => {
-                        showAIConfigModal();
-                    }, 2000);
-                }
-                
                 return null;
+            } finally {
+                hideAIStatus(600);
+                currentAIFixController = null;
+            }
+        }
+
+        function buildAIModeDirectives(options = {}) {
+            const parts = [];
+
+            const enhanceFormat = options.enhanceFormat !== undefined ? options.enhanceFormat : true;
+            const enhanceLanguage = options.enhanceLanguage !== undefined ? options.enhanceLanguage : true;
+            const enhanceStructure = options.enhanceStructure !== undefined ? options.enhanceStructure : options.type === 'advanced_optimize';
+
+            if (enhanceFormat) {
+                parts.push('优先修正Markdown语法、表格、列表、代码块与引用等格式问题，确保文档可正确渲染。');
+            }
+
+            if (enhanceLanguage) {
+                parts.push('润色语句，使表达准确、顺畅且符合中文书写习惯，但不得改变原有含义。');
+            }
+
+            if (enhanceStructure) {
+                parts.push('可调整段落顺序、标题层级以及列表结构，以提升整体逻辑与可读性。');
+            }
+
+            if (options.preserveCodeBlocks !== false) {
+                parts.push('所有代码块内容必须保持原样，不得改写代码，只能在代码块外部修复文字描述。');
+            }
+
+            if (options.preserveQuotes) {
+                parts.push('引用块中的原文应尽量保持不变，仅可调整引用符号与标点格式。');
+            }
+
+            if (!parts.length) return '';
+            return `附加要求：\n${parts.map((text, index) => `${index + 1}. ${text}`).join('\n')}`;
+        }
+
+        function mapAIErrorMessage(error) {
+            if (!error || !error.message) return 'AI修复过程中发生未知错误';
+            const message = error.message;
+            if (message.includes('401')) return 'API密钥无效，请检查配置或重新生成密钥';
+            if (message.includes('403')) return 'AI服务拒绝访问，请确认账号权限或服务是否启用';
+            if (message.includes('429')) return '调用频率超限，请稍后重试或降低请求频率';
+            if (message.includes('timeout')) return 'AI服务响应超时，请检查网络或稍后再试';
+            if (message.includes('网络') || message.includes('fetch')) return '网络连接异常，无法访问AI服务';
+            return `修复失败：${message}`;
+        }
+
+        function openAIModeModal(label = 'AI修复') {
+            const modal = document.getElementById('aiModeModal');
+            if (!modal) return;
+            document.getElementById('aiModeIntro').textContent = `当前操作：${label}。请选择关注重点（可多选组合），AI 将按照指令执行。`;
+            modal.style.display = 'flex';
+
+            const formatToggle = document.getElementById('aiModeFormat');
+            const languageToggle = document.getElementById('aiModeLanguage');
+            const structureToggle = document.getElementById('aiModeStructure');
+
+            const isAdvanced = pendingAIRequest?.type === 'advanced_optimize';
+
+            if (formatToggle) formatToggle.checked = true;
+            if (languageToggle) languageToggle.checked = !!isAdvanced;
+            if (structureToggle) structureToggle.checked = !!isAdvanced;
+
+            const preserveCode = document.getElementById('aiModePreserveCode');
+            if (preserveCode) preserveCode.checked = true;
+            const preserveQuotes = document.getElementById('aiModePreserveQuotes');
+            if (preserveQuotes) preserveQuotes.checked = false;
+        }
+
+        function closeAIModeModal(resetRequest = true) {
+            const modal = document.getElementById('aiModeModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+            if (resetRequest) {
+                pendingAIRequest = null;
+            }
+        }
+
+        async function confirmAIModeSelection() {
+            if (!pendingAIRequest) {
+                closeAIModeModal();
+                return;
+            }
+
+            const request = pendingAIRequest;
+            closeAIModeModal(false);
+
+            let enhanceFormat = document.getElementById('aiModeFormat')?.checked || false;
+            let enhanceLanguage = document.getElementById('aiModeLanguage')?.checked || false;
+            let enhanceStructure = document.getElementById('aiModeStructure')?.checked || false;
+            const preserveCode = document.getElementById('aiModePreserveCode')?.checked !== false;
+            const preserveQuotes = document.getElementById('aiModePreserveQuotes')?.checked || false;
+
+            let selectedLabels = [];
+            if (enhanceFormat) selectedLabels.push('格式修复');
+            if (enhanceLanguage) selectedLabels.push('文案润色');
+            if (enhanceStructure) selectedLabels.push('结构强化');
+
+            if (!selectedLabels.length) {
+                if (request.type === 'advanced_optimize') {
+                    enhanceFormat = true;
+                    enhanceLanguage = true;
+                    enhanceStructure = true;
+                    selectedLabels = ['格式修复', '文案润色', '结构强化'];
+                    if (document.getElementById('aiModeFormat')) document.getElementById('aiModeFormat').checked = true;
+                    if (document.getElementById('aiModeLanguage')) document.getElementById('aiModeLanguage').checked = true;
+                    if (document.getElementById('aiModeStructure')) document.getElementById('aiModeStructure').checked = true;
+                } else {
+                    enhanceFormat = true;
+                    enhanceLanguage = false;
+                    enhanceStructure = false;
+                    selectedLabels = ['格式修复'];
+                    if (document.getElementById('aiModeFormat')) document.getElementById('aiModeFormat').checked = true;
+                    if (document.getElementById('aiModeLanguage')) document.getElementById('aiModeLanguage').checked = false;
+                    if (document.getElementById('aiModeStructure')) document.getElementById('aiModeStructure').checked = false;
+                }
+            }
+
+            const options = {
+                type: request.type,
+                baseLabel: request.label,
+                modeLabel: request.label,
+                enhanceFormat,
+                enhanceLanguage,
+                enhanceStructure,
+                selectedLabels,
+                modeVariantLabel: selectedLabels.join(' + ') || '默认策略',
+                preserveCodeBlocks: preserveCode,
+                preserveQuotes: preserveQuotes
+            };
+
+            pendingAIRequest = null;
+            try {
+                await performAIFix(request.content, options);
+            } catch (error) {
+                console.error('AI修复执行失败:', error);
+            }
+        }
+
+        function resetAIStatus() {
+            aiStatusTarget = 0;
+            aiStatusProgress = 0;
+            ensureAIStatusCard();
+            if (aiStatusProgressFill) {
+                aiStatusProgressFill.style.width = '5%';
+            }
+        }
+
+        function ensureAIStatusCard() {
+            if (aiStatusCard) return;
+            const stack = document.getElementById('previewStatusStack');
+            if (!stack) return;
+
+            aiStatusCard = document.createElement('div');
+            aiStatusCard.className = 'status-card ai-status-card';
+            aiStatusCard.innerHTML = `
+                <div class="ai-status-header">
+                    <div class="ai-status-message" id="aiStatusMessage"><span>🤖</span><span>AI修复准备中...</span></div>
+                    <button type="button" id="aiStatusCancelBtn">中止</button>
+                </div>
+                <div class="ai-status-progress">
+                    <div class="progress-bar-fill" id="aiStatusProgressFill"></div>
+                </div>
+            `;
+            stack.appendChild(aiStatusCard);
+
+            aiStatusMessageEl = document.getElementById('aiStatusMessage');
+            aiStatusProgressFill = document.getElementById('aiStatusProgressFill');
+            aiStatusCancelBtn = document.getElementById('aiStatusCancelBtn');
+            if (aiStatusCancelBtn) {
+                aiStatusCancelBtn.onclick = cancelCurrentAIFix;
+            }
+        }
+
+        function updateAIStatus(message, targetProgress, allowCancel = true) {
+            ensureAIStatusCard();
+            if (!aiStatusCard) return;
+
+            if (aiStatusMessageEl) {
+                aiStatusMessageEl.innerHTML = `<span>🤖</span><span>${message}</span>`;
+            }
+
+            if (aiStatusCancelBtn) {
+                aiStatusCancelBtn.style.display = allowCancel ? 'inline-flex' : 'none';
+            }
+
+            aiStatusTarget = Math.max(aiStatusTarget, Math.min(targetProgress, 95));
+
+            if (!aiStatusInterval) {
+                aiStatusInterval = setInterval(() => {
+                    if (aiStatusProgress < aiStatusTarget) {
+                        aiStatusProgress += 1;
+                        if (aiStatusProgressFill) {
+                            aiStatusProgressFill.style.width = `${aiStatusProgress}%`;
+                        }
+                    } else if (aiStatusProgress >= 95) {
+                        clearInterval(aiStatusInterval);
+                        aiStatusInterval = null;
+                    }
+                }, 80);
+            }
+        }
+
+        function completeAIStatus(message, isSuccess) {
+            updateAIStatus(message, 98, false);
+            if (aiStatusProgressFill) {
+                aiStatusProgressFill.style.width = '100%';
+            }
+            if (aiStatusMessageEl) {
+                const icon = isSuccess ? '✅' : '⚠️';
+                aiStatusMessageEl.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+            }
+        }
+
+        function hideAIStatus(delay = 0) {
+            if (!aiStatusCard) return;
+            const cardRef = aiStatusCard;
+            const remove = () => {
+                if (cardRef && cardRef.parentNode) {
+                    cardRef.parentNode.removeChild(cardRef);
+                }
+                if (aiStatusCard === cardRef) {
+                    aiStatusCard = null;
+                    aiStatusMessageEl = null;
+                    aiStatusProgressFill = null;
+                    aiStatusCancelBtn = null;
+                    if (aiStatusInterval) {
+                        clearInterval(aiStatusInterval);
+                        aiStatusInterval = null;
+                    }
+                }
+            };
+            if (delay > 0) {
+                setTimeout(remove, delay);
+            } else {
+                remove();
+            }
+        }
+
+        function cancelCurrentAIFix() {
+            if (currentAIFixController) {
+                currentAIFixController.abort();
+            }
+        }
+
+        function showAIResultModal(resultPacket) {
+            pendingAIResult = resultPacket;
+
+            const summaryEl = document.getElementById('aiResultSummary');
+            if (summaryEl) {
+                summaryEl.innerHTML = '';
+                const capabilityLabels = (resultPacket.options.selectedLabels && resultPacket.options.selectedLabels.length)
+                    ? resultPacket.options.selectedLabels
+                    : [
+                        resultPacket.options.enhanceFormat !== false ? '格式修复' : null,
+                        resultPacket.options.enhanceLanguage !== false ? '文案润色' : null,
+                        resultPacket.options.enhanceStructure ? '结构强化' : null
+                    ].filter(Boolean);
+
+                const chips = [
+                    `模式：${resultPacket.options.baseLabel}`,
+                    `侧重点：${capabilityLabels.join(' + ') || '默认策略'}`,
+                    `服务商：${resultPacket.provider}`
+                ];
+
+                if (resultPacket.options.preserveCodeBlocks !== false) chips.push('保持代码块');
+                if (resultPacket.options.preserveQuotes) chips.push('保留引用');
+
+                chips.forEach(text => {
+                    const chip = document.createElement('span');
+                    chip.textContent = text;
+                    summaryEl.appendChild(chip);
+                });
+            }
+
+            const diffContainer = document.getElementById('aiDiffContainer');
+            if (diffContainer) {
+                renderMarkdownDiff(diffContainer, resultPacket.original, resultPacket.improved);
+            }
+
+            const originalPreview = document.getElementById('aiOriginalPreview');
+            if (originalPreview) {
+                originalPreview.textContent = resultPacket.original;
+            }
+
+            const improvedPreview = document.getElementById('aiImprovedPreview');
+            if (improvedPreview) {
+                improvedPreview.textContent = resultPacket.improved;
+            }
+
+            switchAIResultView('diff');
+
+            const modal = document.getElementById('aiResultModal');
+            if (modal) {
+                modal.style.display = 'flex';
+            }
+        }
+
+        function switchAIResultView(view) {
+            const panels = {
+                diff: document.getElementById('aiResultViewDiff'),
+                original: document.getElementById('aiResultViewOriginal'),
+                improved: document.getElementById('aiResultViewImproved')
+            };
+
+            const tabs = {
+                diff: document.getElementById('aiResultTabDiff'),
+                original: document.getElementById('aiResultTabOriginal'),
+                improved: document.getElementById('aiResultTabImproved')
+            };
+
+            Object.keys(panels).forEach(key => {
+                if (panels[key]) {
+                    panels[key].classList.toggle('active', key === view);
+                }
+                if (tabs[key]) {
+                    tabs[key].classList.toggle('active', key === view);
+                    tabs[key].setAttribute('aria-selected', key === view ? 'true' : 'false');
+                }
+            });
+        }
+
+        function closeAIResultModal() {
+            const modal = document.getElementById('aiResultModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        function rejectAIResult() {
+            const hasResult = !!pendingAIResult;
+            closeAIResultModal();
+            pendingAIResult = null;
+            if (hasResult) {
+                showToast('已保留原文', 'AI修复结果已放弃，不会修改当前文档', 'info');
+            }
+        }
+
+        function applyAIResult() {
+            if (!pendingAIResult) {
+                closeAIResultModal();
+                return;
+            }
+
+            const markdownInput = document.getElementById('markdownInput');
+            markdownInput.value = pendingAIResult.improved;
+            debouncedUpdatePreview();
+            debouncedUpdateWordCount();
+            incrementAIUsage();
+
+            showToast('套用成功', `${pendingAIResult.options.baseLabel} 已写入文档`, 'success');
+
+            pendingAIResult = null;
+            closeAIResultModal();
+        }
+
+        function renderMarkdownDiff(container, original, improved) {
+            if (!container) return;
+            const oldLines = original.split(/\r?\n/);
+            const newLines = improved.split(/\r?\n/);
+            if (oldLines.length > 1200 || newLines.length > 1200) {
+                container.innerHTML = '<span class="diff-line diff-skip">文档较大，已省略详细差异展示。</span>';
+                return;
+            }
+            const diffItems = condenseUnchangedSegments(computeLineDiff(oldLines, newLines));
+
+            container.innerHTML = '';
+            diffItems.forEach(item => {
+                const lineEl = document.createElement('span');
+                let className = 'diff-unchanged';
+                let prefix = ' ';
+
+                if (item.type === 'added') {
+                    className = 'diff-added';
+                    prefix = '+';
+                } else if (item.type === 'removed') {
+                    className = 'diff-removed';
+                    prefix = '-';
+                } else if (item.type === 'skip') {
+                    className = 'diff-skip';
+                    prefix = '…';
+                }
+
+                lineEl.className = `diff-line ${className}`;
+                lineEl.textContent = item.type === 'skip' ? item.value : `${prefix} ${item.value}`;
+                container.appendChild(lineEl);
+            });
+        }
+
+        function computeLineDiff(oldLines, newLines) {
+            const m = oldLines.length;
+            const n = newLines.length;
+            const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+
+            for (let i = m - 1; i >= 0; i--) {
+                for (let j = n - 1; j >= 0; j--) {
+                    if (oldLines[i] === newLines[j]) {
+                        dp[i][j] = dp[i + 1][j + 1] + 1;
+                    } else {
+                        dp[i][j] = Math.max(dp[i + 1][j], dp[i][j + 1]);
+                    }
+                }
+            }
+
+            const result = [];
+            let i = 0;
+            let j = 0;
+
+            while (i < m && j < n) {
+                if (oldLines[i] === newLines[j]) {
+                    result.push({ type: 'unchanged', value: oldLines[i] });
+                    i++;
+                    j++;
+                } else if (dp[i + 1][j] >= dp[i][j + 1]) {
+                    result.push({ type: 'removed', value: oldLines[i] });
+                    i++;
+                } else {
+                    result.push({ type: 'added', value: newLines[j] });
+                    j++;
+                }
+            }
+
+            while (i < m) {
+                result.push({ type: 'removed', value: oldLines[i++] });
+            }
+
+            while (j < n) {
+                result.push({ type: 'added', value: newLines[j++] });
+            }
+
+            return result;
+        }
+
+        function condenseUnchangedSegments(diffItems) {
+            const condensed = [];
+            let buffer = [];
+
+            const flush = () => {
+                if (!buffer.length) return;
+                if (buffer.length > 6) {
+                    condensed.push(buffer[0], buffer[1]);
+                    condensed.push({ type: 'skip', value: `... ${buffer.length - 4} 行未变化 ...` });
+                    condensed.push(buffer[buffer.length - 2], buffer[buffer.length - 1]);
+                } else {
+                    condensed.push(...buffer);
+                }
+                buffer = [];
+            };
+
+            diffItems.forEach(item => {
+                if (item.type === 'unchanged') {
+                    buffer.push(item);
+                } else {
+                    flush();
+                    condensed.push(item);
+                }
+            });
+
+            flush();
+            return condensed;
+        }
+
+        function shouldShowIntroModal() {
+            const today = new Date().toDateString();
+            const dismissedDate = localStorage.getItem('introModalDismissDate');
+            return dismissedDate !== today;
+        }
+
+        function showIntroModal() {
+            const modal = document.getElementById('introModal');
+            if (!modal || introModalShown) return;
+            introModalShown = true;
+            modal.style.display = 'flex';
+        }
+
+        function closeIntroModal(mode = 'once') {
+            const modal = document.getElementById('introModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+            introModalShown = true;
+            if (mode === 'today') {
+                localStorage.setItem('introModalDismissDate', new Date().toDateString());
+                showToast('今日不再提示', '今日剩余时间内将不再弹出欢迎介绍');
             }
         }
         
         // === AI修复用户体验优化 ===
         
-        // 点击背景关闭AI配置模态框
+        // 点击背景关闭相关模态框
         document.addEventListener('click', function(e) {
             const aiConfigModal = document.getElementById('aiConfigModal');
             if (e.target === aiConfigModal) {
                 closeAIConfigModal();
             }
+
+            const aiModeModal = document.getElementById('aiModeModal');
+            if (e.target === aiModeModal) {
+                closeAIModeModal();
+            }
+
+            const aiResultModal = document.getElementById('aiResultModal');
+            if (e.target === aiResultModal) {
+                rejectAIResult();
+            }
+
+            const introModal = document.getElementById('introModal');
+            if (e.target === introModal) {
+                closeIntroModal('once');
+            }
         });
         
         // 键盘快捷键支持
         document.addEventListener('keydown', function(e) {
-            // Esc键关闭AI配置模态框
             if (e.key === 'Escape') {
+                const aiResultModal = document.getElementById('aiResultModal');
+                if (aiResultModal && aiResultModal.style.display === 'flex') {
+                    rejectAIResult();
+                    return;
+                }
+
+                const aiModeModal = document.getElementById('aiModeModal');
+                if (aiModeModal && aiModeModal.style.display === 'flex') {
+                    closeAIModeModal();
+                    return;
+                }
+
                 const aiConfigModal = document.getElementById('aiConfigModal');
                 if (aiConfigModal && aiConfigModal.style.display === 'block') {
                     closeAIConfigModal();
                 }
+
+                const introModal = document.getElementById('introModal');
+                if (introModal && introModal.style.display === 'flex') {
+                    closeIntroModal('once');
+                    return;
+                }
             }
-            
+
             // Ctrl+Alt+F 快速AI修复
-            if (e.ctrlKey && e.altKey && e.key === 'f' || e.key === 'F') {
+            if (e.ctrlKey && e.altKey && (e.key === 'f' || e.key === 'F')) {
                 e.preventDefault();
                 if (canUseAIFix()) {
                     performQuickAIFix();
@@ -4765,7 +5972,7 @@ console.log('Hello World!');
             }
             
             // Ctrl+Alt+O AI深度优化
-            if (e.ctrlKey && e.altKey && e.key === 'o' || e.key === 'O') {
+            if (e.ctrlKey && e.altKey && (e.key === 'o' || e.key === 'O')) {
                 e.preventDefault();
                 if (canUseAIFix()) {
                     performAdvancedAIFix();
@@ -4956,15 +6163,23 @@ console.log('Hello World!');
             
             // 等待DOM完全可见后初始化事件绑定
             setTimeout(() => {
-                initializeEventBindings();
-            }, 100);
-            
-            // 初始化拖拽功能
-            initializeDragAndDrop();
-            
-            // 直接加载示例，不检查自动保存内容避免弹窗
-            loadExample();
+            initializeEventBindings();
+        }, 100);
+
+        // 初始化拖拽功能
+        initializeDragAndDrop();
+
+        // 直接加载示例，不检查自动保存内容避免弹窗
+        loadExample();
+
+        if (!introModalShown && shouldShowIntroModal()) {
+            setTimeout(() => {
+                if (!introModalShown) {
+                    showIntroModal();
+                }
+            }, 400);
         }
+    }
         
         // 初始化AI修复功能
         function initializeAIFixFeatures() {
@@ -6800,12 +8015,14 @@ $$\\\\lim_{x \\\\to \\\\infty} \\\\frac{1}{x} = 0$$
         }
 
         // 主题管理功能
-        let currentTheme = 'amber'; // 默认温暖琥珀主题
+        let currentTheme = 'amber'; // 默认暖阳琥珀主题
         
         function toggleTheme(event) {
             const themes = [
-                { name: 'amber', text: '温暖琥珀', dataTheme: null, bg: '#ffeaa7' },
-                { name: 'classic', text: '经典绿色', dataTheme: 'classic', bg: '#667eea' }
+                { name: 'amber', text: '暖阳琥珀', dataTheme: null, bg: '#f67062' },
+                { name: 'classic', text: '浅林绿意', dataTheme: 'classic', bg: '#3aa58f' },
+                { name: 'noir', text: '现代黑金', dataTheme: 'noir', bg: '#111827' },
+                { name: 'aurora', text: '极光幻彩', dataTheme: 'aurora', bg: '#7f5af0' }
             ];
             
             const currentIndex = themes.findIndex(theme => theme.name === currentTheme);
@@ -6862,14 +8079,18 @@ $$\\\\lim_{x \\\\to \\\\infty} \\\\frac{1}{x} = 0$$
             if (savedTheme && savedTheme !== 'amber') {
                 currentTheme = savedTheme;
                 const themes = [
-                    { name: 'amber', text: '温暖琥珀', dataTheme: null },
-                    { name: 'classic', text: '经典绿色', dataTheme: 'classic' }
+                    { name: 'amber', text: '暖阳琥珀', dataTheme: null },
+                    { name: 'classic', text: '浅林绿意', dataTheme: 'classic' },
+                    { name: 'noir', text: '现代黑金', dataTheme: 'noir' },
+                    { name: 'aurora', text: '极光幻彩', dataTheme: 'aurora' }
                 ];
                 
                 const theme = themes.find(t => t.name === savedTheme);
                 if (theme) {
                     if (theme.dataTheme) {
                         document.body.setAttribute('data-theme', theme.dataTheme);
+                    } else {
+                        document.body.removeAttribute('data-theme');
                     }
                     document.getElementById('themeText').textContent = theme.text;
                 }
