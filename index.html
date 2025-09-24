@@ -1663,6 +1663,14 @@
             border: 1px solid var(--border-color);
             background: var(--preview-bg);
             padding: 18px;
+            max-height: 240px;
+            overflow: hidden;
+        }
+
+        .intro-updates-content {
+            max-height: 170px;
+            overflow-y: auto;
+            padding-right: 8px;
         }
 
         .intro-updates h3 {
@@ -3042,9 +3050,18 @@
                             <h4>🔐 权限 & 管理</h4>
                             <p>根据密码等级解锁更多功能，高级用户可配置 AI 服务，自定义模板或查看管理员面板。</p>
                         </div>
+                        <div class="intro-card">
+                            <h4>📋 富文本复制</h4>
+                            <p>支持一键复制渲染后的富文本内容，保留样式后可直接粘贴到 Word、飞书等应用。</p>
+                        </div>
+                        <div class="intro-card">
+                            <h4>💬 意见与建议</h4>
+                            <p>欢迎通过预留渠道提交BUG反馈和功能建议，会在更新日志中跟进处理进度。</p>
+                        </div>
                     </div>
                     <div class="intro-updates">
                         <h3>📌 最近更新</h3>
+                        <div class="intro-updates-content">
                         <ul>
                             <li>
                                 <strong>2025-09-20 · UI 体验升级</strong>
@@ -3058,7 +3075,164 @@
                                 <strong>2025-07-11 · 配置中心扩展</strong>
                                 <span>引入多服务商预设、导入导出自定义模板，提升团队协同效率。</span>
                             </li>
+                            <li>
+                                <strong>2025-07-10 · AI 自定义配置上线</strong>
+                                <span>新增多服务商预设与自定义模板导入/导出能力，强化配置中心的一站式管理体验。</span>
+                            </li>
+                            <li>
+                                <strong>2025-07-09 · 合并冲突修复</strong>
+                                <span>解决主干合并冲突，确保最新的 AI 智能修复版本完整保留。</span>
+                            </li>
+                            <li>
+                                <strong>2025-07-07 · 全面升级版发布</strong>
+                                <span>推出 AI 智能 Markdown 转 Word 全面升级版，整体功能与界面大幅提升。</span>
+                            </li>
+                            <li>
+                                <strong>2025-07-02 · AI 配置默认优化</strong>
+                                <span>调整默认模型与服务商参数，降低新用户配置门槛。</span>
+                            </li>
+                            <li>
+                                <strong>2025-07-01 · Word 标题配色修复</strong>
+                                <span>进一步校正导出 Word 标题的颜色表现，避免主题色偏差。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-28 · TextRun 级标题修复</strong>
+                                <span>在 TextRun 层面强制标题为黑色，彻底杜绝 Word 标题色异常。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-26 · Word 标题关键修复</strong>
+                                <span>补齐导出文档标题色错乱的根因修复，保证视觉一致。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-24 · Word 标题渲染修补</strong>
+                                <span>先行修正 Word 标题颜色问题，为后续彻底修复奠定基础。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-23 · 合并保留优化版本</strong>
+                                <span>合并远端更新并保留本地性能与体验优化成果。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-22 · 转换器性能调优</strong>
+                                <span>针对核心转换流程做性能与体验优化，提升整体流畅度。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-21 · 控制面板三列布局</strong>
+                                <span>重构控制面板为三栏栅格，让设置区更整洁易读。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-20 · AI 修复体验完善</strong>
+                                <span>完善 AI 修复流程，提供差异化的使用体验。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-19 · AI 智能修复系统首发</strong>
+                                <span>上线 AI 智能修复核心功能，引入智能润色与结构优化能力。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-18 · 数学示例显示修复</strong>
+                                <span>修复数学公式示例展示异常，确保示例正确渲染。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-17 · 实时预览恢复</strong>
+                                <span>修复实时预览失效的问题，恢复所见即所得体验。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-16 · 密码黑名单机制</strong>
+                                <span>新增密码撤销黑名单，堵上安全漏洞。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-15 · 解除配额限制</strong>
+                                <span>移除配额体系，改为无限次使用策略。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-14 · 密码分享精简</strong>
+                                <span>删除文件导入导出，简化密码分享流程。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-13 · 超简单密码分享</strong>
+                                <span>上线全新轻量分享机制，显著降低分享门槛。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-12 · 免登录密码导入</strong>
+                                <span>支持跨设备免登录导入密码，提升协作效率。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-11 · 配额与同步修复</strong>
+                                <span>修复独立配额与跨设备同步的关键缺陷。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-10 · 权限与配额商业化</strong>
+                                <span>构建商业化权限体系与智能配额管理方案。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-09 · 性能与功能强化</strong>
+                                <span>对核心交互与性能进行大幅优化，提升整体流畅度。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-08 · 上传功能增强</strong>
+                                <span>修复上传缺陷并增强文件上传体验。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-07 · 快捷键弹窗修复</strong>
+                                <span>修复快捷键帮助弹窗的显示问题。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-06 · 合并冲突处理</strong>
+                                <span>解决合并冲突，保留所有优化改动。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-05 · 用户体验优化（B）</strong>
+                                <span>继续完善界面与交互细节，提升整体体验。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-04 · 用户体验优化（A）</strong>
+                                <span>针对 UI/UX 做首轮全面调整与优化。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-03 · 密码验证上线</strong>
+                                <span>引入个人内测密码机制，限制访问范围。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-02 · KaTeX 数学支持</strong>
+                                <span>集成 KaTeX，支持行内与块级 LaTeX 公式渲染。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-01 · 自动弹窗修复</strong>
+                                <span>移除自动保存检查导致的误弹窗问题。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-01 · 回退稳定版本</strong>
+                                <span>回退至五大优化前的稳定基线，确保可靠性。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-01 · Pages 编码修复</strong>
+                                <span>修复 GitHub Pages 的编码问题，保障线上访问。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-01 · Pages CI 配置</strong>
+                                <span>新增 GitHub Actions 流水线，自动部署 Pages。</span>
+                            </li>
+                            <li>
+                                <strong>2025-05-28 · 五大核心优化</strong>
+                                <span>完成五大核心功能与性能优化迭代。</span>
+                            </li>
+                            <li>
+                                <strong>2025-05-27 · UI 信息完善</strong>
+                                <span>补充作者信息并强化移动端响应式设计。</span>
+                            </li>
+                            <li>
+                                <strong>2025-05-26 · 主干合并同步</strong>
+                                <span>同步远程主干更新，保持代码一致。</span>
+                            </li>
+                            <li>
+                                <strong>2025-05-25 · v2.0 初始提交</strong>
+                                <span>提交 v2.0 代码基线，奠定新版架构。</span>
+                            </li>
+                            <li>
+                                <strong>2025-05-21 · 项目雏形</strong>
+                                <span>首次提交 Markdown 转 Word 转换工具，实现基础能力。</span>
+                            </li>
                         </ul>
+                        </div>
                     </div>
                     <div class="intro-modal-actions">
                         <button class="btn-secondary" onclick="closeIntroModal('once')">本次关闭</button>
