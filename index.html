@@ -2087,8 +2087,8 @@
 
         .password-modal {
             position: relative;
-            width: min(440px, 100%);
-            padding: 40px 36px 32px;
+            width: min(940px, 95vw);
+            padding: 44px 44px 34px;
             border-radius: 28px;
             display: flex;
             flex-direction: column;
@@ -2134,44 +2134,500 @@
             color: var(--text-secondary);
         }
 
-        .password-modal .beta-info {
+        .password-brief {
             display: flex;
             flex-direction: column;
-            gap: 4px;
-            text-align: left;
-            padding: 18px 20px;
-            border-radius: 18px;
-            background: rgba(255, 255, 255, 0.55);
+            gap: 16px;
+            padding: 22px 26px;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.6);
             border: 1px solid rgba(255, 213, 121, 0.45);
+            box-shadow: 0 18px 32px rgba(246, 112, 98, 0.12);
             color: var(--text-primary);
         }
 
-        [data-theme="noir"] .password-modal .beta-info {
-            background: rgba(250, 204, 21, 0.12);
-            border-color: rgba(250, 204, 21, 0.32);
-            color: rgba(250, 204, 21, 0.92);
+        .password-brief-top {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        .password-thanks {
-            padding: 16px 18px;
-            border-radius: 16px;
-            background: rgba(255, 255, 255, 0.5);
-            border: 1px dashed rgba(146, 151, 179, 0.35);
+        .password-brief-emblem {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1 1 260px;
+        }
+
+        .password-brief-emblem .brief-icon {
+            font-size: 24px;
+        }
+
+        .password-brief-emblem .brief-heading {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+
+        .password-brief-emblem .brief-caption {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+        }
+
+        .password-brief-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--accent-primary);
+            background: rgba(246, 112, 98, 0.12);
+            border: 1px solid rgba(246, 112, 98, 0.2);
+            letter-spacing: 0.3px;
+        }
+
+        .password-brief-divider {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0));
+        }
+
+        .password-brief-bottom {
+            display: grid;
+            gap: 6px;
+        }
+
+        .password-brief-bottom .brief-thanks-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .password-brief-bottom .brief-thanks-desc {
+            margin: 0;
             font-size: 0.85rem;
             color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        [data-theme="noir"] .password-brief {
+            background: rgba(17, 24, 39, 0.78);
+            border-color: rgba(250, 204, 21, 0.32);
+            color: rgba(229, 231, 235, 0.85);
+            box-shadow: 0 24px 48px rgba(2, 6, 23, 0.55);
+        }
+
+        [data-theme="noir"] .password-brief-pill {
+            color: rgba(250, 204, 21, 0.92);
+            background: rgba(250, 204, 21, 0.14);
+            border-color: rgba(250, 204, 21, 0.3);
+        }
+
+        /* 密码头部补充标识 */
+        .password-header {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
             text-align: left;
         }
 
-        .password-thanks strong {
-            display: block;
-            margin-bottom: 6px;
+        .password-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: -4px;
+        }
+
+        .password-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent-primary);
+            background: rgba(246, 112, 98, 0.1);
+            border: 1px solid rgba(246, 112, 98, 0.18);
+            letter-spacing: 0.4px;
+        }
+
+        .password-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .password-badge.badge-security {
+            color: var(--success);
+            background: rgba(46, 204, 113, 0.12);
+            border-color: rgba(46, 204, 113, 0.2);
+        }
+
+        .password-badge.badge-ai {
+            color: var(--info);
+            background: rgba(61, 169, 252, 0.12);
+            border-color: rgba(61, 169, 252, 0.2);
+        }
+
+        /* 密码界面双列布局 */
+        .password-layout {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 28px;
+            align-items: stretch;
+        }
+
+        .password-layout > * {
+            min-height: 0;
+        }
+
+        .password-form {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            max-height: clamp(360px, 62vh, 520px);
+            overflow-y: auto;
+            scrollbar-gutter: stable;
+        }
+
+        .password-share-card {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 16px;
+            border-radius: 16px;
+            border-left: 4px solid var(--info);
+            background: rgba(61, 169, 252, 0.12);
+        }
+
+        .password-share-card .password-share-header {
+            font-size: 14px;
+            font-weight: 600;
             color: var(--text-primary);
         }
 
-        [data-theme="noir"] .password-thanks {
+        .password-share-card p {
+            margin: 0;
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .password-share-btn {
+            width: 100%;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-white);
+            background: linear-gradient(120deg, var(--accent-secondary), var(--accent-primary));
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .password-share-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 24px rgba(61, 169, 252, 0.22);
+        }
+
+        .password-share-tip {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        /* 右侧亮点面板 */
+        .password-insight {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            padding: 24px;
+            background: var(--glass-bg);
+            border-radius: 22px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 24px 48px var(--shadow);
+            overflow: hidden;
+            max-height: clamp(360px, 62vh, 520px);
+            overflow-y: auto;
+            scrollbar-gutter: stable;
+        }
+
+        .password-insight::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0));
+            pointer-events: none;
+        }
+
+        .password-insight-header {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .password-insight-header .insight-label {
+            width: fit-content;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent-secondary);
+            background: rgba(67, 206, 162, 0.14);
+        }
+
+        .password-insight-header h3 {
+            margin: 0;
+            font-size: 1.15rem;
+            color: var(--text-primary);
+        }
+
+        .password-insight-header p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .password-feature-grid {
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 14px;
+        }
+
+        .password-feature-grid.feature-grid-dual {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .password-feature-card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 16px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            box-shadow: 0 12px 26px rgba(15, 23, 42, 0.07);
+        }
+
+        .password-feature-card .feature-icon {
+            font-size: 20px;
+        }
+
+        .password-feature-card strong {
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .password-feature-card p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        .password-divider {
+            height: 1px;
+            background: linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0));
+        }
+
+        .password-quickstart {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .password-quickstart .quickstart-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+        }
+
+        .password-step-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .password-step {
+            display: flex;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.55);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
+        }
+
+        .password-step .step-index {
+            flex-shrink: 0;
+            width: 30px;
+            height: 30px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: var(--text-white);
+            font-weight: 700;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 18px rgba(246, 112, 98, 0.25);
+        }
+
+        .password-step strong {
+            display: block;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            font-size: 0.92rem;
+        }
+
+        .password-step p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            line-height: 1.6;
+        }
+
+        .password-bulletins {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .password-bulletins .bulletin-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .bulletin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .bulletin-card {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 16px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 12px 26px rgba(15, 23, 42, 0.06);
+        }
+
+        .bulletin-card strong {
+            color: var(--text-primary);
+            font-size: 0.92rem;
+        }
+
+        .bulletin-card span {
+            font-size: 0.78rem;
+            letter-spacing: 0.4px;
+            font-weight: 600;
+            color: var(--accent-secondary);
+        }
+
+        .bulletin-card p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            line-height: 1.6;
+        }
+
+        .password-support {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 18px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.55);
+            border: 1px solid rgba(255, 255, 255, 0.32);
+        }
+
+        .password-support .support-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .password-support p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .support-channels {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .support-channel {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.04);
+            color: var(--text-secondary);
+        }
+
+        [data-theme="noir"] .password-badge {
+            color: var(--accent-primary);
+            background: rgba(250, 204, 21, 0.16);
+            border-color: rgba(250, 204, 21, 0.32);
+        }
+
+        [data-theme="noir"] .password-badge.badge-security {
+            color: var(--success);
+            background: rgba(34, 197, 94, 0.18);
+            border-color: rgba(34, 197, 94, 0.32);
+        }
+
+        [data-theme="noir"] .password-badge.badge-ai {
+            color: var(--info);
+            background: rgba(56, 189, 248, 0.2);
+            border-color: rgba(56, 189, 248, 0.32);
+        }
+
+        [data-theme="noir"] .password-share-card {
+            background: rgba(56, 189, 248, 0.12);
+        }
+
+        [data-theme="noir"] .password-insight {
+            background: rgba(17, 24, 39, 0.88);
+            border-color: rgba(148, 163, 184, 0.22);
+            box-shadow: 0 26px 60px rgba(2, 6, 23, 0.55);
+        }
+
+        [data-theme="noir"] .password-feature-card,
+        [data-theme="noir"] .password-step,
+        [data-theme="noir"] .bulletin-card,
+        [data-theme="noir"] .password-support {
             background: rgba(15, 23, 42, 0.78);
-            border-color: rgba(148, 163, 184, 0.32);
-            color: rgba(229, 231, 235, 0.72);
+            border-color: rgba(148, 163, 184, 0.28);
+        }
+
+        [data-theme="noir"] .support-channel {
+            background: rgba(148, 163, 184, 0.18);
+            color: rgba(229, 231, 235, 0.82);
         }
 
         .password-input-wrapper {
@@ -2297,6 +2753,25 @@
                 animation: slideUpMobile 0.4s ease-out;
             }
             
+            .password-badges {
+                gap: 8px;
+            }
+
+            .password-layout {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+
+            .password-form,
+            .password-insight {
+                max-height: none;
+                overflow: visible;
+            }
+
+            .password-insight {
+                padding: 22px;
+            }
+
             .password-modal h2 {
                 font-size: 1.5em;
                 margin-bottom: 8px;
@@ -2307,13 +2782,44 @@
                 margin-bottom: 20px;
             }
             
-            .password-modal .beta-info {
-                font-size: 0.85em;
-                padding: 12px;
-                margin-bottom: 20px;
-                line-height: 1.4;
+            .password-feature-grid.feature-grid-dual {
+                grid-template-columns: 1fr;
             }
-            
+
+            .password-feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .password-brief {
+                padding: 20px 18px;
+            }
+
+            .password-brief-top {
+                justify-content: flex-start;
+            }
+
+            .password-brief-emblem {
+                flex: 1 1 100%;
+            }
+
+            .password-brief-pill {
+                align-self: flex-start;
+            }
+
+            .password-step-list,
+            .bulletin-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .password-step {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .password-step .step-index {
+                margin-bottom: 6px;
+            }
+
             .password-input {
                 font-size: 16px; /* 防止iOS缩放 */
                 padding: 16px;
@@ -2325,7 +2831,11 @@
                 font-size: 16px;
                 margin-bottom: 12px;
             }
-            
+
+            .support-channels {
+                gap: 6px;
+            }
+
             .password-hint {
                 font-size: 12px;
                 margin-top: 12px;
@@ -2354,13 +2864,61 @@
                 margin-bottom: 16px;
             }
             
-            .password-modal .beta-info {
-                font-size: 0.8em;
-                padding: 10px;
-                margin-bottom: 16px;
-                border-radius: 6px;
+            .password-brief {
+                padding: 18px;
+                gap: 14px;
             }
-            
+
+            .password-brief-top {
+                gap: 12px;
+            }
+
+            .password-brief-emblem {
+                gap: 10px;
+            }
+
+            .password-brief-emblem .brief-icon {
+                font-size: 20px;
+            }
+
+            .password-brief-emblem .brief-heading {
+                font-size: 0.95rem;
+            }
+
+            .password-brief-emblem .brief-caption {
+                font-size: 0.8rem;
+            }
+
+            .password-brief-pill {
+                font-size: 0.78rem;
+                padding: 6px 12px;
+            }
+
+            .password-brief-bottom .brief-thanks-desc {
+                font-size: 0.78rem;
+            }
+
+            .password-share-card {
+                padding: 14px;
+            }
+
+            .password-share-btn {
+                padding: 10px 12px;
+            }
+
+            .password-insight {
+                padding: 18px;
+                border-radius: 16px;
+            }
+
+            .password-feature-card {
+                padding: 14px;
+            }
+
+            .password-support {
+                padding: 14px;
+            }
+
             .password-input {
                 padding: 14px;
                 font-size: 16px;
@@ -2407,6 +2965,15 @@
                 animation: modalEntranceMobile 0.6s ease-out;
             }
             
+            .password-layout {
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+
+            .password-insight {
+                padding: 20px;
+            }
+
             .password-modal h2 {
                 font-size: 1.4em;
                 margin-bottom: 8px;
@@ -2417,12 +2984,15 @@
                 margin-bottom: 20px;
             }
             
-            .password-modal .beta-info {
-                font-size: 0.8em;
-                padding: 12px;
-                margin-bottom: 16px;
+            .password-brief {
+                padding: 20px;
             }
             
+            .password-layout {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
             .password-input-wrapper {
                 margin-bottom: 16px;
             }
@@ -2458,6 +3028,10 @@
                 overflow-y: auto;
             }
             
+            .password-layout {
+                grid-template-columns: 1fr;
+            }
+
             .password-modal h2 {
                 font-size: 1.2em;
                 margin-bottom: 6px;
@@ -2468,10 +3042,8 @@
                 margin-bottom: 16px;
             }
             
-            .password-modal .beta-info {
-                font-size: 0.75em;
-                padding: 10px;
-                margin-bottom: 12px;
+            .password-brief {
+                padding: 18px;
             }
         }
 
@@ -2512,6 +3084,12 @@
             .password-btn {
                 border: 2px solid var(--accent-primary);
             }
+
+            .password-brief {
+                border: 3px solid var(--text-primary);
+                background: var(--container-bg);
+                box-shadow: none;
+            }
         }
 
         /* 减少动画模式支持 */
@@ -2520,10 +3098,14 @@
             .password-modal,
             .password-modal h2,
             .password-modal .subtitle,
-            .password-modal .beta-info,
+            .password-brief,
             .password-input-wrapper,
             .password-btn,
-            .password-hint {
+            .password-hint,
+            .password-share-card,
+            .password-insight,
+            .password-feature-card,
+            .password-support {
                 animation: none !important;
             }
             
@@ -2531,7 +3113,8 @@
                 animation: none !important;
             }
             
-            .password-btn::before {
+            .password-btn::before,
+            .password-share-btn {
                 transition: none !important;
             }
         }
@@ -2541,41 +3124,128 @@
     <!-- 密码验证界面 -->
     <div id="passwordOverlay" class="password-overlay" role="dialog" aria-labelledby="passwordTitle" aria-describedby="passwordDesc">
         <div class="password-modal">
-            <h2 id="passwordTitle">🔐 访问验证</h2>
-            <p class="subtitle" id="passwordDesc">Markdown转Word转换器</p>
-            <div class="beta-info" role="alert">
-                <strong>⚠️ 个人内测版本</strong><br>
-                此版本仅供内部测试使用，请输入访问密码
+            <div class="password-header">
+                <h2 id="passwordTitle">🔐 访问验证</h2>
+                <p class="subtitle" id="passwordDesc">Markdown转Word转换器</p>
             </div>
-            <div class="password-thanks">
-                <strong>🙌 致谢名单（内测伙伴）</strong>
-                感谢所有在内测阶段提出宝贵建议与反馈的朋友，正式名单将在下一阶段更新于此。
+            <div class="password-badges" aria-hidden="true">
+                <span class="password-badge">内测通道</span>
+                <span class="password-badge badge-security">安全加固</span>
+                <span class="password-badge badge-ai">AI 修复套件</span>
             </div>
-            <div class="password-input-wrapper">
-                <label for="passwordInput" class="visually-hidden">访问密码</label>
-                <input type="password" id="passwordInput" class="password-input" placeholder="请输入访问密码" maxlength="20" aria-describedby="passwordHint passwordError" autocomplete="current-password">
-                <button type="button" class="password-toggle" id="passwordToggle" aria-label="显示/隐藏密码" title="显示/隐藏密码">👁️</button>
-            </div>
-            <button onclick="verifyPassword()" class="password-btn" aria-describedby="passwordHint">🚀 进入应用</button>
-            
-            <!-- 简化的分享码导入 -->
-            <div style="margin-top: 15px; padding: 12px; background: rgba(116, 185, 255, 0.1); border-radius: 8px; border-left: 4px solid var(--info);">
-                <div style="font-size: 14px; color: var(--text-primary); margin-bottom: 8px; font-weight: 600;">📱 朋友分享了密码？</div>
-                <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;">
-                    如果朋友给你发了分享码，点击下方按钮快速导入
+            <div class="password-brief" role="alert" aria-live="polite">
+                <div class="password-brief-top">
+                    <div class="password-brief-emblem">
+                        <span class="brief-icon">⚠️</span>
+                        <div>
+                            <div class="brief-heading">个人内测版本</div>
+                            <div class="brief-caption">此版本仅供内部测试使用，请输入访问密码。</div>
+                        </div>
+                    </div>
+                    <span class="password-brief-pill">内测访问 · 请妥善保管</span>
                 </div>
-                <button onclick="pasteShareCode()" style="background: var(--accent-secondary); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 12px; width: 100%;">
-                    📱 粘贴分享码
-                </button>
-                <div style="font-size: 10px; color: var(--text-muted); text-align: center; margin-top: 6px;">
-                    分享码格式：PWD:abc123|advanced|2025-01-01
+                <div class="password-brief-divider" role="presentation"></div>
+                <div class="password-brief-bottom">
+                    <span class="brief-thanks-title">🙌 内测伙伴致谢</span>
+                    <p class="brief-thanks-desc">感谢所有在内测阶段提出宝贵建议与反馈的朋友，正式名单将在下一阶段更新于此。</p>
                 </div>
             </div>
-            
-            <div id="passwordError" class="password-error" role="alert" aria-live="polite">密码错误，请重试</div>
-            <div class="password-hint" id="passwordHint">
-                💡 提示：如需获取访问密码，请联系开发者<br>
-                <strong>Boning</strong> · TJUT
+            <div class="password-layout">
+                <div class="password-form" role="form" aria-labelledby="passwordTitle">
+                    <div class="password-input-wrapper">
+                        <label for="passwordInput" class="visually-hidden">访问密码</label>
+                        <input type="password" id="passwordInput" class="password-input" placeholder="请输入访问密码" maxlength="20" aria-describedby="passwordHint passwordError" autocomplete="current-password">
+                        <button type="button" class="password-toggle" id="passwordToggle" aria-label="显示/隐藏密码" title="显示/隐藏密码">👁️</button>
+                    </div>
+                    <button onclick="verifyPassword()" class="password-btn" aria-describedby="passwordHint">🚀 进入应用</button>
+                    <div class="password-share-card">
+                        <div class="password-share-header">📱 朋友分享了密码？</div>
+                        <p>如果朋友给你发了分享码，点击下方按钮快速导入。</p>
+                        <button onclick="pasteShareCode()" class="password-share-btn">📱 粘贴分享码</button>
+                        <div class="password-share-tip">分享码格式：PWD:abc123|advanced|2025-01-01</div>
+                    </div>
+                    <div id="passwordError" class="password-error" role="alert" aria-live="polite">密码错误，请重试</div>
+                    <div class="password-hint" id="passwordHint">
+                        💡 提示：如需获取访问密码，请联系开发者<br>
+                        <strong>Boning</strong> · TJUT
+                    </div>
+                </div>
+                <aside class="password-insight" aria-label="功能亮点与指引">
+                    <div class="password-insight-header">
+                        <span class="insight-label">访问亮点</span>
+                        <h3>解锁后你将拥有</h3>
+                        <p>针对 Markdown 到 Word 的严谨转换链路，并辅以多维 AI 修复助手。</p>
+                    </div>
+                    <div class="password-feature-grid feature-grid-dual">
+                        <div class="password-feature-card">
+                            <div class="feature-icon">🛡️</div>
+                            <strong>分级权限守护</strong>
+                            <p>密码等级映射核心模块开放程度，确保控制面板、模板中心与管理面板按需启用。</p>
+                        </div>
+                        <div class="password-feature-card">
+                            <div class="feature-icon">⚙️</div>
+                            <strong>AI 质量加速器</strong>
+                            <p>联合多家 AI 服务商，自动修复格式、润色语言并守护代码块与公式原样呈现。</p>
+                        </div>
+                    </div>
+                    <div class="password-divider" role="presentation"></div>
+                    <div class="password-quickstart" aria-label="快速上手指南">
+                        <div class="quickstart-title">三步完成 Markdown 到 Word 的极致导出</div>
+                        <div class="password-step-list">
+                            <div class="password-step">
+                                <span class="step-index">1</span>
+                                <div>
+                                    <strong>整理 Markdown 草稿</strong>
+                                    <p>导入或粘贴现有内容，支持文档拖拽、草稿加载与示例模板快速启航。</p>
+                                </div>
+                            </div>
+                            <div class="password-step">
+                                <span class="step-index">2</span>
+                                <div>
+                                    <strong>勾选 AI 修复重点</strong>
+                                    <p>根据场景勾选格式修复、语言润色与结构强化，代码块与公式会被智能守护。</p>
+                                </div>
+                            </div>
+                            <div class="password-step">
+                                <span class="step-index">3</span>
+                                <div>
+                                    <strong>一键导出高保真 Word</strong>
+                                    <p>实时预览同步更新，确认无误即可导出，导出的标题、目录与配色一并校准。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="password-divider" role="presentation"></div>
+                    <div class="password-bulletins" aria-label="内测情报">
+                        <div class="bulletin-title">内测精选亮点与节奏</div>
+                        <div class="bulletin-grid">
+                            <div class="bulletin-card">
+                                <span>Quality Pulse</span>
+                                <strong>导出体验持续追踪</strong>
+                                <p>每周回归测试核心文档模板，确保列表缩进、标题样式与表格对齐始终稳定。</p>
+                            </div>
+                            <div class="bulletin-card">
+                                <span>AI Stack</span>
+                                <strong>多引擎协同调校</strong>
+                                <p>结合 Kimi、Gemini 等服务商进行对照修复，逐步建立更精细的 AI 任务编排。</p>
+                            </div>
+                            <div class="bulletin-card">
+                                <span>Insight Loop</span>
+                                <strong>问题反馈即刻闭环</strong>
+                                <p>收集内测意见后 48 小时内给出处理结论，必要时同步补丁或提供临时规避方案。</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="password-support">
+                        <div class="support-title">遇到困难？</div>
+                        <p>通过内测群或邮件反馈问题，共同打磨更稳定的导出体验。</p>
+                        <div class="support-channels" role="list">
+                            <span class="support-channel" role="listitem">💬 内测交流群</span>
+                            <span class="support-channel" role="listitem">📮 邮件支持</span>
+                            <span class="support-channel" role="listitem">📝 需求收集表</span>
+                        </div>
+                    </div>
+                </aside>
             </div>
         </div>
     </div>
