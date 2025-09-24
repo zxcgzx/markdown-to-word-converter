@@ -496,6 +496,21 @@
             position: relative;
         }
 
+        .preview-block {
+            position: relative;
+            border-radius: 10px;
+            transition: background 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .preview-block:not(.is-selected):hover {
+            background: rgba(9, 132, 227, 0.05);
+        }
+
+        .preview-block.is-selected {
+            background: rgba(9, 132, 227, 0.12);
+            box-shadow: inset 0 0 0 2px rgba(9, 132, 227, 0.35);
+        }
+
         .preview-status-stack {
             position: absolute;
             top: 16px;
@@ -2737,7 +2752,8 @@
                         使用AI自动修复Markdown格式问题，优化文档结构
                     </div>
                     <div class="control-buttons" role="group" aria-label="AI修复操作">
-                        <button class="btn ai-fix-btn" onclick="performQuickAIFix()" aria-label="快速修复格式问题">⚡ 快速修复</button>
+                        <button class="btn ai-fix-btn" onclick="performQuickAIFix()" aria-label="整体修复格式问题">⚡ 整体修复</button>
+                        <button class="btn btn-secondary" id="partialAIFixBtn" onclick="performSelectedAIFix()" aria-label="局部修复选中内容" disabled>✂️ 局部修复</button>
                         <button class="btn btn-secondary" id="aiConfigBtn" onclick="showAIConfigModal()" aria-label="AI修复设置">⚙️ AI设置</button>
                         <button class="btn btn-secondary" onclick="performAdvancedAIFix()" aria-label="深度优化内容">🧠 深度优化</button>
                     </div>
@@ -2905,7 +2921,7 @@
                     <div style="background: rgba(116, 185, 255, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid var(--info);">
                         <h4 style="margin-top: 0; color: var(--text-primary);">💡 使用说明</h4>
                         <ul style="margin: 0; padding-left: 20px; color: var(--text-secondary); font-size: 14px;">
-                            <li><strong>快速修复</strong>：自动修复常见的Markdown格式问题</li>
+                            <li><strong>整体整体修复</strong>：自动修复常见的Markdown格式问题</li>
                             <li><strong>深度优化</strong>：使用AI重新组织和优化文档结构</li>
                             <li><strong>预设服务商</strong>：Kimi、GLM、百川、DeepSeek、OpenAI、Gemini</li>
                             <li><strong>自定义服务商</strong>：支持添加任何OpenAI兼容的AI服务</li>
@@ -3040,7 +3056,7 @@
                         </div>
                         <div class="intro-card">
                             <h4>🤖 AI 智能修复</h4>
-                            <p>使用「快速修复」「深度优化」一键润色文档，可自定义修复侧重点，结果支持差异预览再决定是否套用。</p>
+                            <p>使用「整体修复」「深度优化」一键润色文档，可自定义修复侧重点，结果支持差异预览再决定是否套用。</p>
                         </div>
                         <div class="intro-card">
                             <h4>🎨 主题配色</h4>
@@ -3382,6 +3398,14 @@
         let currentUser = null;
         let currentPassword = null; // 保存当前使用的密码
         
+        const markdownInput = document.getElementById('markdownInput');
+        const preview = document.getElementById('preview');
+
+        let previewBlocks = [];
+        const selectedPreviewBlockIds = new Set();
+        let selectedPreviewRange = null;
+        let previewSupportsPartialSelection = false;
+
         
         // 示例加载标志
         let isLoadingExample = false;
@@ -4793,9 +4817,9 @@
                             <h4 style="color: var(--text-primary); margin-bottom: 10px;">✨ 使用方法</h4>
                             <ul style="margin: 0; padding-left: 20px; color: var(--text-secondary); font-size: 14px; line-height: 1.6;">
                                 <li>在输入框中编写或粘贴Markdown内容</li>
-                                <li>点击 <strong>⚡ 快速修复</strong> 自动修复格式问题</li>
+                                <li>点击 <strong>⚡ 整体修复</strong> 自动修复格式问题</li>
                                 <li>点击 <strong>🧠 深度优化</strong> 重新组织文档结构</li>
-                                <li>使用快捷键 <strong>Ctrl+Alt+F</strong> 快速修复</li>
+                                <li>使用快捷键 <strong>Ctrl+Alt+F</strong> 整体修复</li>
                             </ul>
                         </div>
                     </div>
@@ -5411,9 +5435,59 @@
             pendingAIRequest = {
                 content: markdownText,
                 type: 'quick_fix',
-                label: '快速修复'
+                label: '整体修复'
             };
-            openAIModeModal('快速修复');
+            openAIModeModal('整体修复');
+        }
+
+        async function performSelectedAIFix() {
+            if (currentAIFixController) {
+                showToast('提示', 'AI修复正在进行，请等待当前操作完成', 'info');
+                return;
+            }
+
+            if (!canUseAIFix()) {
+                showUpgradePrompt(
+                    'AI修复需要升级',
+                    'AI智能修复功能仅对高级用户开放。\n升级后可享受每日10次AI修复服务！',
+                    'ai'
+                );
+                return;
+            }
+
+            if (!previewSupportsPartialSelection) {
+                showToast('提示', '当前文档暂不支持局部修复，请尝试全文修复', 'info');
+                return;
+            }
+
+            if (!selectedPreviewRange || selectedPreviewRange.end <= selectedPreviewRange.start) {
+                showToast('提示', '请先在预览中选择需要修复的内容', 'info');
+                return;
+            }
+
+            if (!checkAIUsageLimit()) {
+                showToast('配额不足', '今日AI修复次数已用完，请明天再试', 'warning');
+                return;
+            }
+
+            const { start, end } = selectedPreviewRange;
+            const markdownText = markdownInput.value;
+            const selectedText = markdownText.slice(start, end);
+
+            if (!selectedText.trim()) {
+                showToast('提示', '选中的内容为空，请重新选择', 'warning');
+                return;
+            }
+
+            await performAIFix(selectedText, {
+                type: 'quick_fix',
+                mode: '局部修复',
+                range: {
+                    start,
+                    end,
+                    originalText: selectedText
+                }
+            });
         }
 
         // 深度AI优化功能
@@ -5454,6 +5528,16 @@
         // 核心AI修复功能
         async function performAIFix(content, options = {}) {
             if (!content) return null;
+
+            const isPartialFix = options && options.range;
+            if (isPartialFix) {
+                const { start, end, originalText } = options.range;
+                const currentSlice = markdownInput.value.slice(start, end);
+                if (currentSlice !== originalText) {
+                    showToast('提示', '选中的内容已变化，请重新选择后再试', 'warning');
+                    return null;
+                }
+            }
 
             let config;
 
@@ -5577,7 +5661,7 @@
                 };
 
                 showAIResultModal(resultPacket);
-                completeAIStatus('AI修复完成，等待确认', true);
+                completeAIStatus(isPartialFix ? '局部修复完成，等待确认' : 'AI修复完成，等待确认', true);
 
                 return fixedContent;
             } catch (error) {
@@ -5865,6 +5949,7 @@
 
                 if (resultPacket.options.preserveCodeBlocks !== false) chips.push('保持代码块');
                 if (resultPacket.options.preserveQuotes) chips.push('保留引用');
+                if (resultPacket.options.range) chips.push('范围：局部选区');
 
                 chips.forEach(text => {
                     const chip = document.createElement('span');
@@ -5943,7 +6028,24 @@
             }
 
             const markdownInput = document.getElementById('markdownInput');
-            markdownInput.value = pendingAIResult.improved;
+            const isPartial = pendingAIResult.options && pendingAIResult.options.range;
+
+            if (isPartial) {
+                const { start, end, originalText } = pendingAIResult.options.range;
+                const currentContent = markdownInput.value;
+                const currentSlice = currentContent.slice(start, end);
+                if (currentSlice !== originalText) {
+                    showToast('提示', '选中的内容已变化，请重新选择后再试', 'warning');
+                    pendingAIResult = null;
+                    closeAIResultModal();
+                    return;
+                }
+
+                const improvedContent = pendingAIResult.improved;
+                markdownInput.value = currentContent.slice(0, start) + improvedContent + currentContent.slice(end);
+            } else {
+                markdownInput.value = pendingAIResult.improved;
+            }
             debouncedUpdatePreview();
             debouncedUpdateWordCount();
             incrementAIUsage();
@@ -5952,6 +6054,7 @@
 
             pendingAIResult = null;
             closeAIResultModal();
+            clearPreviewSelection();
         }
 
         function renderMarkdownDiff(container, original, improved) {
@@ -6263,7 +6366,7 @@
                     <div style="margin-bottom: 20px;">
                         <h4>📋 功能说明</h4>
                         <ul style="margin: 10px 0; padding-left: 20px;">
-                            <li><strong>快速修复</strong>：自动修复Markdown格式问题</li>
+                            <li><strong>整体修复</strong>：自动修复Markdown格式问题</li>
                             <li><strong>深度优化</strong>：AI重新组织和优化文档结构</li>
                             <li><strong>配置管理</strong>：支持多个AI服务商切换</li>
                         </ul>
@@ -6283,7 +6386,7 @@
                     <div style="margin-bottom: 20px;">
                         <h4>⌨️ 快捷键</h4>
                         <ul style="margin: 10px 0; padding-left: 20px; font-size: 14px;">
-                            <li><strong>Ctrl+Alt+F</strong>: 快速修复</li>
+                            <li><strong>Ctrl+Alt+F</strong>: 整体修复</li>
                             <li><strong>Ctrl+Alt+O</strong>: 深度优化</li>
                             <li><strong>Esc</strong>: 关闭配置面板</li>
                         </ul>
@@ -6320,6 +6423,11 @@
                         verifyPassword();
                     }
                 });
+            }
+
+            const previewElement = document.getElementById('preview');
+            if (previewElement) {
+                previewElement.addEventListener('click', handlePreviewBlockClick);
             }
         });
         
@@ -6370,6 +6478,8 @@
             } else {
                 aiFixGroup.style.display = 'none';
             }
+
+            updatePartialAIFixButtonState();
         }
         
         // 根据用户级别更新AI配置按钮文本
@@ -6845,8 +6955,217 @@
             }
         }
 
+        function clearPreviewSelection() {
+            selectedPreviewBlockIds.clear();
+            selectedPreviewRange = null;
+            syncPreviewSelectionStyles();
+            updatePartialAIFixButtonState();
+        }
+
+        function syncPreviewSelectionStyles() {
+            if (!preview) return;
+            const elements = preview.querySelectorAll('.preview-block');
+            elements.forEach((element) => {
+                const blockId = element.dataset.blockId;
+                if (blockId && selectedPreviewBlockIds.has(blockId)) {
+                    element.classList.add('is-selected');
+                } else {
+                    element.classList.remove('is-selected');
+                }
+            });
+        }
+
+        function ensureMarkdownSelectionVisible(start, end) {
+            if (!markdownInput) return;
+            const textarea = markdownInput;
+            const style = getComputedStyle(textarea);
+            const lineHeight = parseFloat(style.lineHeight) || 20;
+            const padding = lineHeight * 1.5;
+
+            const before = textarea.value.slice(0, start);
+            const selectionLines = textarea.value.slice(start, end).split('\n').length;
+
+            const selectionTop = before.split('\n').length * lineHeight;
+            const selectionBottom = selectionTop + (selectionLines * lineHeight);
+
+            if (selectionTop < textarea.scrollTop) {
+                textarea.scrollTop = Math.max(selectionTop - padding, 0);
+            } else if (selectionBottom > textarea.scrollTop + textarea.clientHeight) {
+                textarea.scrollTop = selectionBottom - textarea.clientHeight + padding;
+            }
+        }
+
+        function highlightMarkdownRange(start, end) {
+            if (!markdownInput) return;
+            const previousActiveElement = document.activeElement;
+            const safeStart = Math.max(0, Math.min(start, markdownInput.value.length));
+            const safeEnd = Math.max(safeStart, Math.min(end, markdownInput.value.length));
+
+            markdownInput.focus({ preventScroll: true });
+            markdownInput.setSelectionRange(safeStart, safeEnd);
+            ensureMarkdownSelectionVisible(safeStart, safeEnd);
+
+            if (previousActiveElement && previousActiveElement !== markdownInput && typeof previousActiveElement.focus === 'function') {
+                previousActiveElement.focus({ preventScroll: true });
+            }
+        }
+
+        function syncMarkdownSelection() {
+            if (!selectedPreviewBlockIds.size) {
+                selectedPreviewRange = null;
+                updatePartialAIFixButtonState();
+                return;
+            }
+
+            const blocks = Array.from(selectedPreviewBlockIds)
+                .map(id => previewBlocks.find(block => block.id === id))
+                .filter(Boolean)
+                .sort((a, b) => a.start - b.start);
+
+            if (!blocks.length) {
+                clearPreviewSelection();
+                return;
+            }
+
+            const start = blocks[0].start;
+            const end = blocks[blocks.length - 1].end;
+
+            selectedPreviewRange = { start, end };
+            highlightMarkdownRange(start, end);
+            updatePartialAIFixButtonState();
+        }
+
+        function handlePreviewBlockClick(event) {
+            if (!previewSupportsPartialSelection) {
+                return;
+            }
+
+            const blockElement = event.target.closest('.preview-block');
+            if (!blockElement) {
+                if (!(event.ctrlKey || event.metaKey)) {
+                    clearPreviewSelection();
+                }
+                return;
+            }
+
+            const blockId = blockElement.dataset.blockId;
+            if (!blockId) return;
+
+            const allowMulti = event.ctrlKey || event.metaKey;
+            if (!allowMulti) {
+                selectedPreviewBlockIds.clear();
+            }
+
+            if (selectedPreviewBlockIds.has(blockId) && allowMulti) {
+                selectedPreviewBlockIds.delete(blockId);
+            } else {
+                selectedPreviewBlockIds.add(blockId);
+            }
+
+            syncPreviewSelectionStyles();
+            syncMarkdownSelection();
+        }
+
+        function applyPreviewBlockMetadata(markdownText) {
+            if (!preview) return;
+
+            const tokens = marked.lexer(markdownText);
+            const meta = [];
+            let offset = 0;
+
+            tokens.forEach((token) => {
+                if (!token || typeof token.raw !== 'string') {
+                    return;
+                }
+
+                const raw = token.raw;
+                if (!raw.trim()) {
+                    offset += raw.length;
+                    return;
+                }
+
+                let start = markdownText.indexOf(raw, offset);
+                if (start === -1) {
+                    start = offset;
+                }
+                const end = start + raw.length;
+                offset = end;
+                meta.push({ start, end });
+            });
+
+            const elements = Array.from(preview.children).filter(node => node.nodeType === 1);
+
+            if (!elements.length || !meta.length) {
+                elements.forEach(el => {
+                    el.classList.remove('preview-block', 'is-selected');
+                    delete el.dataset.blockId;
+                    delete el.dataset.mdStart;
+                    delete el.dataset.mdEnd;
+                });
+                previewBlocks = [];
+                previewSupportsPartialSelection = false;
+                clearPreviewSelection();
+                return;
+            }
+
+            const finalMeta = [];
+            let metaIndex = 0;
+
+            elements.forEach((element) => {
+                let data = meta[metaIndex];
+                while (data && data.end <= data.start && metaIndex < meta.length - 1) {
+                    metaIndex++;
+                    data = meta[metaIndex];
+                }
+
+                if (!data) {
+                    return;
+                }
+
+                const blockId = `pb-${finalMeta.length}`;
+                element.classList.add('preview-block');
+                element.dataset.blockId = blockId;
+                element.dataset.mdStart = data.start;
+                element.dataset.mdEnd = data.end;
+                element.classList.remove('is-selected');
+
+                finalMeta.push({ id: blockId, start: data.start, end: data.end });
+                metaIndex++;
+            });
+
+            if (!finalMeta.length || finalMeta.length !== elements.length) {
+                elements.forEach(el => {
+                    el.classList.remove('preview-block', 'is-selected');
+                    delete el.dataset.blockId;
+                    delete el.dataset.mdStart;
+                    delete el.dataset.mdEnd;
+                });
+                previewBlocks = [];
+                previewSupportsPartialSelection = false;
+                clearPreviewSelection();
+                return;
+            }
+
+            previewBlocks = finalMeta;
+            previewSupportsPartialSelection = true;
+            clearPreviewSelection();
+        }
+
+        function updatePartialAIFixButtonState() {
+            const partialBtn = document.getElementById('partialAIFixBtn');
+            if (!partialBtn) return;
+            if (!canUseAIFix()) {
+                partialBtn.disabled = true;
+                return;
+            }
+
+            const enabled = previewSupportsPartialSelection && selectedPreviewRange && selectedPreviewRange.end > selectedPreviewRange.start;
+            partialBtn.disabled = !enabled;
+        }
+
         // 优化的预览更新函数
         function updatePreview() {
+            if (!markdownInput || !preview) return;
             const markdownText = markdownInput.value;
             
             if (markdownText.trim() === '') {
@@ -6867,6 +7186,9 @@
                     </div>
                 `;
                 lastContentHash = '';
+                previewBlocks = [];
+                previewSupportsPartialSelection = false;
+                clearPreviewSelection();
                 return;
             }
 
@@ -6895,6 +7217,7 @@
                         .then(html => {
                             preview.innerHTML = html;
                             throttledRenderMath(preview);
+                            applyPreviewBlockMetadata(markdownText);
                             showParseProgress(false);
                         })
                         .catch(error => {
@@ -6904,6 +7227,7 @@
                             const html = marked.parse(markdownText);
                             preview.innerHTML = html;
                             throttledRenderMath(preview);
+                            applyPreviewBlockMetadata(markdownText);
                         });
                     
                 } else {
@@ -6911,8 +7235,9 @@
                     const html = marked.parse(markdownText);
                     preview.innerHTML = html;
                     throttledRenderMath(preview);
+                    applyPreviewBlockMetadata(markdownText);
                 }
-                
+
             } catch (error) {
                 preview.innerHTML = `
                     <div style="color: var(--warning); padding: 20px; text-align: center;">
