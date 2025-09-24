@@ -2294,6 +2294,7 @@
             max-height: clamp(360px, 62vh, 520px);
             overflow-y: auto;
             scrollbar-gutter: stable;
+            align-self: center;
         }
 
         .password-share-card {
@@ -2341,6 +2342,56 @@
             font-size: 10px;
             color: var(--text-muted);
             text-align: center;
+        }
+
+        .password-tips-card {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 16px 18px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.55);
+            border: 1px solid rgba(146, 151, 179, 0.35);
+            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+        }
+
+        .password-tips-card .tips-title {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.92rem;
+        }
+
+        .password-tips-card .tips-title span {
+            font-size: 1.05rem;
+        }
+
+        .password-tips-card .tips-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .password-tips-card .tips-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .password-tips-card .tips-list li::before {
+            content: '•';
+            font-size: 1rem;
+            color: var(--accent-primary);
+            line-height: 1;
+            transform: translateY(2px);
         }
 
         /* 右侧亮点面板 */
@@ -2611,6 +2662,12 @@
             background: rgba(56, 189, 248, 0.12);
         }
 
+        [data-theme="noir"] .password-tips-card {
+            background: rgba(17, 24, 39, 0.78);
+            border-color: rgba(148, 163, 184, 0.28);
+            box-shadow: 0 18px 40px rgba(2, 6, 23, 0.45);
+        }
+
         [data-theme="noir"] .password-insight {
             background: rgba(17, 24, 39, 0.88);
             border-color: rgba(148, 163, 184, 0.22);
@@ -2768,6 +2825,10 @@
                 overflow: visible;
             }
 
+            .password-form {
+                align-self: stretch;
+            }
+
             .password-insight {
                 padding: 22px;
             }
@@ -2804,6 +2865,10 @@
 
             .password-brief-pill {
                 align-self: flex-start;
+            }
+
+            .password-tips-card {
+                padding: 16px;
             }
 
             .password-step-list,
@@ -2912,6 +2977,10 @@
             }
 
             .password-feature-card {
+                padding: 14px;
+            }
+
+            .password-tips-card {
                 padding: 14px;
             }
 
@@ -3085,7 +3154,8 @@
                 border: 2px solid var(--accent-primary);
             }
 
-            .password-brief {
+            .password-brief,
+            .password-tips-card {
                 border: 3px solid var(--text-primary);
                 background: var(--container-bg);
                 box-shadow: none;
@@ -3099,6 +3169,7 @@
             .password-modal h2,
             .password-modal .subtitle,
             .password-brief,
+            .password-tips-card,
             .password-input-wrapper,
             .password-btn,
             .password-hint,
@@ -3164,6 +3235,13 @@
                         <button onclick="pasteShareCode()" class="password-share-btn">📱 粘贴分享码</button>
                         <div class="password-share-tip">分享码格式：PWD:abc123|advanced|2025-01-01</div>
                     </div>
+                    <div class="password-tips-card" role="note" aria-label="访问提示">
+                        <div class="tips-title"><span>🧭</span>使用小贴士</div>
+                        <ul class="tips-list">
+                            <li>输入完成按 Enter 键即可提交验证，无需额外点击按钮。</li>
+                            <li>使用分享码粘贴导入时，系统会自动填充并聚焦输入框。</li>
+                        </ul>
+                    </div>
                     <div id="passwordError" class="password-error" role="alert" aria-live="polite">密码错误，请重试</div>
                     <div class="password-hint" id="passwordHint">
                         💡 提示：如需获取访问密码，请联系开发者<br>
@@ -3228,11 +3306,6 @@
                                 <span>AI Stack</span>
                                 <strong>多引擎协同调校</strong>
                                 <p>结合 Kimi、Gemini 等服务商进行对照修复，逐步建立更精细的 AI 任务编排。</p>
-                            </div>
-                            <div class="bulletin-card">
-                                <span>Insight Loop</span>
-                                <strong>问题反馈即刻闭环</strong>
-                                <p>收集内测意见后 48 小时内给出处理结论，必要时同步补丁或提供临时规避方案。</p>
                             </div>
                         </div>
                     </div>
