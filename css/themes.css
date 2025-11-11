@@ -1,0 +1,240 @@
+        /* 暖阳琥珀主题作为默认主题 */
+        :root {
+            --bg-gradient-start: #fdf4e7;
+            --bg-gradient-end: #f7d6dd;
+            --container-bg: rgba(255, 255, 255, 0.92);
+            --header-gradient-start: #f67062;
+            --header-gradient-end: #feba4a;
+            --text-primary: #2e2a27;
+            --text-secondary: #5f5a54;
+            --text-muted: #9b9287;
+            --text-white: #ffffff;
+            --border-color: rgba(246, 176, 149, 0.45);
+            --border-focus: #f67062;
+            --preview-bg: rgba(255, 255, 255, 0.85);
+            --controls-bg: rgba(255, 255, 255, 0.92);
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --accent-primary: #f67062;
+            --accent-secondary: #43cea2;
+            --success: #2ecc71;
+            --warning: #ffb347;
+            --info: #3da9fc;
+            --shadow: rgba(246, 112, 98, 0.16);
+            --shadow-hover: rgba(246, 112, 98, 0.25);
+            --shadow-focus: rgba(67, 206, 162, 0.28);
+            --transition: all 0.18s ease-out;
+            --blur: blur(14px);
+            --glass-bg: rgba(255, 255, 255, 0.88);
+            --glass-border: rgba(246, 176, 149, 0.32);
+        }
+
+        /* 经典浅林主题（更新配色） */
+        [data-theme="classic"] {
+            --bg-gradient-start: #dfe9f3;
+            --bg-gradient-end: #eef5ed;
+            --container-bg: rgba(255, 255, 255, 0.95);
+            --header-gradient-start: #3aa58f;
+            --header-gradient-end: #5ab0df;
+            --text-primary: #24303f;
+            --text-secondary: #5a6c7e;
+            --text-muted: #9aa8b8;
+            --text-white: #ffffff;
+            --border-color: rgba(82, 168, 185, 0.35);
+            --border-focus: #3aa58f;
+            --preview-bg: rgba(255, 255, 255, 0.9);
+            --controls-bg: rgba(252, 254, 255, 0.95);
+            --card-bg: rgba(255, 255, 255, 0.94);
+            --accent-primary: #3aa58f;
+            --accent-secondary: #5ab0df;
+            --success: #3aa58f;
+            --warning: #ffb74d;
+            --info: #5ab0df;
+            --shadow: rgba(58, 165, 143, 0.18);
+            --shadow-hover: rgba(90, 176, 223, 0.25);
+            --shadow-focus: rgba(58, 165, 143, 0.32);
+            --transition: all 0.22s ease;
+            --blur: blur(10px);
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(90, 176, 223, 0.25);
+        }
+
+        /* 现代黑金主题 */
+        [data-theme="noir"] {
+            --bg-gradient-start: #111827;
+            --bg-gradient-end: #090e1a;
+            --container-bg: rgba(19, 24, 33, 0.88);
+            --header-gradient-start: #1f2937;
+            --header-gradient-end: #0f172a;
+            --text-primary: #e5e7eb;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --text-white: #f9fafb;
+            --border-color: rgba(148, 163, 184, 0.28);
+            --border-focus: #facc15;
+            --preview-bg: rgba(17, 24, 39, 0.85);
+            --controls-bg: rgba(15, 23, 42, 0.88);
+            --card-bg: rgba(24, 32, 45, 0.88);
+            --accent-primary: #facc15;
+            --accent-secondary: #38bdf8;
+            --success: #22c55e;
+            --warning: #f97316;
+            --info: #38bdf8;
+            --shadow: rgba(8, 145, 178, 0.18);
+            --shadow-hover: rgba(250, 204, 21, 0.25);
+            --shadow-focus: rgba(56, 189, 248, 0.28);
+            --transition: all 0.2s ease;
+            --blur: blur(20px);
+            --glass-bg: rgba(17, 24, 39, 0.82);
+            --glass-border: rgba(250, 204, 21, 0.18);
+        }
+
+        /* 极光幻彩主题 */
+        [data-theme="aurora"] {
+            --bg-gradient-start: #6a85b6;
+            --bg-gradient-end: #bac8e0;
+            --container-bg: rgba(250, 252, 255, 0.9);
+            --header-gradient-start: #7f5af0;
+            --header-gradient-end: #0ea5e9;
+            --text-primary: #1f2333;
+            --text-secondary: #4c5475;
+            --text-muted: #8b92b2;
+            --text-white: #f8fafc;
+            --border-color: rgba(127, 90, 240, 0.28);
+            --border-focus: #7f5af0;
+            --preview-bg: rgba(245, 248, 255, 0.92);
+            --controls-bg: rgba(243, 247, 255, 0.94);
+            --card-bg: rgba(247, 249, 255, 0.94);
+            --accent-primary: #7f5af0;
+            --accent-secondary: #22d3ee;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --info: #38bdf8;
+            --shadow: rgba(127, 90, 240, 0.18);
+            --shadow-hover: rgba(34, 211, 238, 0.22);
+            --shadow-focus: rgba(127, 90, 240, 0.3);
+            --transition: all 0.2s ease;
+            --blur: blur(12px);
+            --glass-bg: rgba(247, 249, 255, 0.92);
+            --glass-border: rgba(127, 90, 240, 0.2);
+        }
+
+        /* 主题特殊处理 */
+        [data-theme="classic"] .container {
+            background: var(--container-bg);
+            border-radius: 20px;
+            box-shadow: 0 22px 44px var(--shadow);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+        }
+
+        [data-theme="classic"] .btn,
+        [data-theme="aurora"] .btn,
+        [data-theme="noir"] .btn {
+            backdrop-filter: none;
+            border: none;
+            box-shadow: 0 6px 18px var(--shadow-hover);
+        }
+
+        [data-theme="classic"] .btn-secondary,
+        [data-theme="aurora"] .btn-secondary {
+            backdrop-filter: none;
+            box-shadow: 0 2px 6px var(--shadow);
+        }
+
+        [data-theme="noir"] .container {
+            background: var(--glass-bg);
+            border-radius: 22px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+            border: 1px solid var(--glass-border);
+        }
+
+        [data-theme="noir"] .btn-secondary {
+            backdrop-filter: none;
+            background: rgba(17, 24, 39, 0.75);
+            border: 1px solid rgba(250, 204, 21, 0.25);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            color: var(--text-white);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            min-height: 100vh;
+            padding: 10px;
+            margin: 0;
+            transition: var(--transition);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            animation: float 20s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        body[data-theme="noir"]::before {
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+        }
+
+        body[data-theme="aurora"]::before {
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(10px, -10px) rotate(1deg); }
+            66% { transform: translate(-5px, 5px) rotate(-1deg); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--glass-bg);
+            border-radius: 24px;
+            box-shadow: 
+                0 8px 32px var(--shadow),
+                0 0 0 1px var(--glass-border),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+            backdrop-filter: var(--blur);
+            overflow: hidden;
+            min-height: calc(100vh - 20px);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--header-gradient-start), var(--header-gradient-end));
+            color: var(--text-white);
+            text-align: center;
+            padding: 32px;
+            position: relative;
+            transition: var(--transition);
+            backdrop-filter: var(--blur);
+            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.1) inset;
+        }
+
+        /* 主题切换器样式 */
