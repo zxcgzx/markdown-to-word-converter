@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 AI智能Markdown转Word转换器 - 支持多AI服务商、权限管理、实时预览</title>
+    <meta name="description" content="专业的AI智能Markdown转Word转换器，支持Kimi、Gemini等多AI服务商智能修复，提供分级权限管理，实时预览转换，支持数学公式、表格、代码块等丰富格式。">
+    <meta name="keywords" content="Markdown转Word,AI智能修复,文档转换,实时预览,权限管理,数学公式,在线转换器,Kimi,Gemini">
+    <meta name="author" content="Boning - TJUT">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="🤖 AI智能Markdown转Word转换器">
+    <meta property="og:description" content="集成多AI服务商智能修复的专业文档转换工具，支持分级权限管理和实时预览。">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="🤖 AI智能Markdown转Word转换器">
+    <meta name="twitter:description" content="集成多AI服务商智能修复的专业文档转换工具，支持分级权限管理和实时预览。">
+
+    <!-- 外部库 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@9.0.0/marked.min.js"></script>
+    <script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+    <!-- KaTeX数学公式支持 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <!-- 模块化 CSS -->
+    <link rel="stylesheet" href="css/themes.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+    <!-- 密码验证界面 -->
+    <div id="passwordOverlay" class="password-overlay" role="dialog" aria-labelledby="passwordTitle" aria-describedby="passwordDesc">
+        <div class="password-modal">
+            <div class="password-header">
+                <h2 id="passwordTitle">🔐 访问验证</h2>
+                <p class="subtitle" id="passwordDesc">Markdown转Word转换器</p>
+            </div>
+            <div class="password-badges" aria-hidden="true">
+                <span class="password-badge">内测通道</span>
+                <span class="password-badge badge-security">安全加固</span>
+                <span class="password-badge badge-ai">AI 修复套件</span>
+            </div>
+            <div class="password-brief" role="alert" aria-live="polite">
+                <div class="password-brief-top">
+                    <div class="password-brief-emblem">
+                        <span class="brief-icon">⚠️</span>
+                        <div>
+                            <div class="brief-heading">个人内测版本</div>
+                            <div class="brief-caption">此版本仅供内部测试使用，请输入访问密码。</div>
+                        </div>
+                    </div>
+                    <span class="password-brief-pill">内测访问 · 请妥善保管</span>
+                </div>
+                <div class="password-brief-divider" role="presentation"></div>
+                <div class="password-brief-bottom">
+                    <span class="brief-thanks-title">🙌 内测伙伴致谢</span>
+                    <p class="brief-thanks-desc">感谢所有在内测阶段提出宝贵建议与反馈的朋友，正式名单将在下一阶段更新于此。</p>
+                </div>
+            </div>
+            <div class="password-layout">
+                <div class="password-form" role="form" aria-labelledby="passwordTitle">
+                    <div class="password-input-wrapper">
+                        <label for="passwordInput" class="visually-hidden">访问密码</label>
+                        <input type="password" id="passwordInput" class="password-input" placeholder="请输入访问密码" maxlength="20" aria-describedby="passwordHint passwordError" autocomplete="current-password">
+                        <button type="button" class="password-toggle" id="passwordToggle" aria-label="显示/隐藏密码" title="显示/隐藏密码">👁️</button>
+                    </div>
+                    <button onclick="verifyPassword()" class="password-btn" aria-describedby="passwordHint">🚀 进入应用</button>
+                    <div class="password-share-card">
+                        <div class="password-share-header">📱 朋友分享了密码？</div>
+                        <p>如果朋友给你发了分享码，点击下方按钮快速导入。</p>
+                        <button onclick="pasteShareCode()" class="password-share-btn">📱 粘贴分享码</button>
+                        <div class="password-share-tip">分享码格式：PWD:abc123|advanced|2025-01-01</div>
+                    </div>
+                    <div class="password-tips-card" role="note" aria-label="访问提示">
+                        <div class="tips-title"><span>🧭</span>使用小贴士</div>
+                        <ul class="tips-list">
+                            <li>输入完成按 Enter 键即可提交验证，无需额外点击按钮。</li>
+                            <li>使用分享码粘贴导入时，系统会自动填充并聚焦输入框。</li>
+                        </ul>
+                    </div>
+                    <div id="passwordError" class="password-error" role="alert" aria-live="polite">密码错误，请重试</div>
+
+                    <!-- 安全警告 -->
+                    <div style="background: rgba(255, 152, 0, 0.1); border: 1px solid rgba(255, 152, 0, 0.3); border-radius: 8px; padding: 12px; margin-top: 15px;">
+                        <div style="display: flex; align-items: start; gap: 8px;">
+                            <span style="font-size: 18px;">⚠️</span>
+                            <div style="flex: 1; font-size: 13px; color: var(--text-primary);">
+                                <strong>安全提示</strong>
+                                <p style="margin: 5px 0 0 0; color: var(--text-secondary);">
+                                    本项目仅供学习交流，前端权限系统可被轻易绕过。
+                                    详见 <a href="https://github.com/zxcgzx/markdown-to-word-converter/blob/main/docs/SECURITY_WARNING.md" target="_blank" style="color: var(--accent-primary); text-decoration: underline;">安全警告文档</a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="password-hint" id="passwordHint">
+                        💡 提示：如需获取访问密码，请联系开发者<br>
+                        <strong>Boning</strong> · TJUT
+                    </div>
+                </div>
+                <aside class="password-insight" aria-label="功能亮点与指引">
+                    <div class="password-insight-header">
+                        <span class="insight-label">访问亮点</span>
+                        <h3>解锁后你将拥有</h3>
+                        <p>针对 Markdown 到 Word 的严谨转换链路，并辅以多维 AI 修复助手。</p>
+                    </div>
+                    <div class="password-feature-grid feature-grid-dual">
+                        <div class="password-feature-card">
+                            <div class="feature-icon">🛡️</div>
+                            <strong>分级权限守护</strong>
+                            <p>密码等级映射核心模块开放程度，确保控制面板、模板中心与管理面板按需启用。</p>
+                        </div>
+                        <div class="password-feature-card">
+                            <div class="feature-icon">⚙️</div>
+                            <strong>AI 质量加速器</strong>
+                            <p>联合多家 AI 服务商，自动修复格式、润色语言并守护代码块与公式原样呈现。</p>
+                        </div>
+                    </div>
+                    <div class="password-divider" role="presentation"></div>
+                    <div class="password-quickstart" aria-label="快速上手指南">
+                        <div class="quickstart-title">三步完成 Markdown 到 Word 的极致导出</div>
+                        <div class="password-step-list">
+                            <div class="password-step">
+                                <span class="step-index">1</span>
+                                <div>
+                                    <strong>整理 Markdown 草稿</strong>
+                                    <p>导入或粘贴现有内容，支持文档拖拽、草稿加载与示例模板快速启航。</p>
+                                </div>
+                            </div>
+                            <div class="password-step">
+                                <span class="step-index">2</span>
+                                <div>
+                                    <strong>勾选 AI 修复重点</strong>
+                                    <p>根据场景勾选格式修复、语言润色与结构强化，代码块与公式会被智能守护。</p>
+                                </div>
+                            </div>
+                            <div class="password-step">
+                                <span class="step-index">3</span>
+                                <div>
+                                    <strong>一键导出高保真 Word</strong>
+                                    <p>实时预览同步更新，确认无误即可导出，导出的标题、目录与配色一并校准。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="password-divider" role="presentation"></div>
+                    <div class="password-bulletins" aria-label="内测情报">
+                        <div class="bulletin-title">内测精选亮点与节奏</div>
+                        <div class="bulletin-grid">
+                            <div class="bulletin-card">
+                                <span>Quality Pulse</span>
+                                <strong>导出体验持续追踪</strong>
+                                <p>每周回归测试核心文档模板，确保列表缩进、标题样式与表格对齐始终稳定。</p>
+                            </div>
+                            <div class="bulletin-card">
+                                <span>AI Stack</span>
+                                <strong>多引擎协同调校</strong>
+                                <p>结合 Kimi、Gemini 等服务商进行对照修复，逐步建立更精细的 AI 任务编排。</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="password-support">
+                        <div class="support-title">遇到困难？</div>
+                        <p>通过内测群或邮件反馈问题，共同打磨更稳定的导出体验。</p>
+                        <div class="support-channels" role="list">
+                            <span class="support-channel" role="listitem">💬 内测交流群</span>
+                            <span class="support-channel" role="listitem">📮 邮件支持</span>
+                            <span class="support-channel" role="listitem">📝 需求收集表</span>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主应用界面 -->
+    <div id="mainApp" class="main-app">
+        <div class="container">
+            <header class="header">
+                <button class="theme-toggle" onclick="toggleTheme(event)" title="切换主题" aria-label="切换颜色主题">
+                    <span id="themeText">暖阳琥珀</span>
+                </button>
+                <h1>🤖 AI智能Markdown转Word转换器</h1>
+                <p>🌟 集成多AI服务商智能修复 · 📊 分级权限管理 · ⚡ 实时预览转换</p>
+                <div class="author-info">
+                    由 <span class="author-name">Boning</span> 开发 · TJUT · <span style="color: #E8F5E8;">内测版</span>
+                </div>
+                
+                <!-- 用户权限状态显示 -->
+                <div class="user-status" id="userStatus" style="margin-top: 10px; padding: 8px 12px; background: var(--glass-bg); border-radius: 8px; border: 1px solid var(--glass-border); backdrop-filter: var(--blur); display: none;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                        <div class="user-info" style="display: flex; align-items: center; gap: 8px;">
+                            <span id="userIcon">👤</span>
+                            <span id="userName" style="font-weight: 600;">用户</span>
+                            <span id="userLevel" style="background: var(--accent-primary); color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px;">Level</span>
+                        </div>
+                        <div class="quota-info" style="display: flex; align-items: center; gap: 12px; font-size: 14px;">
+                            <button onclick="showUserPermissions()" style="background: none; border: none; color: var(--accent-primary); cursor: pointer; padding: 4px 8px; border-radius: 4px; border: 1px solid var(--accent-primary);" title="查看权限详情">详情</button>
+                            <button id="adminButton" onclick="showAdminPanel()" style="background: var(--accent-primary); border: none; color: white; cursor: pointer; padding: 4px 8px; border-radius: 4px; display: none;" title="管理面板">管理</button>
+                            <button onclick="showLogoutConfirm()" style="background: var(--warning); border: none; color: white; cursor: pointer; padding: 4px 8px; border-radius: 4px;" title="退出登录">退出</button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+        <main class="main-content">
+            <section class="input-section drag-hint">
+                <h2 class="section-title">📝 输入Markdown内容</h2>
+                <div style="position: relative;">
+                    <label for="markdownInput" class="visually-hidden">Markdown内容输入框</label>
+                    <textarea id="markdownInput" placeholder="在这里输入您的Markdown内容..." aria-describedby="inputHelp"></textarea>
+                    
+                    <!-- 拖拽覆盖层 -->
+                    <div class="drag-overlay" id="dragOverlay">
+                        <div class="drag-overlay-icon">📁</div>
+                        <div class="drag-overlay-text">
+                            释放以上传Markdown文件<br>
+                            <small>支持 .md, .markdown, .txt 格式</small>
+                        </div>
+                    </div>
+                    
+                    <!-- 拖拽提示文本 -->
+                    <div class="drag-hint-text" id="inputHelp">支持拖拽 Markdown 文件到此处上传</div>
+                </div>
+                
+                <!-- 输入统计信息 -->
+                <div class="input-stats" role="region" aria-label="文档统计信息">
+                    <div class="stat-item">
+                        <div class="stat-value" id="charCount" aria-label="字符数">0</div>
+                        <div class="stat-label">字符</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="wordCount" aria-label="单词数">0</div>
+                        <div class="stat-label">单词</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="lineCount" aria-label="行数">1</div>
+                        <div class="stat-label">行数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="readTime" aria-label="预计阅读时间">0</div>
+                        <div class="stat-label">阅读时间(分)</div>
+                    </div>
+                </div>
+                
+                <div class="example-section" role="group" aria-label="示例内容">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+                        <button class="btn example-btn" onclick="loadExample('simple')" aria-describedby="simpleDesc">📄 简单示例</button>
+                        <button class="btn example-btn" onclick="loadExample('advanced')" aria-describedby="advancedDesc">🚀 高级示例</button>
+                        <button class="btn example-btn" onclick="loadExample('math')" aria-describedby="mathDesc">📐 数学公式</button>
+                        <button class="btn example-btn" onclick="loadExample('table')" aria-describedby="tableDesc">📊 表格示例</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="preview-section">
+                <h2 class="section-title">👀 实时预览</h2>
+                <div style="position: relative;">
+                    <div id="preview" role="region" aria-label="Markdown预览内容" aria-live="polite" aria-atomic="false">
+                    <div class="preview-empty">
+                        <div class="preview-empty-icon">📝</div>
+                        <div class="preview-empty-title">开始创作您的文档</div>
+                        <div class="preview-empty-subtitle">
+                            在左侧输入框中输入Markdown内容<br>
+                            或者使用下方的快速操作
+                        </div>
+                        <div class="preview-quick-actions" role="group" aria-label="快速操作">
+                            <button class="quick-action-btn" onclick="loadExample('simple')" aria-label="加载简单示例">📄 简单示例</button>
+                            <button class="quick-action-btn" onclick="loadExample('advanced')" aria-label="加载高级示例">🚀 高级示例</button>
+                            <button class="quick-action-btn" onclick="uploadFile()" aria-label="上传Markdown文件">📁 上传文件</button>
+                            <button class="quick-action-btn" onclick="loadFromLocal()" aria-label="加载本地草稿">📂 加载草稿</button>
+                        </div>
+                    </div>
+                    
+                    <div class="preview-status-stack" id="previewStatusStack" aria-live="polite" aria-atomic="false">
+                        <!-- 数学公式渲染状态指示器 -->
+                        <div class="math-rendering-indicator" id="mathIndicator" aria-label="数学公式渲染状态" aria-live="polite">
+                            <span>⚡</span>
+                            <span>渲染数学公式...</span>
+                        </div>
+
+                        <!-- 长文档解析进度指示器 -->
+                        <div class="status-card parse-progress-indicator" id="parseIndicator" aria-label="文档解析进度" aria-live="polite">
+                            <div class="progress-bar">
+                                <div class="progress-bar-fill"></div>
+                            </div>
+                            <div class="progress-text">解析中...</div>
+                        </div>
+
+                        <!-- Word转换进度指示器 -->
+                        <div class="status-card word-conversion-indicator" id="wordConversionIndicator" aria-label="Word转换进度" aria-live="polite">
+                            <div class="conversion-icon">📄</div>
+                            <div class="progress-bar">
+                                <div class="progress-bar-fill"></div>
+                            </div>
+                            <div class="progress-text">转换中...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <section class="controls" role="group" aria-label="操作控制面板">
+            <div class="controls-grid">
+                <!-- 导出功能组 -->
+                <div class="control-group">
+                    <div class="control-group-title">
+                        <span>📤</span>
+                        <span>导出与分享</span>
+                    </div>
+                    <div class="control-group-desc">
+                        将您的Markdown内容导出为不同格式或复制到剪贴板
+                    </div>
+                    <div class="control-buttons" role="group" aria-label="导出操作">
+                        <button class="btn" onclick="downloadWord()" aria-label="下载Word文档">📄 下载Word</button>
+                        <button class="btn" onclick="copyFormattedText()" aria-label="复制富文本到剪贴板">📋 复制富文本</button>
+                    </div>
+                </div>
+
+                <!-- 文件与编辑工具组 -->
+                <div class="control-group">
+                    <div class="control-group-title">
+                        <span>🛠️</span>
+                        <span>文件与编辑</span>
+                    </div>
+                    <div class="control-group-desc">
+                        文件上传、草稿管理和编辑辅助工具
+                    </div>
+                    <div class="control-buttons" role="group" aria-label="文件与编辑操作">
+                        <button class="btn btn-secondary" onclick="uploadFile()" aria-label="上传Markdown文件">📁 上传文件</button>
+                        <button class="btn btn-secondary" onclick="saveToLocal()" aria-label="保存当前内容为草稿">💾 保存草稿</button>
+                        <button class="btn btn-secondary" onclick="loadFromLocal()" aria-label="加载本地保存的草稿">📂 加载草稿</button>
+                        <button class="btn btn-secondary" onclick="clearContent()" aria-label="清空输入框中的所有内容">🗑️ 清空内容</button>
+                        <button class="btn btn-secondary" onclick="showShortcuts()" aria-label="显示键盘快捷键帮助">⌨️ 快捷键</button>
+                    </div>
+                </div>
+
+                <!-- AI智能修复组 -->
+                <div class="control-group" id="aiFixGroup" style="display: none;">
+                    <div class="control-group-title">
+                        <span>🤖</span>
+                        <span>AI智能修复</span>
+                    </div>
+                    <div class="control-group-desc">
+                        使用AI自动修复Markdown格式问题，优化文档结构
+                    </div>
+                    <div class="control-buttons" role="group" aria-label="AI修复操作">
+                        <button class="btn ai-fix-btn" onclick="performQuickAIFix()" aria-label="整体修复格式问题">⚡ 整体修复</button>
+                        <button class="btn btn-secondary" id="partialAIFixBtn" onclick="performSelectedAIFix()" aria-label="局部修复选中内容" disabled>✂️ 局部修复</button>
+                        <button class="btn btn-secondary" id="aiConfigBtn" onclick="showAIConfigModal()" aria-label="AI修复设置">⚙️ AI设置</button>
+                        <button class="btn btn-secondary" onclick="performAdvancedAIFix()" aria-label="深度优化内容">🧠 深度优化</button>
+                    </div>
+                    <div class="ai-usage-info" id="aiUsageInfo" style="margin-top: 8px; font-size: 12px; color: var(--text-secondary);">
+                        今日剩余: <span id="aiUsageCount">--</span> 次
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 状态指示器 -->
+        <div id="statusIndicator" class="status-indicator"></div>
+        
+        <!-- 隐藏的文件输入 -->
+        <input type="file" id="fileInput" accept=".md,.markdown,.txt" style="display: none;" onchange="handleFileUpload(event)">
+        
+        <!-- Toast通知容器 -->
+        <div class="toast-container" id="toastContainer"></div>
+        
+        <!-- 自定义确认对话框 -->
+        <div class="custom-dialog" id="customDialog">
+            <div class="dialog-content">
+                <div class="dialog-icon" id="dialogIcon">❓</div>
+                <div class="dialog-title" id="dialogTitle">确认操作</div>
+                <div class="dialog-message" id="dialogMessage">您确定要执行此操作吗？</div>
+                <div class="dialog-buttons">
+                    <button class="dialog-btn dialog-btn-secondary" id="dialogCancel">取消</button>
+                    <button class="dialog-btn dialog-btn-primary" id="dialogConfirm">确认</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- AI配置模态框 -->
+        <div id="aiConfigModal" class="modal-overlay ai-config-modal" style="display: none;">
+            <div class="modal-shell">
+                <div class="modal-header">
+                    <h2>🤖 AI智能修复配置</h2>
+                    <button onclick="closeAIConfigModal()" class="modal-close" title="关闭" aria-label="关闭">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div style="background: var(--preview-bg); padding: 20px; border-radius: 8px;">
+                        <h3 style="margin-top: 0; color: var(--text-primary);">🔧 AI服务配置</h3>
+                        
+                        <!-- AI服务商选择 -->
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">AI服务商：</label>
+                            <select id="aiProvider" onchange="updateAIModels()" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: white;">
+                                <option value="kimi">Kimi (moonshot)</option>
+                                <option value="glm">智谱GLM</option>
+                                <option value="baichuan">百川AI</option>
+                                <option value="deepseek">DeepSeek</option>
+                                <option value="openai">OpenAI</option>
+                                <option value="gemini">Gemini-2.5-Flash</option>
+                                <option value="custom" style="font-weight: bold; color: var(--accent-primary);">🔧 自定义服务商</option>
+                            </select>
+                        </div>
+                        
+                        <!-- 自定义服务商配置区域 -->
+                        <div id="customConfigSection" style="display: none; margin-bottom: 15px; padding: 15px; background: rgba(116, 185, 255, 0.05); border: 1px solid rgba(116, 185, 255, 0.2); border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h4 style="margin: 0; color: var(--accent-primary);">🔧 自定义AI服务配置</h4>
+                                <div style="display: flex; gap: 8px;">
+                                    <button onclick="showConfigTemplates()" style="background: var(--accent-secondary); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;" title="选择配置模板">📋 模板</button>
+                                    <button onclick="importCustomConfig()" style="background: var(--info); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;" title="导入配置">📥 导入</button>
+                                </div>
+                            </div>
+                            
+                            <!-- 服务商名称 -->
+                            <div style="margin-bottom: 12px;">
+                                <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px;">服务商名称：</label>
+                                <input type="text" id="customProviderName" placeholder="例如：My Custom AI" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 14px;">
+                            </div>
+                            
+                            <!-- API端点 -->
+                            <div style="margin-bottom: 12px;">
+                                <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px;">API端点URL：</label>
+                                <input type="url" id="customEndpoint" placeholder="https://api.example.com/v1/chat/completions" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 14px;">
+                                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 3px;">
+                                    💡 支持OpenAI兼容格式的API端点
+                                </div>
+                            </div>
+                            
+                            <!-- 模型配置 -->
+                            <div style="margin-bottom: 12px;">
+                                <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px;">
+                                    可用模型：
+                                    <button onclick="addCustomModel()" style="background: var(--success); color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 11px; margin-left: 8px;">＋ 添加</button>
+                                </label>
+                                <div id="customModelsList" style="max-height: 120px; overflow-y: auto;">
+                                    <!-- 默认模型输入框将通过JavaScript动态添加 -->
+                                </div>
+                            </div>
+                            
+                            <!-- 高级选项 -->
+                            <details style="margin-bottom: 12px;">
+                                <summary style="cursor: pointer; font-weight: 600; font-size: 14px; color: var(--text-secondary);">⚙️ 高级选项</summary>
+                                <div style="margin-top: 10px; padding: 10px; background: var(--preview-bg); border-radius: 6px;">
+                                    <div style="margin-bottom: 8px;">
+                                        <label style="display: block; margin-bottom: 3px; font-weight: 600; font-size: 13px;">自定义请求头 (JSON格式)：</label>
+                                        <textarea id="customHeaders" placeholder='{"Authorization": "Bearer your-key", "Custom-Header": "value"}' style="width: 100%; height: 60px; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; font-family: monospace; resize: vertical;"></textarea>
+                                    </div>
+                                    <div style="margin-bottom: 8px;">
+                                        <label style="display: block; margin-bottom: 3px; font-weight: 600; font-size: 13px;">请求参数 (JSON格式)：</label>
+                                        <textarea id="customParams" placeholder='{"temperature": 0.7, "max_tokens": 1000}' style="width: 100%; height: 60px; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; font-family: monospace; resize: vertical;"></textarea>
+                                    </div>
+                                </div>
+                            </details>
+                            
+                            <!-- 操作按钮 -->
+                            <div style="display: flex; gap: 8px; margin-top: 15px;">
+                                <button onclick="validateCustomConfig()" style="background: var(--info); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; flex: 1; font-size: 13px;">🔍 验证配置</button>
+                                <button onclick="saveCustomConfig()" style="background: var(--success); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; flex: 1; font-size: 13px;">💾 保存自定义</button>
+                                <button onclick="exportCustomConfig()" style="background: var(--accent-secondary); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; flex: 1; font-size: 13px;">📤 导出</button>
+                            </div>
+                        </div>
+                        
+                        <!-- 模型选择 -->
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">AI模型：</label>
+                            <select id="aiModel" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: white;">
+                                <option value="moonshot-v1-8k">moonshot-v1-8k</option>
+                            </select>
+                        </div>
+                        
+                        <!-- API密钥输入 -->
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">API密钥：</label>
+                            <div style="position: relative;">
+                                <input type="password" id="aiApiKey" placeholder="输入您的API密钥" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; padding-right: 40px;">
+                                <button type="button" onclick="toggleAPIKeyVisibility()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px;" title="显示/隐藏API密钥">👁️</button>
+                            </div>
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 5px;">
+                                ⚠️ API密钥仅在本地存储，不会上传到服务器
+                            </div>
+                        </div>
+                        
+                        <!-- 修复选项 -->
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 10px; font-weight: 600;">修复选项：</label>
+                            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                                <label style="display: flex; align-items: center; gap: 5px; font-size: 14px;">
+                                    <input type="checkbox" id="fixFormat" checked> 格式规范化
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 5px; font-size: 14px;">
+                                    <input type="checkbox" id="fixSyntax" checked> 语法修复
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 5px; font-size: 14px;">
+                                    <input type="checkbox" id="optimizeContent" checked> 内容优化
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 5px; font-size: 14px;">
+                                    <input type="checkbox" id="addStructure" checked> 添加标题层次
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- 操作按钮组 -->
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="testAIConnection()" style="background: var(--info); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; flex: 1;">🔗 测试连接</button>
+                            <button onclick="showAIHelp()" style="background: var(--warning); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; flex: 1;">📖 帮助</button>
+                        </div>
+                        <button onclick="saveAIConfig()" style="background: var(--accent-primary); color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; margin-top: 10px;">💾 保存配置</button>
+                    </div>
+                    
+                    <!-- 使用说明 -->
+                    <div style="background: rgba(116, 185, 255, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid var(--info);">
+                        <h4 style="margin-top: 0; color: var(--text-primary);">💡 使用说明</h4>
+                        <ul style="margin: 0; padding-left: 20px; color: var(--text-secondary); font-size: 14px;">
+                            <li><strong>整体整体修复</strong>：自动修复常见的Markdown格式问题</li>
+                            <li><strong>深度优化</strong>：使用AI重新组织和优化文档结构</li>
+                            <li><strong>预设服务商</strong>：Kimi、GLM、百川、DeepSeek、OpenAI、Gemini</li>
+                            <li><strong>自定义服务商</strong>：支持添加任何OpenAI兼容的AI服务</li>
+                            <li><strong>配置模板</strong>：内置Anthropic、Ollama、Groq等模板</li>
+                            <li><strong>配置管理</strong>：支持导入/导出配置文件</li>
+                            <li><strong>API密钥</strong>：获取密钥请访问对应AI服务商官网</li>
+                            <li><strong>使用限制</strong>：高级用户每日20次，超级管理员无限制</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- 自定义配置示例 -->
+                    <details style="margin-top: 15px;">
+                        <summary style="cursor: pointer; font-weight: 600; color: var(--text-primary); padding: 8px;">📚 配置示例</summary>
+                        <div style="margin-top: 10px; padding: 12px; background: var(--preview-bg); border-radius: 6px;">
+                            <h5 style="margin: 0 0 8px 0; color: var(--accent-primary);">OpenAI兼容端点示例：</h5>
+                            <code style="display: block; font-size: 12px; color: var(--text-secondary); background: white; padding: 8px; border-radius: 4px; margin-bottom: 8px;">
+                                端点: https://api.openai.com/v1/chat/completions<br>
+                                模型: gpt-4, gpt-3.5-turbo
+                            </code>
+                            <h5 style="margin: 8px 0 8px 0; color: var(--accent-primary);">本地Ollama示例：</h5>
+                            <code style="display: block; font-size: 12px; color: var(--text-secondary); background: white; padding: 8px; border-radius: 4px;">
+                                端点: http://localhost:11434/v1/chat/completions<br>
+                                模型: llama3.2, mistral, codellama
+                            </code>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI模式选择弹层 -->
+        <div id="aiModeModal" class="modal-overlay" style="display: none;">
+            <div class="modal-shell ai-mode-shell">
+                <div class="modal-header">
+                    <h2>🎛️ 选择AI修复模式</h2>
+                    <button onclick="closeAIModeModal()" class="modal-close" title="关闭" aria-label="关闭">&times;</button>
+                </div>
+                <div class="modal-body ai-mode-body">
+                    <p class="ai-result-description" id="aiModeIntro">为当前修复选择关注重点，AI 将按照指令处理文档。</p>
+                    <div class="ai-mode-options" role="group" aria-label="AI修复侧重点">
+                        <label class="ai-mode-option">
+                            <input type="checkbox" id="aiModeFormat" checked>
+                            <div>
+                                <strong>格式修复</strong>
+                                <span>严格对齐Markdown语法、表格、列表与代码块书写规范。</span>
+                            </div>
+                        </label>
+                        <label class="ai-mode-option">
+                            <input type="checkbox" id="aiModeLanguage" checked>
+                            <div>
+                                <strong>文案润色</strong>
+                                <span>优化措辞与语法，提升可读性但保持原意不变。</span>
+                            </div>
+                        </label>
+                        <label class="ai-mode-option">
+                            <input type="checkbox" id="aiModeStructure">
+                            <div>
+                                <strong>结构强化</strong>
+                                <span>允许调整段落层次、标题与列表布局，增强整体逻辑。</span>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="ai-mode-options" role="group" aria-label="附加约束">
+                        <label class="ai-mode-option">
+                            <input type="checkbox" id="aiModePreserveCode" checked>
+                            <div>
+                                <strong>保持代码块原样</strong>
+                                <span>不修改代码块内容，仅在块外进行格式修复。</span>
+                            </div>
+                        </label>
+                        <label class="ai-mode-option">
+                            <input type="checkbox" id="aiModePreserveQuotes">
+                            <div>
+                                <strong>保留引用语句</strong>
+                                <span>尽量不要改写引用块及引用内容，只微调标点格式。</span>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="ai-mode-actions">
+                        <button class="btn-secondary" onclick="closeAIModeModal()">取消</button>
+                        <button class="btn" onclick="confirmAIModeSelection()">继续修复</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI修复结果对比面板 -->
+        <div id="aiResultModal" class="modal-overlay ai-result-modal" style="display: none;">
+            <div class="modal-shell ai-result-shell">
+                <div class="modal-header">
+                    <h2>🧠 AI修复结果预览</h2>
+                    <button onclick="rejectAIResult()" class="modal-close" title="关闭" aria-label="关闭">&times;</button>
+                </div>
+                <div class="modal-body ai-result-body">
+                    <div class="ai-result-summary" id="aiResultSummary"></div>
+                    <div class="ai-result-tabs" role="tablist">
+                        <button id="aiResultTabDiff" class="ai-result-tab active" data-view="diff" onclick="switchAIResultView('diff')" role="tab" aria-selected="true">差异视图</button>
+                        <button id="aiResultTabOriginal" class="ai-result-tab" data-view="original" onclick="switchAIResultView('original')" role="tab" aria-selected="false">原始文档</button>
+                        <button id="aiResultTabImproved" class="ai-result-tab" data-view="improved" onclick="switchAIResultView('improved')" role="tab" aria-selected="false">AI结果</button>
+                    </div>
+                    <div class="ai-result-panels">
+                        <div id="aiResultViewDiff" class="ai-result-panel active" role="tabpanel" aria-labelledby="aiResultTabDiff">
+                            <div class="diff-view" id="aiDiffContainer"></div>
+                        </div>
+                        <div id="aiResultViewOriginal" class="ai-result-panel" role="tabpanel" aria-labelledby="aiResultTabOriginal">
+                            <pre class="ai-result-code" id="aiOriginalPreview"></pre>
+                        </div>
+                        <div id="aiResultViewImproved" class="ai-result-panel" role="tabpanel" aria-labelledby="aiResultTabImproved">
+                            <pre class="ai-result-code" id="aiImprovedPreview"></pre>
+                        </div>
+                    </div>
+                    <div class="ai-result-footer">
+                        <button class="btn-secondary" onclick="rejectAIResult()">放弃</button>
+                        <button class="btn" onclick="applyAIResult()">套用结果</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 首次登录介绍模态框 -->
+        <div id="introModal" class="modal-overlay" style="display: none;">
+            <div class="modal-shell intro-modal-shell">
+                <div class="modal-header">
+                    <h2>👋 欢迎使用 AI Markdown 转 Word</h2>
+                    <button onclick="closeIntroModal('once')" class="modal-close" title="关闭" aria-label="关闭">&times;</button>
+                </div>
+                <div class="modal-body intro-modal-body">
+                    <div class="intro-modal-summary">
+                        <div class="intro-card">
+                            <h4>📝 主面板</h4>
+                            <p>左侧编写 Markdown，右侧实时预览，底部工具可导出 Word、保存草稿或快速加载示例。</p>
+                        </div>
+                        <div class="intro-card">
+                            <h4>🤖 AI 智能修复</h4>
+                            <p>使用「整体修复」「深度优化」一键润色文档，可自定义修复侧重点，结果支持差异预览再决定是否套用。</p>
+                        </div>
+                        <div class="intro-card">
+                            <h4>🎨 主题配色</h4>
+                            <p>右上角可循环切换四套主题（暖阳琥珀、浅林绿意、现代黑金、极光幻彩），偏好自动保存在本地。</p>
+                        </div>
+                        <div class="intro-card">
+                            <h4>🔐 权限 & 管理</h4>
+                            <p>根据密码等级解锁更多功能，高级用户可配置 AI 服务，自定义模板或查看管理员面板。</p>
+                        </div>
+                        <div class="intro-card">
+                            <h4>📋 富文本复制</h4>
+                            <p>支持一键复制渲染后的富文本内容，保留样式后可直接粘贴到 Word、飞书等应用。</p>
+                        </div>
+                        <div class="intro-card">
+                            <h4>💬 意见与建议</h4>
+                            <p>欢迎通过预留渠道提交BUG反馈和功能建议，会在更新日志中跟进处理进度。</p>
+                        </div>
+                    </div>
+                    <div class="intro-updates">
+                        <h3>📌 最近更新</h3>
+                        <div class="intro-updates-content">
+                        <ul>
+                             <li>
+                                <strong>2025-09-24 · AI 修复升级</strong>
+                                <span>细化内部修复效果，支持实时预览部分点击选中后局部修复。</span>
+                            </li>
+                            <li>
+                                <strong>2025-09-20 · UI 体验升级</strong>
+                                <span>新增多主题配色、优化锁屏界面，并在 AI 修复中引入模式多选与结果差异视图。</span>
+                            </li>
+                            <li>
+                                <strong>2025-09-18 · AI 工作流强化</strong>
+                                <span>AI 修复流程支持进度卡片与取消操作，优化导出前的对比与撤销体验。</span>
+                            </li>
+                            <li>
+                                <strong>2025-07-11 · 配置中心扩展</strong>
+                                <span>引入多服务商预设、导入导出自定义模板，提升团队协同效率。</span>
+                            </li>
+                            <li>
+                                <strong>2025-07-10 · AI 自定义配置上线</strong>
+                                <span>新增多服务商预设与自定义模板导入/导出能力，强化配置中心的一站式管理体验。</span>
+                            </li>
+                            <li>
+                                <strong>2025-07-09 · 合并冲突修复</strong>
+                                <span>解决主干合并冲突，确保最新的 AI 智能修复版本完整保留。</span>
+                            </li>
+                            <li>
+                                <strong>2025-07-07 · 全面升级版发布</strong>
+                                <span>推出 AI 智能 Markdown 转 Word 全面升级版，整体功能与界面大幅提升。</span>
+                            </li>
+                            <li>
+                                <strong>2025-07-02 · AI 配置默认优化</strong>
+                                <span>调整默认模型与服务商参数，降低新用户配置门槛。</span>
+                            </li>
+                            <li>
+                                <strong>2025-07-01 · Word 标题配色修复</strong>
+                                <span>进一步校正导出 Word 标题的颜色表现，避免主题色偏差。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-28 · TextRun 级标题修复</strong>
+                                <span>在 TextRun 层面强制标题为黑色，彻底杜绝 Word 标题色异常。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-26 · Word 标题关键修复</strong>
+                                <span>补齐导出文档标题色错乱的根因修复，保证视觉一致。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-24 · Word 标题渲染修补</strong>
+                                <span>先行修正 Word 标题颜色问题，为后续彻底修复奠定基础。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-23 · 合并保留优化版本</strong>
+                                <span>合并远端更新并保留本地性能与体验优化成果。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-22 · 转换器性能调优</strong>
+                                <span>针对核心转换流程做性能与体验优化，提升整体流畅度。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-21 · 控制面板三列布局</strong>
+                                <span>重构控制面板为三栏栅格，让设置区更整洁易读。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-20 · AI 修复体验完善</strong>
+                                <span>完善 AI 修复流程，提供差异化的使用体验。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-19 · AI 智能修复系统首发</strong>
+                                <span>上线 AI 智能修复核心功能，引入智能润色与结构优化能力。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-18 · 数学示例显示修复</strong>
+                                <span>修复数学公式示例展示异常，确保示例正确渲染。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-17 · 实时预览恢复</strong>
+                                <span>修复实时预览失效的问题，恢复所见即所得体验。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-16 · 密码黑名单机制</strong>
+                                <span>新增密码撤销黑名单，堵上安全漏洞。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-15 · 解除配额限制</strong>
+                                <span>移除配额体系，改为无限次使用策略。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-14 · 密码分享精简</strong>
+                                <span>删除文件导入导出，简化密码分享流程。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-13 · 超简单密码分享</strong>
+                                <span>上线全新轻量分享机制，显著降低分享门槛。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-12 · 免登录密码导入</strong>
+                                <span>支持跨设备免登录导入密码，提升协作效率。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-11 · 配额与同步修复</strong>
+                                <span>修复独立配额与跨设备同步的关键缺陷。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-10 · 权限与配额商业化</strong>
+                                <span>构建商业化权限体系与智能配额管理方案。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-09 · 性能与功能强化</strong>
+                                <span>对核心交互与性能进行大幅优化，提升整体流畅度。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-08 · 上传功能增强</strong>
+                                <span>修复上传缺陷并增强文件上传体验。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-07 · 快捷键弹窗修复</strong>
+                                <span>修复快捷键帮助弹窗的显示问题。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-06 · 合并冲突处理</strong>
+                                <span>解决合并冲突，保留所有优化改动。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-05 · 用户体验优化（B）</strong>
+                                <span>继续完善界面与交互细节，提升整体体验。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-04 · 用户体验优化（A）</strong>
+                                <span>针对 UI/UX 做首轮全面调整与优化。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-03 · 密码验证上线</strong>
+                                <span>引入个人内测密码机制，限制访问范围。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-02 · KaTeX 数学支持</strong>
+                                <span>集成 KaTeX，支持行内与块级 LaTeX 公式渲染。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-01 · 自动弹窗修复</strong>
+                                <span>移除自动保存检查导致的误弹窗问题。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-01 · 回退稳定版本</strong>
+                                <span>回退至五大优化前的稳定基线，确保可靠性。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-01 · Pages 编码修复</strong>
+                                <span>修复 GitHub Pages 的编码问题，保障线上访问。</span>
+                            </li>
+                            <li>
+                                <strong>2025-06-01 · Pages CI 配置</strong>
+                                <span>新增 GitHub Actions 流水线，自动部署 Pages。</span>
+                            </li>
+                            <li>
+                                <strong>2025-05-28 · 五大核心优化</strong>
+                                <span>完成五大核心功能与性能优化迭代。</span>
+                            </li>
+                            <li>
+                                <strong>2025-05-27 · UI 信息完善</strong>
+                                <span>补充作者信息并强化移动端响应式设计。</span>
+                            </li>
+                            <li>
+                                <strong>2025-05-26 · 主干合并同步</strong>
+                                <span>同步远程主干更新，保持代码一致。</span>
+                            </li>
+                            <li>
+                                <strong>2025-05-25 · v2.0 初始提交</strong>
+                                <span>提交 v2.0 代码基线，奠定新版架构。</span>
+                            </li>
+                            <li>
+                                <strong>2025-05-21 · 项目雏形</strong>
+                                <span>首次提交 Markdown 转 Word 转换工具，实现基础能力。</span>
+                            </li>
+                        </ul>
+                        </div>
+                    </div>
+                    <div class="intro-modal-actions">
+                        <button class="btn-secondary" onclick="closeIntroModal('once')">本次关闭</button>
+                        <button class="btn" onclick="closeIntroModal('today')">今日不再提示</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 管理员面板 -->
+        <div id="adminPanel" class="modal-overlay admin-panel" style="display: none;">
+            <div class="modal-shell">
+                <div class="modal-header">
+                    <h2>👑 超级管理员面板</h2>
+                    <button onclick="closeAdminPanel()" class="modal-close" title="关闭" aria-label="关闭">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <!-- 标签页导航 -->
+                    <div class="admin-tabs" style="display: flex; border-bottom: 2px solid var(--border-color); margin-bottom: 20px;">
+                        <button class="admin-tab active" onclick="switchAdminTab('password')" data-tab="password" style="padding: 10px 20px; border: none; background: none; cursor: pointer; border-bottom: 2px solid var(--accent-primary); color: var(--accent-primary); font-weight: 600;">密码管理</button>
+                    </div>
+                    
+                    
+                    <!-- 密码管理标签页 -->
+                    <div id="passwordTab" class="admin-tab-content">
+                        <h3 style="color: var(--text-primary); margin-bottom: 15px;">🔑 密码生成器</h3>
+                        <div style="background: var(--preview-bg); padding: 20px; border-radius: 8px;">
+                            <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 5px; font-weight: 600;">用户类型：</label>
+                                <select id="passwordUserType" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: white;">
+                                    <option value="basic">基础用户</option>
+                                    <option value="advanced">高级用户</option>
+                                </select>
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 5px; font-weight: 600;">密码长度：</label>
+                                <input type="number" id="passwordLength" value="8" min="6" max="20" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                            </div>
+                            <button onclick="generatePassword()" style="background: var(--accent-primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; margin-bottom: 15px;">生成密码</button>
+                            <div id="generatedPassword" style="background: white; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); font-family: monospace; font-size: 16px; text-align: center; display: none;">
+                                <div style="margin-bottom: 8px; font-weight: 600;">🎉 密码生成成功！</div>
+                                <div id="passwordValue" style="font-size: 18px; color: var(--accent-primary); letter-spacing: 2px; padding: 8px; background: var(--preview-bg); border-radius: 4px; margin-bottom: 15px;"></div>
+                                
+                                <!-- 分享选项 -->
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px;">
+                                    <button onclick="copyPassword()" style="background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">📋 复制密码</button>
+                                    <button onclick="copyShareText()" style="background: var(--accent-secondary); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">📱 复制分享码</button>
+                                </div>
+                                
+                                <!-- 分享文本显示 -->
+                                <div id="shareTextArea" style="background: var(--preview-bg); padding: 10px; border-radius: 4px; margin-bottom: 10px; display: none;">
+                                    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 5px;">📱 微信/QQ分享文本（点击可复制）：</div>
+                                    <div id="shareTextValue" style="font-size: 11px; color: var(--text-primary); background: white; padding: 6px; border-radius: 3px; cursor: pointer; word-break: break-all;" onclick="copyShareTextDirect()"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 密码管理 -->
+                        <div style="margin-top: 20px;">
+                            <h4 style="color: var(--text-primary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                                📋 已生成的密码
+                                <span style="background: var(--info); color: white; padding: 2px 6px; border-radius: 12px; font-size: 11px; font-weight: normal;" id="passwordCountDisplay">0</span>
+                            </h4>
+                            <div id="passwordList" style="background: var(--preview-bg); padding: 15px; border-radius: 8px; max-height: 200px; overflow-y: auto;">
+                                <div style="color: var(--text-secondary); text-align: center; font-style: italic;">暂无生成的密码</div>
+                            </div>
+                            <div style="margin-top: 10px; text-align: center;">
+                                <button onclick="clearAllPasswords()" style="background: var(--warning); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">清除所有密码</button>
+                            </div>
+                        </div>
+                        
+                        <!-- 撤销密码管理 -->
+                        <div style="margin-top: 25px; border-top: 2px solid var(--border-color); padding-top: 20px;">
+                            <h4 style="color: var(--text-primary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                                🚫 已撤销的密码
+                                <span style="background: var(--warning); color: white; padding: 2px 6px; border-radius: 12px; font-size: 11px; font-weight: normal;" id="revokedCountDisplay">0</span>
+                            </h4>
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;">
+                                撤销的密码无法通过分享码重新激活，确保已删除密码的安全性
+                            </div>
+                            <div id="revokedPasswordList" style="background: var(--preview-bg); padding: 15px; border-radius: 8px; max-height: 150px; overflow-y: auto;">
+                                <div style="color: var(--text-secondary); text-align: center; font-style: italic;">暂无撤销的密码</div>
+                            </div>
+                            <div style="margin-top: 10px; text-align: center; display: flex; gap: 8px; justify-content: center;">
+                                <button onclick="updateRevokedPasswordList()" style="background: var(--info); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">🔄 刷新</button>
+                                <button onclick="clearRevokedPasswords()" style="background: var(--warning); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">🗑️ 清空撤销列表</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+        
+        <!-- 主题切换过渡层 -->
+        <div class="theme-transition" id="themeTransition"></div>
+        </div>
+    </div>
+
+    <!-- 模块化 JavaScript -->
+    <script src="js/app.js"></script>
+</body>
+</html>

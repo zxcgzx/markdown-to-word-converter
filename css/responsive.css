@@ -1,0 +1,395 @@
+        @media (max-width: 768px) {
+            .password-overlay {
+                padding: 10px;
+            }
+            
+            .password-modal {
+                padding: 30px 20px;
+                margin: 0;
+                max-width: none;
+                width: 100%;
+                max-height: 90vh;
+                overflow-y: auto;
+                position: relative;
+                animation: slideUpMobile 0.4s ease-out;
+            }
+            
+            .password-badges {
+                gap: 8px;
+            }
+
+            .password-layout {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+
+            .password-form,
+            .password-insight {
+                max-height: none;
+                overflow: visible;
+            }
+
+            .password-form {
+                align-self: stretch;
+            }
+
+            .password-insight {
+                padding: 22px;
+            }
+
+            .password-modal h2 {
+                font-size: 1.5em;
+                margin-bottom: 8px;
+            }
+            
+            .password-modal .subtitle {
+                font-size: 1em;
+                margin-bottom: 20px;
+            }
+            
+            .password-feature-grid.feature-grid-dual {
+                grid-template-columns: 1fr;
+            }
+
+            .password-feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .password-brief {
+                padding: 20px 18px;
+            }
+
+            .password-brief-top {
+                justify-content: flex-start;
+            }
+
+            .password-brief-emblem {
+                flex: 1 1 100%;
+            }
+
+            .password-brief-pill {
+                align-self: flex-start;
+            }
+
+            .password-tips-card {
+                padding: 16px;
+            }
+
+            .password-step-list,
+            .bulletin-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .password-step {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .password-step .step-index {
+                margin-bottom: 6px;
+            }
+
+            .password-input {
+                font-size: 16px; /* 防止iOS缩放 */
+                padding: 16px;
+                margin-bottom: 16px;
+            }
+            
+            .password-btn {
+                padding: 16px;
+                font-size: 16px;
+                margin-bottom: 12px;
+            }
+
+            .support-channels {
+                gap: 6px;
+            }
+
+            .password-hint {
+                font-size: 12px;
+                margin-top: 12px;
+                line-height: 1.5;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .password-overlay {
+                padding: 5px;
+            }
+            
+            .password-modal {
+                padding: 25px 15px;
+                border-radius: 12px;
+                animation: slideUpMobile 0.3s ease-out;
+            }
+            
+            .password-modal h2 {
+                font-size: 1.3em;
+                margin-bottom: 6px;
+            }
+            
+            .password-modal .subtitle {
+                font-size: 0.9em;
+                margin-bottom: 16px;
+            }
+            
+            .password-brief {
+                padding: 18px;
+                gap: 14px;
+            }
+
+            .password-brief-top {
+                gap: 12px;
+            }
+
+            .password-brief-emblem {
+                gap: 10px;
+            }
+
+            .password-brief-emblem .brief-icon {
+                font-size: 20px;
+            }
+
+            .password-brief-emblem .brief-heading {
+                font-size: 0.95rem;
+            }
+
+            .password-brief-emblem .brief-caption {
+                font-size: 0.8rem;
+            }
+
+            .password-brief-pill {
+                font-size: 0.78rem;
+                padding: 6px 12px;
+            }
+
+            .password-brief-bottom .brief-thanks-desc {
+                font-size: 0.78rem;
+            }
+
+            .password-share-card {
+                padding: 14px;
+            }
+
+            .password-share-btn {
+                padding: 10px 12px;
+            }
+
+            .password-insight {
+                padding: 18px;
+                border-radius: 16px;
+            }
+
+            .password-feature-card {
+                padding: 14px;
+            }
+
+            .password-tips-card {
+                padding: 14px;
+            }
+
+            .password-support {
+                padding: 14px;
+            }
+
+            .password-input {
+                padding: 14px;
+                font-size: 16px;
+                border-radius: 8px;
+                margin-bottom: 14px;
+            }
+            
+            .password-btn {
+                padding: 14px;
+                font-size: 15px;
+                border-radius: 8px;
+                margin-bottom: 10px;
+            }
+            
+            .password-hint {
+                font-size: 11px;
+                margin-top: 10px;
+                padding: 0 5px;
+            }
+        }
+
+        @keyframes slideUpMobile {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* 移动端键盘适配 - 增强版 */
+        @media (max-height: 600px) and (max-width: 768px) {
+            .password-overlay {
+                align-items: flex-start;
+                padding-top: 10vh;
+            }
+            
+            .password-modal {
+                margin-top: 0;
+                max-height: calc(100vh - 20vh);
+                padding: 32px 24px;
+                animation: modalEntranceMobile 0.6s ease-out;
+            }
+            
+            .password-layout {
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+
+            .password-insight {
+                padding: 20px;
+            }
+
+            .password-modal h2 {
+                font-size: 1.4em;
+                margin-bottom: 8px;
+            }
+            
+            .password-modal .subtitle {
+                font-size: 1em;
+                margin-bottom: 20px;
+            }
+            
+            .password-brief {
+                padding: 20px;
+            }
+            
+            .password-layout {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .password-input-wrapper {
+                margin-bottom: 16px;
+            }
+            
+            .password-input {
+                padding: 16px 20px;
+                font-size: 16px; /* 防止iOS缩放 */
+            }
+            
+            .password-btn {
+                padding: 16px;
+                font-size: 16px;
+                margin-bottom: 16px;
+            }
+            
+            .password-hint {
+                font-size: 0.8em;
+                margin-top: 8px;
+                line-height: 1.4;
+            }
+        }
+
+        /* 极小屏幕适配 */
+        @media (max-height: 500px) {
+            .password-overlay {
+                padding: 10px;
+                align-items: center;
+            }
+            
+            .password-modal {
+                max-height: calc(100vh - 20px);
+                padding: 20px;
+                overflow-y: auto;
+            }
+            
+            .password-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .password-modal h2 {
+                font-size: 1.2em;
+                margin-bottom: 6px;
+            }
+            
+            .password-modal .subtitle {
+                font-size: 0.9em;
+                margin-bottom: 16px;
+            }
+            
+            .password-brief {
+                padding: 18px;
+            }
+        }
+
+        /* 移动端入场动画 */
+        @keyframes modalEntranceMobile {
+            0% {
+                opacity: 0;
+                transform: translateY(50px) scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* 焦点管理增强 */
+        .password-input:focus,
+        .password-btn:focus,
+        .password-toggle:focus {
+            outline: 2px solid var(--accent-primary);
+            outline-offset: 2px;
+        }
+
+        /* 高对比度模式支持 */
+        @media (prefers-contrast: high) {
+            .password-modal {
+                border: 3px solid var(--text-primary);
+                background: var(--container-bg);
+                backdrop-filter: none;
+            }
+            
+            .password-input {
+                border-width: 3px;
+                background: var(--container-bg);
+                backdrop-filter: none;
+            }
+            
+            .password-btn {
+                border: 2px solid var(--accent-primary);
+            }
+
+            .password-brief,
+            .password-tips-card {
+                border: 3px solid var(--text-primary);
+                background: var(--container-bg);
+                box-shadow: none;
+            }
+        }
+
+        /* 减少动画模式支持 */
+        @media (prefers-reduced-motion: reduce) {
+            .password-overlay,
+            .password-modal,
+            .password-modal h2,
+            .password-modal .subtitle,
+            .password-brief,
+            .password-tips-card,
+            .password-input-wrapper,
+            .password-btn,
+            .password-hint,
+            .password-share-card,
+            .password-insight,
+            .password-feature-card,
+            .password-support {
+                animation: none !important;
+            }
+            
+            .password-overlay::before {
+                animation: none !important;
+            }
+            
+            .password-btn::before,
+            .password-share-btn {
+                transition: none !important;
+            }
+        }

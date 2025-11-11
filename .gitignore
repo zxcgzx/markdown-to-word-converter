@@ -1,0 +1,47 @@
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 备份文件
+*.backup
+*.bak
+*.orig
+
+# 日志
+*.log
+logs/
+
+# 依赖 (如果将来添加 npm)
+node_modules/
+package-lock.json
+yarn.lock
+
+# 构建输出 (如果将来添加构建工具)
+dist/
+build/
+.cache/
+
+# 临时文件
+tmp/
+temp/
+*.tmp
+
+# 环境配置 (永远不要提交敏感信息)
+.env
+.env.local
+.env.*.local
+config.local.js
+
+# 测试覆盖率
+coverage/
+.nyc_output/
+
+# 其他
+.history/
