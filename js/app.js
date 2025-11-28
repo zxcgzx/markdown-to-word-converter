@@ -4291,6 +4291,27 @@ $$\\\\lim_{x \\\\to \\\\infty} \\\\frac{1}{x} = 0$$
             return text.replace(/<br\s*\/?>/gi, '<br>');
         }
 
+        // 去除加粗并保留换行的通用清洗
+        function tableNormalizeCell(value) {
+            let v = value || '';
+            // 去掉 Markdown 粗体标记
+            v = v.replace(/\*\*(.*?)\*\*/g, '$1');
+            // 统一换行标记
+            v = v.replace(/<br\s*\/?>/gi, '\n');
+
+            // 通过 DOM 解析去掉粗体标签等格式
+            const temp = document.createElement('div');
+            temp.innerHTML = v;
+            temp.querySelectorAll('strong, b').forEach(el => {
+                el.replaceWith(el.textContent);
+            });
+            const text = temp.textContent || '';
+
+            // 恢复换行并裁剪行内空白
+            const parts = text.split('\n').map(part => part.trim()).filter(Boolean);
+            return parts.join('<br>');
+        }
+
         function renderTablePreview(targetId, tableData, hasHeader = true) {
             const target = document.getElementById(targetId);
             if (!target) return;
@@ -4331,7 +4352,7 @@ $$\\\\lim_{x \\\\to \\\\infty} \\\\frac{1}{x} = 0$$
             }
 
             const tableData = Array.from(table.rows).map(row => {
-                return Array.from(row.cells).map(cell => cell.innerHTML.trim());
+                return Array.from(row.cells).map(cell => tableNormalizeCell(cell.innerHTML.trim()));
             });
 
             renderTablePreview('tableHtmlPreview', tableData);
@@ -4356,7 +4377,7 @@ $$\\\\lim_{x \\\\to \\\\infty} \\\\frac{1}{x} = 0$$
             const separator = tableDetectSeparator(rows[0]);
             const tableData = rows.map(row => {
                 const cells = separator === ' ' ? row.trim().split(/\s+/) : row.split(separator);
-                return cells.map(cell => tableProcessBr(tableProcessBold(cell.trim())));
+                return cells.map(cell => tableNormalizeCell(cell.trim()));
             });
 
             renderTablePreview('tableTextPreview', tableData);
@@ -4367,7 +4388,7 @@ $$\\\\lim_{x \\\\to \\\\infty} \\\\frac{1}{x} = 0$$
             let cleanRow = row.trim();
             if (cleanRow.startsWith('|')) cleanRow = cleanRow.slice(1);
             if (cleanRow.endsWith('|')) cleanRow = cleanRow.slice(0, -1);
-            return cleanRow.split('|').map(cell => tableProcessBr(tableProcessBold(cell.trim())));
+            return cleanRow.split('|').map(cell => tableNormalizeCell(cell.trim()));
         }
 
         function tableConvertMarkdown() {
