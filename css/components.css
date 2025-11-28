@@ -2167,9 +2167,9 @@
 
 /* 表格转换器 */
 .table-converter-modal {
-    max-width: 1240px;
-    width: 92vw;
-    max-height: 92vh;
+    max-width: 1180px;
+    width: 90vw;
+    max-height: 88vh;
 }
 
 .table-converter-modal .table-converter-body {
