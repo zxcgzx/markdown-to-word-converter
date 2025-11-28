@@ -336,6 +336,7 @@
                         <button class="btn btn-secondary" onclick="saveToLocal()" aria-label="保存当前内容为草稿">💾 保存草稿</button>
                         <button class="btn btn-secondary" onclick="loadFromLocal()" aria-label="加载本地保存的草稿">📂 加载草稿</button>
                         <button class="btn btn-secondary" onclick="clearContent()" aria-label="清空输入框中的所有内容">🗑️ 清空内容</button>
+                        <button class="btn btn-secondary" onclick="openTableConverter()" aria-label="打开表格格式转换器">📊 表格转换</button>
                         <button class="btn btn-secondary" onclick="showShortcuts()" aria-label="显示键盘快捷键帮助">⌨️ 快捷键</button>
                     </div>
                 </div>
@@ -634,6 +635,82 @@
                     <div class="ai-result-footer">
                         <button class="btn-secondary" onclick="rejectAIResult()">放弃</button>
                         <button class="btn" onclick="applyAIResult()">套用结果</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 表格格式转换器 -->
+        <div id="tableConverterModal" class="modal-overlay" style="display: none;">
+            <div class="modal-shell table-converter-modal">
+                <div class="modal-header">
+                    <h2>📊 表格格式转换器</h2>
+                    <button onclick="closeTableConverterModal()" class="modal-close" title="关闭" aria-label="关闭">&times;</button>
+                </div>
+                <div class="modal-body table-converter-body">
+                    <p class="table-converter-tip">将 AI 生成的表格快速转换为可粘贴到 Excel / Word 的 HTML 表格，支持 HTML、纯文本、Markdown 三种输入。</p>
+                    <div class="table-tab-bar" role="tablist">
+                        <button class="table-tab active" data-tab="html" onclick="switchTableConverterTab('html')" role="tab" aria-selected="true">HTML 表格</button>
+                        <button class="table-tab" data-tab="text" onclick="switchTableConverterTab('text')" role="tab" aria-selected="false">纯文本</button>
+                        <button class="table-tab" data-tab="markdown" onclick="switchTableConverterTab('markdown')" role="tab" aria-selected="false">Markdown</button>
+                    </div>
+
+                    <div class="table-tab-panel active" data-tab="html" role="tabpanel">
+                        <div class="table-panel-grid">
+                            <div class="table-input-block">
+                                <label for="tableHtmlInput" class="table-block-title">输入 HTML 表格</label>
+                                <textarea id="tableHtmlInput" class="table-converter-textarea" placeholder="在此粘贴 HTML 表格代码"></textarea>
+                                <div class="table-actions">
+                                    <button class="btn" onclick="tableConvertHtml()">转换表格</button>
+                                    <button class="btn btn-secondary" onclick="tableCopyResult('tableHtmlPreview')">复制表格</button>
+                                    <button class="btn btn-secondary" onclick="tableReset('html')">重置</button>
+                                </div>
+                            </div>
+                            <div class="table-preview-block">
+                                <div class="table-block-title">预览</div>
+                                <div id="tableHtmlPreview" class="table-preview-card"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-tab-panel" data-tab="text" role="tabpanel">
+                        <div class="table-panel-grid">
+                            <div class="table-input-block">
+                                <label for="tableTextInput" class="table-block-title">输入纯文本表格</label>
+                                <textarea id="tableTextInput" class="table-converter-textarea" placeholder="支持制表符、逗号、竖线、空格分隔的表格数据"></textarea>
+                                <div class="table-helper">支持 **加粗**，&lt;br&gt; 换行，自动检测分隔符。</div>
+                                <div class="table-actions">
+                                    <button class="btn" onclick="tableConvertText()">转换表格</button>
+                                    <button class="btn btn-secondary" onclick="tableCopyResult('tableTextPreview')">复制表格</button>
+                                    <button class="btn btn-secondary" onclick="tableReset('text')">重置</button>
+                                </div>
+                            </div>
+                            <div class="table-preview-block">
+                                <div class="table-block-title">预览</div>
+                                <div id="tableTextPreview" class="table-preview-card"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-tab-panel" data-tab="markdown" role="tabpanel">
+                        <div class="table-panel-grid">
+                            <div class="table-input-block">
+                                <label for="tableMarkdownInput" class="table-block-title">输入 Markdown 表格</label>
+                                <textarea id="tableMarkdownInput" class="table-converter-textarea" placeholder="| 标题1 | 标题2 |
+| --- | --- |
+| 内容1 | 内容2 |"></textarea>
+                                <div class="table-helper">支持 **加粗** 与 &lt;br&gt; 换行。</div>
+                                <div class="table-actions">
+                                    <button class="btn" onclick="tableConvertMarkdown()">转换表格</button>
+                                    <button class="btn btn-secondary" onclick="tableCopyResult('tableMarkdownPreview')">复制表格</button>
+                                    <button class="btn btn-secondary" onclick="tableReset('markdown')">重置</button>
+                                </div>
+                            </div>
+                            <div class="table-preview-block">
+                                <div class="table-block-title">预览</div>
+                                <div id="tableMarkdownPreview" class="table-preview-card"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

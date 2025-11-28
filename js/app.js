@@ -58,6 +58,9 @@
         
         // 示例加载标志
         let isLoadingExample = false;
+        const AUTO_SAVE_KEY = 'markdown-auto-save';
+        const AUTO_SAVE_TIMESTAMP_KEY = 'markdown-auto-save-timestamp';
+        let tableExamplesInitialized = false;
         
         // 自定义密码管理
         const customPasswords = {
@@ -247,6 +250,13 @@
             const lockoutRemaining = checkLockout();
             if (lockoutRemaining > 0) {
                 showPasswordError(`尝试次数过多，请等待 ${lockoutRemaining} 秒后重试`, false);
+                return;
+            }
+
+            // 检查是否已被撤销
+            if (revokedPasswords.isRevoked(password)) {
+                showPasswordError('该密码已被撤销，无法登录，请联系管理员重新获取。');
+                passwordInput.value = '';
                 return;
             }
             
@@ -1050,6 +1060,18 @@
                 const storedPassword = sessionStorage.getItem('currentPassword');
                 if (storedPassword) {
                     currentPassword = storedPassword;
+
+                    // 会话密码若已被撤销，强制要求重新登录
+                    if (revokedPasswords.isRevoked(storedPassword)) {
+                        sessionStorage.removeItem('authenticated');
+                        sessionStorage.removeItem('userLevel');
+                        sessionStorage.removeItem('userPermissions');
+                        sessionStorage.removeItem('currentPassword');
+                        currentUser = null;
+                        currentPassword = null;
+                        showToast('密码已撤销', '当前会话密码已失效，请重新登录', 'warning');
+                        return;
+                    }
                 }
                 
                 document.getElementById('passwordOverlay').style.display = 'none';
@@ -3090,10 +3112,6 @@
         
         // 初始化应用（原来的初始化逻辑）
         function initializeApp() {
-            // 清除可能导致弹窗的自动保存数据
-            localStorage.removeItem('markdown-auto-save');
-            localStorage.removeItem('markdown-auto-save-timestamp');
-            
             // 更新用户状态显示
             updateUserStatus();
             
@@ -3102,23 +3120,26 @@
             
             // 等待DOM完全可见后初始化事件绑定
             setTimeout(() => {
-            initializeEventBindings();
-        }, 100);
+                initializeEventBindings();
+            }, 100);
 
-        // 初始化拖拽功能
-        initializeDragAndDrop();
+            // 初始化拖拽功能
+            initializeDragAndDrop();
 
-        // 直接加载示例，不检查自动保存内容避免弹窗
-        loadExample();
+            // 优先恢复自动保存的草稿，避免覆盖用户内容
+            const restored = restoreAutoSavedDraft();
+            if (!restored) {
+                loadExample();
+            }
 
-        if (!introModalShown && shouldShowIntroModal()) {
-            setTimeout(() => {
-                if (!introModalShown) {
-                    showIntroModal();
-                }
-            }, 400);
+            if (!introModalShown && shouldShowIntroModal()) {
+                setTimeout(() => {
+                    if (!introModalShown) {
+                        showIntroModal();
+                    }
+                }, 400);
+            }
         }
-    }
         
         // 初始化AI修复功能
         function initializeAIFixFeatures() {
@@ -3203,6 +3224,7 @@
             try {
                 debouncedUpdateWordCount(); // 字数统计使用防抖
                 debouncedUpdatePreview();   // 预览更新使用动态防抖
+                debouncedAutoSave();        // 自动保存草稿
                 
                 // 调试信息（仅在开发模式下显示）
                 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
@@ -3469,6 +3491,36 @@
             document.getElementById('wordCount').textContent = wordCount_val.toLocaleString();
             document.getElementById('lineCount').textContent = lineCount.toLocaleString();
             document.getElementById('readTime').textContent = readTime || '<1';
+        }
+
+        // 自动保存草稿
+        function autoSaveDraft() {
+            if (!markdownInput || isLoadingExample) return;
+            const content = markdownInput.value;
+            if (!content.trim()) {
+                localStorage.removeItem(AUTO_SAVE_KEY);
+                localStorage.removeItem(AUTO_SAVE_TIMESTAMP_KEY);
+                return;
+            }
+            localStorage.setItem(AUTO_SAVE_KEY, content);
+            localStorage.setItem(AUTO_SAVE_TIMESTAMP_KEY, new Date().toLocaleString());
+        }
+
+        // 恢复自动保存草稿
+        function restoreAutoSavedDraft() {
+            if (!markdownInput) return false;
+            const saved = localStorage.getItem(AUTO_SAVE_KEY);
+            if (!saved) return false;
+
+            // 避免覆盖已有输入
+            if (markdownInput.value.trim()) return false;
+
+            const timestamp = localStorage.getItem(AUTO_SAVE_TIMESTAMP_KEY) || '未知时间';
+            markdownInput.value = saved;
+            updateWordCount();
+            updatePreview();
+            showToast('已恢复草稿', `自动保存于 ${timestamp}`);
+            return true;
         }
 
         // 增强防抖函数 - 支持动态延迟
@@ -3922,6 +3974,9 @@
         // 防抖的字数统计更新（100ms延迟）
         const debouncedUpdateWordCount = debounce(updateWordCount, 100);
 
+        // 防抖的自动保存（适度延迟降低写入频率）
+        const debouncedAutoSave = debounce(autoSaveDraft, 800);
+
         // 实时预览功能初始化 - 移动到initializeApp中进行绑定
 
         // 示例内容库
@@ -4105,6 +4160,8 @@ $$\\\\lim_{x \\\\to \\\\infty} \\\\frac{1}{x} = 0$$
             markdownInput.value = '';
             updatePreview();
             updateWordCount();
+            localStorage.removeItem(AUTO_SAVE_KEY);
+            localStorage.removeItem(AUTO_SAVE_TIMESTAMP_KEY);
             showToast('操作完成', '内容已清空');
             
             // 清空完成后重置标志
@@ -4197,6 +4254,290 @@ $$\\\\lim_{x \\\\to \\\\infty} \\\\frac{1}{x} = 0$$
                 console.error('复制失败:', error);
                 showToast('复制失败', '请检查您的Markdown格式是否正确', 'error');
             }
+        }
+
+        // === 表格格式转换器 ===
+        function openTableConverter() {
+            const modal = document.getElementById('tableConverterModal');
+            if (!modal) return;
+            modal.style.display = 'block';
+            setTimeout(() => modal.classList.add('show'), 10);
+            switchTableConverterTab('html');
+
+            if (!tableExamplesInitialized) {
+                prefillTableConverterExamples();
+                tableExamplesInitialized = true;
+            }
+        }
+
+        function closeTableConverterModal() {
+            const modal = document.getElementById('tableConverterModal');
+            if (!modal) return;
+            modal.classList.remove('show');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 150);
+        }
+
+        function switchTableConverterTab(tab) {
+            document.querySelectorAll('.table-tab').forEach(btn => {
+                const active = btn.dataset.tab === tab;
+                btn.classList.toggle('active', active);
+                btn.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+
+            document.querySelectorAll('.table-tab-panel').forEach(panel => {
+                panel.classList.toggle('active', panel.dataset.tab === tab);
+            });
+        }
+
+        function tableDetectSeparator(firstRow) {
+            const separators = ['\t', ',', '|', ';', ' '];
+            let best = '\t';
+            let max = 0;
+            separators.forEach(sep => {
+                const count = firstRow.split(sep).length - 1;
+                if (count > max) {
+                    max = count;
+                    best = sep;
+                }
+            });
+            return best;
+        }
+
+        function tableProcessBold(text) {
+            return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        }
+
+        function tableProcessBr(text) {
+            return text.replace(/<br\s*\/?>/gi, '<br>');
+        }
+
+        function renderTablePreview(targetId, tableData, hasHeader = true) {
+            const target = document.getElementById(targetId);
+            if (!target) return;
+            if (!tableData || tableData.length === 0) {
+                target.innerHTML = '';
+                return;
+            }
+
+            let html = '<table><tbody>';
+            tableData.forEach((row, rowIndex) => {
+                html += '<tr>';
+                row.forEach(cell => {
+                    const tag = hasHeader && rowIndex === 0 ? 'th' : 'td';
+                    html += `<${tag}>${cell}</${tag}>`;
+                });
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+
+            target.innerHTML = html;
+        }
+
+        function tableConvertHtml() {
+            const input = document.getElementById('tableHtmlInput');
+            if (!input) return;
+            const htmlInput = input.value.trim();
+            if (!htmlInput) {
+                showToast('提示', '请先粘贴HTML表格', 'warning');
+                return;
+            }
+
+            const temp = document.createElement('div');
+            temp.innerHTML = htmlInput;
+            const table = temp.querySelector('table');
+            if (!table || !table.rows.length) {
+                showToast('提示', '未检测到有效的HTML表格', 'warning');
+                return;
+            }
+
+            const tableData = Array.from(table.rows).map(row => {
+                return Array.from(row.cells).map(cell => cell.innerHTML.trim());
+            });
+
+            renderTablePreview('tableHtmlPreview', tableData);
+            showToast('转换完成', 'HTML表格已转换', 'success');
+        }
+
+        function tableConvertText() {
+            const input = document.getElementById('tableTextInput');
+            if (!input) return;
+            const raw = input.value.trim();
+            if (!raw) {
+                showToast('提示', '请先粘贴纯文本表格', 'warning');
+                return;
+            }
+
+            const rows = raw.split('\n').filter(r => r.trim());
+            if (rows.length === 0) {
+                showToast('提示', '未检测到有效的表格行', 'warning');
+                return;
+            }
+
+            const separator = tableDetectSeparator(rows[0]);
+            const tableData = rows.map(row => {
+                const cells = separator === ' ' ? row.trim().split(/\s+/) : row.split(separator);
+                return cells.map(cell => tableProcessBr(tableProcessBold(cell.trim())));
+            });
+
+            renderTablePreview('tableTextPreview', tableData);
+            showToast('转换完成', '纯文本表格已转换', 'success');
+        }
+
+        function tableParseMarkdownRow(row) {
+            let cleanRow = row.trim();
+            if (cleanRow.startsWith('|')) cleanRow = cleanRow.slice(1);
+            if (cleanRow.endsWith('|')) cleanRow = cleanRow.slice(0, -1);
+            return cleanRow.split('|').map(cell => tableProcessBr(tableProcessBold(cell.trim())));
+        }
+
+        function tableConvertMarkdown() {
+            const input = document.getElementById('tableMarkdownInput');
+            if (!input) return;
+            const raw = input.value.trim();
+            if (!raw) {
+                showToast('提示', '请先粘贴Markdown表格', 'warning');
+                return;
+            }
+
+            const rows = raw.split('\n').filter(r => r.trim());
+            if (rows.length < 2) {
+                showToast('提示', 'Markdown表格至少需要标题行和数据行', 'warning');
+                return;
+            }
+
+            const headerRow = rows[0];
+            const dataRows = rows.slice(2); // 跳过分隔行
+            if (dataRows.length === 0) {
+                showToast('提示', '未检测到数据行，请补充内容后再试', 'warning');
+                return;
+            }
+
+            const headers = tableParseMarkdownRow(headerRow);
+            const tableData = [headers];
+            dataRows.forEach(row => {
+                tableData.push(tableParseMarkdownRow(row));
+            });
+
+            renderTablePreview('tableMarkdownPreview', tableData);
+            showToast('转换完成', 'Markdown表格已转换', 'success');
+        }
+
+        function tableCopyResult(targetId) {
+            const target = document.getElementById(targetId);
+            if (!target || !target.innerHTML.trim()) {
+                showToast('提示', '没有可复制的表格内容', 'warning');
+                return;
+            }
+
+            const html = target.innerHTML;
+            const text = target.textContent || '';
+
+            const fallbackCopy = () => {
+                const selection = window.getSelection();
+                const range = document.createRange();
+                range.selectNodeContents(target);
+                selection.removeAllRanges();
+                selection.addRange(range);
+                const ok = document.execCommand('copy');
+                selection.removeAllRanges();
+                if (ok) {
+                    showToast('复制成功', '表格已复制到剪贴板');
+                } else {
+                    showToast('复制失败', '请手动选择表格后复制', 'error');
+                }
+            };
+
+            if (navigator.clipboard && navigator.clipboard.write && typeof ClipboardItem !== 'undefined') {
+                try {
+                    const item = new ClipboardItem({
+                        'text/html': new Blob([html], { type: 'text/html' }),
+                        'text/plain': new Blob([text], { type: 'text/plain' })
+                    });
+                    navigator.clipboard.write([item]).then(() => {
+                        showToast('复制成功', '表格已复制到剪贴板');
+                    }).catch(() => fallbackCopy());
+                } catch (error) {
+                    fallbackCopy();
+                }
+            } else {
+                fallbackCopy();
+            }
+        }
+
+        function tableReset(type) {
+            const mapping = {
+                html: { input: 'tableHtmlInput', preview: 'tableHtmlPreview' },
+                text: { input: 'tableTextInput', preview: 'tableTextPreview' },
+                markdown: { input: 'tableMarkdownInput', preview: 'tableMarkdownPreview' }
+            };
+            const config = mapping[type];
+            if (!config) return;
+            const inputEl = document.getElementById(config.input);
+            const previewEl = document.getElementById(config.preview);
+            if (inputEl) inputEl.value = '';
+            if (previewEl) previewEl.innerHTML = '';
+        }
+
+        function prefillTableConverterExamples() {
+            const textExample = `商品名称\t类别\t单价\t库存\t销售状态
+产品A\t电子产品\t1299.99\t156\t正常销售
+产品B\t家居用品\t299.50\t42\t促销中
+产品C\t食品饮料\t58.80\t230\t正常销售
+产品D\t办公用品\t125.00\t78\t缺货中`;
+
+            const markdownExample = `| 商品名称 | 类别 | 单价 | 库存 | 销售状态 |
+| -------- | ---- | ---- | ---- | -------- |
+| 产品A | 电子产品 | 1299.99 | 156 | 正常销售 |
+| 产品B | 家居用品 | 299.50 | 42 | 促销中 |
+| 产品C | 食品饮料 | 58.80 | 230 | 正常销售 |
+| **产品D** | 办公用品 | 125.00 | 78 | <br>缺货中<br>预计3天后到货 |`;
+
+            const htmlExample = `<table>
+  <tr>
+    <th>商品名称</th>
+    <th>类别</th>
+    <th>单价</th>
+    <th>库存</th>
+    <th>销售状态</th>
+  </tr>
+  <tr>
+    <td>产品A</td>
+    <td>电子产品</td>
+    <td>1299.99</td>
+    <td>156</td>
+    <td>正常销售</td>
+  </tr>
+  <tr>
+    <td>产品B</td>
+    <td>家居用品</td>
+    <td>299.50</td>
+    <td>42</td>
+    <td>促销中</td>
+  </tr>
+  <tr>
+    <td>产品C</td>
+    <td>食品饮料</td>
+    <td>58.80</td>
+    <td>230</td>
+    <td>正常销售</td>
+  </tr>
+  <tr>
+    <td><strong>产品D</strong></td>
+    <td>办公用品</td>
+    <td>125.00</td>
+    <td>78</td>
+    <td>缺货中<br>预计3天后到货</td>
+  </tr>
+</table>`;
+
+            const textInput = document.getElementById('tableTextInput');
+            const mdInput = document.getElementById('tableMarkdownInput');
+            const htmlInput = document.getElementById('tableHtmlInput');
+            if (textInput) textInput.value = textExample;
+            if (mdInput) mdInput.value = markdownExample;
+            if (htmlInput) htmlInput.value = htmlExample;
         }
 
         // 提取文档标题（用于文件命名和文档属性）

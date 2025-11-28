@@ -2040,8 +2040,141 @@
             display: none;
         }
 
-        .main-app.authenticated {
-            display: block;
-        }
+.main-app.authenticated {
+    display: block;
+}
 
-        /* 密码界面移动端适配 */
+/* 密码界面移动端适配 */
+
+/* 表格转换器 */
+.table-converter-modal {
+    max-width: 1100px;
+}
+
+.table-converter-modal .table-converter-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.table-converter-tip {
+    margin: 0 0 4px 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.table-tab-bar {
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 6px;
+}
+
+.table-tab {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    background: var(--glass-bg);
+    color: var(--text-primary);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+}
+
+.table-tab:hover {
+    background: var(--preview-bg);
+}
+
+.table-tab.active {
+    background: var(--accent-primary);
+    color: white;
+    border-color: var(--accent-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.table-tab-panel {
+    display: none;
+    margin-top: 6px;
+}
+
+.table-tab-panel.active {
+    display: block;
+}
+
+.table-panel-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.table-input-block,
+.table-preview-block {
+    background: var(--preview-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.table-block-title {
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+}
+
+.table-converter-textarea {
+    width: 100%;
+    min-height: 190px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    resize: vertical;
+    background: white;
+    color: var(--text-primary);
+}
+
+.table-helper {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 6px;
+}
+
+.table-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.table-preview-card {
+    min-height: 190px;
+    background: white;
+    border: 1px dashed var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    overflow: auto;
+}
+
+.table-preview-card table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-preview-card th,
+.table-preview-card td {
+    border: 1px solid #ddd;
+    padding: 6px 8px;
+    text-align: left;
+}
+
+.table-preview-card th {
+    background: #f5f7fb;
+    font-weight: 700;
+}
+
+@media (max-width: 960px) {
+    .table-panel-grid {
+        grid-template-columns: 1fr;
+    }
+}
