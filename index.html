@@ -485,7 +485,19 @@
                                 <button type="button" onclick="toggleAPIKeyVisibility()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px;" title="显示/隐藏API密钥">👁️</button>
                             </div>
                             <div style="font-size: 12px; color: var(--text-secondary); margin-top: 5px;">
-                                ⚠️ API密钥仅在本地存储，不会上传到服务器
+                                ⚠️ API密钥仅保存在本地浏览器，不会上传；请勿在不可信环境使用个人密钥
+                            </div>
+                        </div>
+
+                        <!-- 基本参数 -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Temperature：</label>
+                                <input type="number" step="0.05" min="0" max="2" id="aiTemperature" value="0.3" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Max Tokens：</label>
+                                <input type="number" min="1" id="aiMaxTokens" value="4096" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
                             </div>
                         </div>
                         

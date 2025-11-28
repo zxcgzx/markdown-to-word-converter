@@ -1117,14 +1117,17 @@
                 name: 'Kimi (moonshot)',
                 endpoint: 'https://api.moonshot.cn/v1/chat/completions',
                 models: [
-                    { value: 'moonshot-v1-32k', label: 'moonshot-v1-32k (默认)' }
+                    { value: 'moonshot-v1-8k', label: 'moonshot-v1-8k (8K上下文)' },
+                    { value: 'moonshot-v1-32k', label: 'moonshot-v1-32k (默认)' },
+                    { value: 'moonshot-v1-128k', label: 'moonshot-v1-128k (128K备用)' }
                 ]
             },
             glm: {
                 name: '智谱GLM',
                 endpoint: 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
                 models: [
-                    { value: 'glm-4-flash', label: 'GLM-4-Flash (快速版)' }
+                    { value: 'glm-4-flash', label: 'GLM-4-Flash (快速版)' },
+                    { value: 'glm-4-plus', label: 'GLM-4-Plus (高性能版)' }
                 ]
             },
             baichuan: {
@@ -1365,6 +1368,10 @@
             advanced: 20,     // 高级用户每日20次
             super_admin: -1   // 超级管理员无限制
         };
+        const AI_MIN_INTERVAL_MS = 3000; // 最短调用间隔
+        const AI_REQUEST_TIMEOUT_MS = 25000; // 单次请求超时
+        const AI_MAX_RETRY = 2; // 额外重试次数
+        let lastAICallAt = 0;
         
         // 预配置的AI服务（所有用户可用）
         const PRESET_AI_CONFIGS = {
@@ -1372,6 +1379,8 @@
                 provider: 'kimi',
                 model: 'moonshot-v1-32k',
                 apiKey: encodeApiKey('sk-gHkveDRADoUyhVOFxxN2oUBYft8A1sQ6Xc1czwaoVtySgKD2'),
+                temperature: 0.3,
+                maxTokens: 4096,
                 fixFormat: true,
                 fixSyntax: true,
                 optimizeContent: false,
@@ -1381,6 +1390,8 @@
                 provider: 'glm',
                 model: 'glm-4-flash',
                 apiKey: encodeApiKey('ee0a994d6669c2249075f43be85a3a91.6oA7rMgYPFeSckwQ'),
+                temperature: 0.3,
+                maxTokens: 4096,
                 fixFormat: true,
                 fixSyntax: true,
                 optimizeContent: false,
@@ -1950,6 +1961,8 @@
             const provider = document.getElementById('aiProvider').value;
             const model = document.getElementById('aiModel').value;
             const apiKey = document.getElementById('aiApiKey').value.trim();
+            const temperature = parseFloat(document.getElementById('aiTemperature').value || '0.3');
+            const maxTokens = parseInt(document.getElementById('aiMaxTokens').value || '4096', 10);
             
             if (!apiKey) {
                 showToast('配置错误', '请输入API密钥', 'warning');
@@ -1961,6 +1974,8 @@
                 provider: provider,
                 model: model,
                 apiKey: apiKey,
+                temperature: isNaN(temperature) ? 0.3 : temperature,
+                maxTokens: isNaN(maxTokens) ? 4096 : maxTokens,
                 fixFormat: document.getElementById('fixFormat').checked,
                 fixSyntax: document.getElementById('fixSyntax').checked,
                 optimizeContent: document.getElementById('optimizeContent').checked,
@@ -1988,6 +2003,8 @@
                     updateAIModels();
                     document.getElementById('aiModel').value = config.model || AI_CONFIGS[config.provider].models[0].value;
                     document.getElementById('aiApiKey').value = config.apiKey || '';
+                    document.getElementById('aiTemperature').value = config.temperature ?? 0.3;
+                    document.getElementById('aiMaxTokens').value = config.maxTokens ?? 4096;
                     document.getElementById('fixFormat').checked = config.fixFormat !== false;
                     document.getElementById('fixSyntax').checked = config.fixSyntax !== false;
                     document.getElementById('optimizeContent').checked = config.optimizeContent !== false;
@@ -2070,11 +2087,7 @@
             }
 
             if (!canUseAIFix()) {
-                showUpgradePrompt(
-                    'AI修复需要升级',
-                    'AI智能修复功能仅对高级用户开放。\n升级后可享受每日10次AI修复服务！',
-                    'ai'
-                );
+                showToast('提示', '请先登录后再使用AI修复', 'info');
                 return;
             }
 
@@ -2104,11 +2117,7 @@
             }
 
             if (!canUseAIFix()) {
-                showUpgradePrompt(
-                    'AI修复需要升级',
-                    'AI智能修复功能仅对高级用户开放。\n升级后可享受每日10次AI修复服务！',
-                    'ai'
-                );
+                showToast('提示', '请先登录后再使用AI修复', 'info');
                 return;
             }
 
@@ -2225,17 +2234,25 @@
                 return null;
             }
 
+            const now = Date.now();
+            if (now - lastAICallAt < AI_MIN_INTERVAL_MS) {
+                const waitMs = AI_MIN_INTERVAL_MS - (now - lastAICallAt);
+                showToast('操作过于频繁', `请稍候 ${Math.ceil(waitMs / 1000)} 秒后再试`, 'warning');
+                return null;
+            }
+            lastAICallAt = now;
+
             const basePrompt = AI_SYSTEM_PROMPTS[options.type] || AI_SYSTEM_PROMPTS.quick_fix;
             const directives = buildAIModeDirectives(options);
             const finalSystemPrompt = directives ? `${basePrompt}\n\n${directives}` : basePrompt;
-
-            const controller = new AbortController();
-            currentAIFixController = controller;
 
             resetAIStatus();
             updateAIStatus('准备发送请求...', 10, true);
 
             try {
+                const temperature = typeof config.temperature === 'number' ? config.temperature : 0.3;
+                const maxTokens = Number.isInteger(config.maxTokens) ? config.maxTokens : 4096;
+
                 const headers = {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${decodeApiKey(config.apiKey)}`
@@ -2251,51 +2268,103 @@
                         { role: 'system', content: finalSystemPrompt },
                         { role: 'user', content: content }
                     ],
-                    temperature: 0.3,
-                    max_tokens: 300000,
+                    temperature: Math.min(Math.max(temperature, 0), 2),
+                    max_tokens: Math.max(1, maxTokens),
                     stream: false
                 };
 
                 if (aiConfig.params) {
                     Object.assign(requestBody, aiConfig.params);
                 }
+                
+                const sendRequest = async (attempt) => {
+                    let timedOut = false;
+                    const controller = new AbortController();
+                    currentAIFixController = controller;
+                    const timeoutId = setTimeout(() => {
+                        timedOut = true;
+                        controller.abort();
+                    }, AI_REQUEST_TIMEOUT_MS);
 
-                updateAIStatus(`正在连接 ${aiConfig.name} ...`, 30, true);
-
-                const response = await fetch(aiConfig.endpoint, {
-                    method: 'POST',
-                    headers,
-                    body: JSON.stringify(requestBody),
-                    signal: controller.signal
-                });
-
-                if (!response.ok) {
-                    let errorMessage = `API调用失败 (${response.status})`;
                     try {
-                        const errorData = await response.json();
-                        errorMessage += `: ${errorData.error?.message || errorData.message || '未知错误'}`;
-                    } catch (e) {
-                        errorMessage += `: ${response.statusText}`;
-                    }
-                    throw new Error(errorMessage);
-                }
+                        if (attempt > 1) {
+                            updateAIStatus(`正在重试 (${attempt}/${AI_MAX_RETRY + 1})...`, 35, true);
+                        } else {
+                            updateAIStatus(`正在连接 ${aiConfig.name} ...`, 30, true);
+                        }
 
-                updateAIStatus('解析AI响应...', 65, false);
+                        const response = await fetch(aiConfig.endpoint, {
+                            method: 'POST',
+                            headers,
+                            body: JSON.stringify(requestBody),
+                            signal: controller.signal
+                        });
+                        clearTimeout(timeoutId);
+
+                        if (!response.ok) {
+                            let errorMessage = `API调用失败 (${response.status})`;
+                            try {
+                                const errorData = await response.json();
+                                errorMessage += `: ${errorData.error?.message || errorData.message || '未知错误'}`;
+                            } catch (e) {
+                                errorMessage += `: ${response.statusText}`;
+                            }
+                            const err = new Error(errorMessage);
+                            err.status = response.status;
+                            throw err;
+                        }
+
+                        updateAIStatus('解析AI响应...', 65, false);
+
+                        let data;
+                        const contentType = response.headers.get('content-type') || '';
+                        if (contentType.includes('application/json')) {
+                            data = await response.json();
+                        } else {
+                            const rawText = await response.text();
+                            try {
+                                data = JSON.parse(rawText);
+                            } catch (parseError) {
+                                throw new Error('AI返回数据无法解析');
+                            }
+                        }
+
+                        return { data };
+                    } catch (err) {
+                        if (controller.signal.aborted && !timedOut) {
+                            // 用户主动取消，直接抛出
+                            throw err;
+                        }
+                        if (timedOut) {
+                            err.timedOut = true;
+                        }
+                        throw err;
+                    } finally {
+                        clearTimeout(timeoutId);
+                        currentAIFixController = null;
+                    }
+                };
 
                 let data;
-                const contentType = response.headers.get('content-type') || '';
-                if (contentType.includes('application/json')) {
-                    data = await response.json();
-                } else {
-                    const rawText = await response.text();
+                let lastError = null;
+                for (let attempt = 1; attempt <= AI_MAX_RETRY + 1; attempt++) {
                     try {
-                        data = JSON.parse(rawText);
-                    } catch (parseError) {
-                        throw new Error('AI返回数据无法解析');
+                        const result = await sendRequest(attempt);
+                        data = result.data;
+                        lastError = null;
+                        break;
+                    } catch (err) {
+                        lastError = err;
+                        const isLast = attempt === AI_MAX_RETRY + 1;
+                        if (isLast) {
+                            throw err;
+                        } else {
+                            updateAIStatus('请求失败，正在重试...', 40, true);
+                        }
                     }
                 }
 
-                if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+                if (!data || !data.choices || !data.choices[0] || !data.choices[0].message) {
                     throw new Error('AI返回的数据格式不正确');
                 }
 
@@ -2335,11 +2404,14 @@
                             showAIConfigModal();
                         }, 2000);
                     }
+
+                    if (error.timedOut) {
+                        incrementAIUsage();
+                    }
                 }
                 return null;
             } finally {
                 hideAIStatus(600);
-                currentAIFixController = null;
             }
         }
 
@@ -2377,10 +2449,11 @@
         function mapAIErrorMessage(error) {
             if (!error || !error.message) return 'AI修复过程中发生未知错误';
             const message = error.message;
-            if (message.includes('401')) return 'API密钥无效，请检查配置或重新生成密钥';
-            if (message.includes('403')) return 'AI服务拒绝访问，请确认账号权限或服务是否启用';
-            if (message.includes('429')) return '调用频率超限，请稍后重试或降低请求频率';
-            if (message.includes('timeout')) return 'AI服务响应超时，请检查网络或稍后再试';
+            const status = error.status || '';
+            if (status === 401 || message.includes('401')) return 'API密钥无效，请检查配置或重新生成密钥';
+            if (status === 403 || message.includes('403')) return 'AI服务拒绝访问，请确认账号权限或服务是否启用';
+            if (status === 429 || message.includes('429')) return '调用频率超限，请稍后重试或降低请求频率';
+            if (error.timedOut || message.includes('timeout')) return 'AI服务响应超时，请检查网络或稍后再试';
             if (message.includes('网络') || message.includes('fetch')) return '网络连接异常，无法访问AI服务';
             return `修复失败：${message}`;
         }
@@ -2983,12 +3056,15 @@
                 }
                 
                 // 构建请求体
+                const temperature = typeof config.temperature === 'number' ? config.temperature : 0.3;
+                const maxTokens = Number.isInteger(config.maxTokens) ? config.maxTokens : 4096;
                 const requestBody = {
                     model: config.model,
                     messages: [
                         { role: 'user', content: '测试连接' }
                     ],
-                    max_tokens: 1000
+                    temperature: Math.min(Math.max(temperature, 0), 2),
+                    max_tokens: Math.max(1, maxTokens)
                 };
                 
                 // 添加自定义参数
