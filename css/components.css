@@ -2023,11 +2023,11 @@
             color: #fca5a5;
         }
 
-        .password-hint {
-            margin: 0;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            line-height: 1.6;
+.password-hint {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
             text-align: left;
         }
 
@@ -2045,6 +2045,125 @@
 }
 
 /* 密码界面移动端适配 */
+
+/* AI 配置改版样式 */
+.ai-config-card {
+    background: var(--preview-bg);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-sm);
+}
+
+.ai-config-warning {
+    background: rgba(255, 193, 7, 0.15);
+    border: 1px solid rgba(255, 193, 7, 0.35);
+    color: #8a6d1a;
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-size: 13px;
+}
+
+.ai-config-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.ai-config-row {
+    margin-bottom: 12px;
+}
+
+.ai-config-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.ai-config-select,
+.ai-config-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: white;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.ai-config-eye {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.ai-config-subtext {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 6px;
+}
+
+.ai-config-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.ai-config-checkboxes label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+}
+
+.ai-custom-section {
+    margin-top: 10px;
+    padding: 15px;
+    background: rgba(116, 185, 255, 0.05);
+    border: 1px solid rgba(116, 185, 255, 0.2);
+    border-radius: 10px;
+}
+
+.ai-custom-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.ai-config-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.ai-config-actions .btn,
+.ai-config-actions .btn-secondary {
+    flex: 1;
+}
+
+.ai-config-note {
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(116, 185, 255, 0.08);
+    border-radius: 10px;
+    border: 1px solid rgba(116, 185, 255, 0.2);
+}
+
+.ai-config-note ul {
+    margin: 8px 0 0 18px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    padding: 0;
+}
 
 /* 表格转换器 */
 .table-converter-modal {

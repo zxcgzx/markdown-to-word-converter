@@ -393,177 +393,117 @@
                     <button onclick="closeAIConfigModal()" class="modal-close" title="关闭" aria-label="关闭">&times;</button>
                 </div>
                 <div class="modal-body">
-                    <div style="background: var(--preview-bg); padding: 20px; border-radius: 8px;">
+                    <div class="ai-config-card">
+                        <div class="ai-config-warning">⚠️ API 密钥仅保存在本地浏览器，不会上传；请勿在不可信环境输入个人密钥。</div>
                         <h3 style="margin-top: 0; color: var(--text-primary);">🔧 AI服务配置</h3>
-                        
-                        <!-- AI服务商选择 -->
-                        <div style="margin-bottom: 15px;">
-                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">AI服务商：</label>
-                            <select id="aiProvider" onchange="updateAIModels()" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: white;">
-                                <option value="kimi">Kimi (moonshot)</option>
-                                <option value="glm">智谱GLM</option>
-                                <option value="baichuan">百川AI</option>
-                                <option value="deepseek">DeepSeek</option>
-                                <option value="openai">OpenAI</option>
-                                <option value="gemini">Gemini-2.5-Flash</option>
-                                <option value="custom" style="font-weight: bold; color: var(--accent-primary);">🔧 自定义服务商</option>
-                            </select>
+                        <div class="ai-config-grid">
+                            <div>
+                                <label class="ai-config-label">AI服务商：</label>
+                                <select id="aiProvider" onchange="updateAIModels()" class="ai-config-select">
+                                    <option value="kimi">Kimi (moonshot)</option>
+                                    <option value="glm">智谱GLM</option>
+                                    <option value="baichuan">百川AI</option>
+                                    <option value="deepseek">DeepSeek</option>
+                                    <option value="openai">OpenAI</option>
+                                    <option value="gemini">Gemini-2.5-Flash</option>
+                                    <option value="custom" style="font-weight: bold; color: var(--accent-primary);">🔧 自定义服务商</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="ai-config-label">AI模型：</label>
+                                <select id="aiModel" class="ai-config-select">
+                                    <option value="moonshot-v1-8k">moonshot-v1-8k</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="ai-config-label">Temperature（0-2，默认0.3）：</label>
+                                <input type="number" step="0.05" min="0" max="2" id="aiTemperature" value="0.3" class="ai-config-input">
+                            </div>
+                            <div>
+                                <label class="ai-config-label">Max Tokens（建议 2k-8k）：</label>
+                                <input type="number" min="1" id="aiMaxTokens" value="4096" class="ai-config-input">
+                            </div>
                         </div>
-                        
-                        <!-- 自定义服务商配置区域 -->
-                        <div id="customConfigSection" style="display: none; margin-bottom: 15px; padding: 15px; background: rgba(116, 185, 255, 0.05); border: 1px solid rgba(116, 185, 255, 0.2); border-radius: 8px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                                <h4 style="margin: 0; color: var(--accent-primary);">🔧 自定义AI服务配置</h4>
+                        <div class="ai-config-row">
+                            <label class="ai-config-label">API密钥：</label>
+                            <div style="position: relative; width: 100%;">
+                                <input type="password" id="aiApiKey" placeholder="输入您的API密钥" class="ai-config-input" style="padding-right: 40px;">
+                                <button type="button" onclick="toggleAPIKeyVisibility()" class="ai-config-eye" title="显示/隐藏API密钥">👁️</button>
+                            </div>
+                            <div class="ai-config-subtext">⚠️ 密钥仅存在本地，不会上传；请勿在公共或不可信设备输入个人密钥。</div>
+                        </div>
+                        <div class="ai-config-row">
+                            <label class="ai-config-label" style="margin-bottom: 6px;">修复选项：</label>
+                            <div class="ai-config-checkboxes">
+                                <label><input type="checkbox" id="fixFormat" checked> 格式规范化</label>
+                                <label><input type="checkbox" id="fixSyntax" checked> 语法修复</label>
+                                <label><input type="checkbox" id="optimizeContent" checked> 内容优化</label>
+                                <label><input type="checkbox" id="addStructure" checked> 添加标题层次</label>
+                            </div>
+                        </div>
+                        <div id="customConfigSection" class="ai-custom-section" style="display: none;">
+                            <div class="ai-custom-header">
+                                <h4>🔧 自定义AI服务配置</h4>
                                 <div style="display: flex; gap: 8px;">
-                                    <button onclick="showConfigTemplates()" style="background: var(--accent-secondary); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;" title="选择配置模板">📋 模板</button>
-                                    <button onclick="importCustomConfig()" style="background: var(--info); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;" title="导入配置">📥 导入</button>
+                                    <button onclick="showConfigTemplates()" class="btn-secondary" style="padding: 4px 8px; font-size: 12px;">📋 模板</button>
+                                    <button onclick="importCustomConfig()" class="btn" style="padding: 4px 8px; font-size: 12px; background: var(--info);">📥 导入</button>
                                 </div>
                             </div>
-                            
-                            <!-- 服务商名称 -->
-                            <div style="margin-bottom: 12px;">
-                                <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px;">服务商名称：</label>
-                                <input type="text" id="customProviderName" placeholder="例如：My Custom AI" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 14px;">
-                            </div>
-                            
-                            <!-- API端点 -->
-                            <div style="margin-bottom: 12px;">
-                                <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px;">API端点URL：</label>
-                                <input type="url" id="customEndpoint" placeholder="https://api.example.com/v1/chat/completions" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 14px;">
-                                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 3px;">
-                                    💡 支持OpenAI兼容格式的API端点
+                            <div class="ai-config-grid">
+                                <div>
+                                    <label class="ai-config-label">服务商名称：</label>
+                                    <input type="text" id="customProviderName" placeholder="例如：My Custom AI" class="ai-config-input">
+                                </div>
+                                <div>
+                                    <label class="ai-config-label">API端点URL：</label>
+                                    <input type="url" id="customEndpoint" placeholder="https://api.example.com/v1/chat/completions" class="ai-config-input">
+                                    <div class="ai-config-subtext">💡 支持 OpenAI 兼容格式</div>
                                 </div>
                             </div>
-                            
-                            <!-- 模型配置 -->
-                            <div style="margin-bottom: 12px;">
-                                <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px;">
+                            <div style="margin-bottom: 10px;">
+                                <label class="ai-config-label">
                                     可用模型：
-                                    <button onclick="addCustomModel()" style="background: var(--success); color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 11px; margin-left: 8px;">＋ 添加</button>
+                                    <button onclick="addCustomModel()" class="btn" style="padding: 2px 6px; font-size: 11px; margin-left: 8px; background: var(--success);">＋ 添加</button>
                                 </label>
-                                <div id="customModelsList" style="max-height: 120px; overflow-y: auto;">
-                                    <!-- 默认模型输入框将通过JavaScript动态添加 -->
-                                </div>
+                                <div id="customModelsList" style="max-height: 140px; overflow-y: auto;"></div>
                             </div>
-                            
-                            <!-- 高级选项 -->
-                            <details style="margin-bottom: 12px;">
+                            <details style="margin-bottom: 10px;">
                                 <summary style="cursor: pointer; font-weight: 600; font-size: 14px; color: var(--text-secondary);">⚙️ 高级选项</summary>
-                                <div style="margin-top: 10px; padding: 10px; background: var(--preview-bg); border-radius: 6px;">
-                                    <div style="margin-bottom: 8px;">
-                                        <label style="display: block; margin-bottom: 3px; font-weight: 600; font-size: 13px;">自定义请求头 (JSON格式)：</label>
-                                        <textarea id="customHeaders" placeholder='{"Authorization": "Bearer your-key", "Custom-Header": "value"}' style="width: 100%; height: 60px; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; font-family: monospace; resize: vertical;"></textarea>
+                                <div style="margin-top: 10px; padding: 10px; background: var(--preview-bg); border-radius: 6px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <div>
+                                        <label class="ai-config-label" style="font-size: 13px;">自定义请求头 (JSON)：</label>
+                                        <textarea id="customHeaders" placeholder='{"Authorization": "Bearer your-key"}' style="width: 100%; height: 80px; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; font-family: monospace; resize: vertical;"></textarea>
                                     </div>
-                                    <div style="margin-bottom: 8px;">
-                                        <label style="display: block; margin-bottom: 3px; font-weight: 600; font-size: 13px;">请求参数 (JSON格式)：</label>
-                                        <textarea id="customParams" placeholder='{"temperature": 0.7, "max_tokens": 1000}' style="width: 100%; height: 60px; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; font-family: monospace; resize: vertical;"></textarea>
+                                    <div>
+                                        <label class="ai-config-label" style="font-size: 13px;">请求参数 (JSON)：</label>
+                                        <textarea id="customParams" placeholder='{"temperature": 0.7, "max_tokens": 1000}' style="width: 100%; height: 80px; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; font-family: monospace; resize: vertical;"></textarea>
                                     </div>
                                 </div>
                             </details>
-                            
-                            <!-- 操作按钮 -->
-                            <div style="display: flex; gap: 8px; margin-top: 15px;">
-                                <button onclick="validateCustomConfig()" style="background: var(--info); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; flex: 1; font-size: 13px;">🔍 验证配置</button>
-                                <button onclick="saveCustomConfig()" style="background: var(--success); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; flex: 1; font-size: 13px;">💾 保存自定义</button>
-                                <button onclick="exportCustomConfig()" style="background: var(--accent-secondary); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; flex: 1; font-size: 13px;">📤 导出</button>
+                            <div style="display: flex; gap: 8px; margin-top: 10px;">
+                                <button onclick="validateCustomConfig()" class="btn" style="background: var(--info); flex: 1;">🔍 验证配置</button>
+                                <button onclick="saveCustomConfig()" class="btn" style="background: var(--success); flex: 1;">💾 保存自定义</button>
+                                <button onclick="exportCustomConfig()" class="btn-secondary" style="flex: 1;">📤 导出</button>
                             </div>
                         </div>
-                        
-                        <!-- 模型选择 -->
-                        <div style="margin-bottom: 15px;">
-                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">AI模型：</label>
-                            <select id="aiModel" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: white;">
-                                <option value="moonshot-v1-8k">moonshot-v1-8k</option>
-                            </select>
+                        <div class="ai-config-actions">
+                            <button onclick="saveAIConfig()" class="btn">💾 保存配置</button>
+                            <button onclick="testAIConnection()" class="btn" style="background: var(--info);">🔗 测试连接</button>
+                            <button onclick="showAIHelp()" class="btn-secondary">📖 帮助</button>
                         </div>
-                        
-                        <!-- API密钥输入 -->
-                        <div style="margin-bottom: 15px;">
-                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">API密钥：</label>
-                            <div style="position: relative;">
-                                <input type="password" id="aiApiKey" placeholder="输入您的API密钥" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; padding-right: 40px;">
-                                <button type="button" onclick="toggleAPIKeyVisibility()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px;" title="显示/隐藏API密钥">👁️</button>
-                            </div>
-                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 5px;">
-                                ⚠️ API密钥仅保存在本地浏览器，不会上传；请勿在不可信环境使用个人密钥
-                            </div>
+                        <div class="ai-config-note">
+                            <h4>💡 使用说明</h4>
+                            <ul>
+                                <li>整体修复 / 深度优化 快捷键：Ctrl+Alt+F / Ctrl+Alt+O</li>
+                                <li>预设服务商：Kimi、GLM、百川、DeepSeek、OpenAI、Gemini；亦可自定义</li>
+                                <li>配置保存在本地，可导入/导出，测试连接前请先保存</li>
+                            </ul>
                         </div>
-
-                        <!-- 基本参数 -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-                            <div>
-                                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Temperature：</label>
-                                <input type="number" step="0.05" min="0" max="2" id="aiTemperature" value="0.3" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
-                            </div>
-                            <div>
-                                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Max Tokens：</label>
-                                <input type="number" min="1" id="aiMaxTokens" value="4096" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
-                            </div>
-                        </div>
-                        
-                        <!-- 修复选项 -->
-                        <div style="margin-bottom: 15px;">
-                            <label style="display: block; margin-bottom: 10px; font-weight: 600;">修复选项：</label>
-                            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                                <label style="display: flex; align-items: center; gap: 5px; font-size: 14px;">
-                                    <input type="checkbox" id="fixFormat" checked> 格式规范化
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 5px; font-size: 14px;">
-                                    <input type="checkbox" id="fixSyntax" checked> 语法修复
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 5px; font-size: 14px;">
-                                    <input type="checkbox" id="optimizeContent" checked> 内容优化
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 5px; font-size: 14px;">
-                                    <input type="checkbox" id="addStructure" checked> 添加标题层次
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <!-- 操作按钮组 -->
-                        <div style="display: flex; gap: 10px;">
-                            <button onclick="testAIConnection()" style="background: var(--info); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; flex: 1;">🔗 测试连接</button>
-                            <button onclick="showAIHelp()" style="background: var(--warning); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; flex: 1;">📖 帮助</button>
-                        </div>
-                        <button onclick="saveAIConfig()" style="background: var(--accent-primary); color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; margin-top: 10px;">💾 保存配置</button>
                     </div>
-                    
-                    <!-- 使用说明 -->
-                    <div style="background: rgba(116, 185, 255, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid var(--info);">
-                        <h4 style="margin-top: 0; color: var(--text-primary);">💡 使用说明</h4>
-                        <ul style="margin: 0; padding-left: 20px; color: var(--text-secondary); font-size: 14px;">
-                            <li><strong>整体整体修复</strong>：自动修复常见的Markdown格式问题</li>
-                            <li><strong>深度优化</strong>：使用AI重新组织和优化文档结构</li>
-                            <li><strong>预设服务商</strong>：Kimi、GLM、百川、DeepSeek、OpenAI、Gemini</li>
-                            <li><strong>自定义服务商</strong>：支持添加任何OpenAI兼容的AI服务</li>
-                            <li><strong>配置模板</strong>：内置Anthropic、Ollama、Groq等模板</li>
-                            <li><strong>配置管理</strong>：支持导入/导出配置文件</li>
-                            <li><strong>API密钥</strong>：获取密钥请访问对应AI服务商官网</li>
-                            <li><strong>使用限制</strong>：高级用户每日20次，超级管理员无限制</li>
-                        </ul>
-                    </div>
-                    
-                    <!-- 自定义配置示例 -->
-                    <details style="margin-top: 15px;">
-                        <summary style="cursor: pointer; font-weight: 600; color: var(--text-primary); padding: 8px;">📚 配置示例</summary>
-                        <div style="margin-top: 10px; padding: 12px; background: var(--preview-bg); border-radius: 6px;">
-                            <h5 style="margin: 0 0 8px 0; color: var(--accent-primary);">OpenAI兼容端点示例：</h5>
-                            <code style="display: block; font-size: 12px; color: var(--text-secondary); background: white; padding: 8px; border-radius: 4px; margin-bottom: 8px;">
-                                端点: https://api.openai.com/v1/chat/completions<br>
-                                模型: gpt-4, gpt-3.5-turbo
-                            </code>
-                            <h5 style="margin: 8px 0 8px 0; color: var(--accent-primary);">本地Ollama示例：</h5>
-                            <code style="display: block; font-size: 12px; color: var(--text-secondary); background: white; padding: 8px; border-radius: 4px;">
-                                端点: http://localhost:11434/v1/chat/completions<br>
-                                模型: llama3.2, mistral, codellama
-                            </code>
-                        </div>
-                    </details>
                 </div>
             </div>
         </div>
-
-        <!-- AI模式选择弹层 -->
+<!-- AI模式选择弹层 -->
         <div id="aiModeModal" class="modal-overlay" style="display: none;">
             <div class="modal-shell ai-mode-shell">
                 <div class="modal-header">
