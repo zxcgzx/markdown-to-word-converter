@@ -9,7 +9,7 @@
                     mathFormulas: false,
                     batchProcess: false,
                     customExport: false,
-                    aiFix: false,        // 基础用户不支持AI修复
+                    aiFix: true,         // 基础用户也可使用AI修复
                     priority: 'low'
                 }
             },
@@ -122,6 +122,7 @@
                             mathFormulas: false,
                             batchProcess: false,
                             customExport: false,
+                            aiFix: true,
                             priority: 'low'
                         }
                     },
@@ -134,6 +135,7 @@
                             mathFormulas: true,
                             batchProcess: true,
                             customExport: true,
+                            aiFix: true,
                             priority: 'high'
                         }
                     }
@@ -1115,16 +1117,13 @@
                 name: 'Kimi (moonshot)',
                 endpoint: 'https://api.moonshot.cn/v1/chat/completions',
                 models: [
-                    { value: 'moonshot-v1-8k', label: 'moonshot-v1-8k (8K上下文)' },
-                    { value: 'moonshot-v1-32k', label: 'moonshot-v1-32k (32K上下文)' },
-                    { value: 'moonshot-v1-128k', label: 'moonshot-v1-128k (128K上下文)' }
+                    { value: 'moonshot-v1-32k', label: 'moonshot-v1-32k (默认)' }
                 ]
             },
             glm: {
                 name: '智谱GLM',
                 endpoint: 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
                 models: [
-                    { value: 'glm-4-plus', label: 'GLM-4-Plus (高性能版)' },
                     { value: 'glm-4-flash', label: 'GLM-4-Flash (快速版)' }
                 ]
             },
@@ -1362,26 +1361,26 @@
         
         // AI使用配额管理
         const AI_USAGE_LIMITS = {
-            basic: 0,        // 基础用户无法使用
-            advanced: 20,    // 高级用户每日20次
-            super_admin: -1  // 超级管理员无限制
+            basic: 20,        // 基础用户每日20次
+            advanced: 20,     // 高级用户每日20次
+            super_admin: -1   // 超级管理员无限制
         };
         
-        // 预配置的AI服务（高级用户专用）- 支持两个默认选项
+        // 预配置的AI服务（所有用户可用）
         const PRESET_AI_CONFIGS = {
             kimi: {
                 provider: 'kimi',
-                model: 'moonshot-v1-8k',
-                apiKey: 'zk_h7xy_5mwir[JZpKJg6[:fK_UWsm9YoO{[ZO__sV9VYKZY_^^Kojsimg6_5j[SsX5V~', // 加密的Kimi API密钥
+                model: 'moonshot-v1-32k',
+                apiKey: encodeApiKey('sk-gHkveDRADoUyhVOFxxN2oUBYft8A1sQ6Xc1czwaoVtySgKD2'),
                 fixFormat: true,
                 fixSyntax: true,
                 optimizeContent: false,
                 addStructure: false
             },
-            gemini: {
-                provider: 'gemini',
-                model: 'gemini-2.5-flash',
-                apiKey: 'zk_h7xygLqz_7}ugrhB', // 加密的Gemini API密钥
+            glm: {
+                provider: 'glm',
+                model: 'glm-4-flash',
+                apiKey: encodeApiKey('ee0a994d6669c2249075f43be85a3a91.6oA7rMgYPFeSckwQ'),
                 fixFormat: true,
                 fixSyntax: true,
                 optimizeContent: false,
@@ -1399,21 +1398,21 @@
                 
                 // 更新按钮样式
                 const kimiBtn = document.getElementById('selectKimi');
-                const geminiBtn = document.getElementById('selectGemini');
+                const glmBtn = document.getElementById('selectGLM');
                 
-                if (kimiBtn && geminiBtn) {
+                if (kimiBtn && glmBtn) {
                     if (provider === 'kimi') {
                         kimiBtn.style.background = 'var(--accent-primary)';
                         kimiBtn.style.color = 'white';
                         kimiBtn.style.borderColor = 'var(--accent-primary)';
                         
-                        geminiBtn.style.background = 'transparent';
-                        geminiBtn.style.color = 'var(--text-primary)';
-                        geminiBtn.style.borderColor = 'var(--text-muted)';
+                        glmBtn.style.background = 'transparent';
+                        glmBtn.style.color = 'var(--text-primary)';
+                        glmBtn.style.borderColor = 'var(--text-muted)';
                     } else {
-                        geminiBtn.style.background = 'var(--accent-primary)';
-                        geminiBtn.style.color = 'white';
-                        geminiBtn.style.borderColor = 'var(--accent-primary)';
+                        glmBtn.style.background = 'var(--accent-primary)';
+                        glmBtn.style.color = 'white';
+                        glmBtn.style.borderColor = 'var(--accent-primary)';
                         
                         kimiBtn.style.background = 'transparent';
                         kimiBtn.style.color = 'var(--text-primary)';
@@ -1425,7 +1424,7 @@
                 localStorage.setItem('selectedAIProvider', provider);
                 
                 // 显示选择成功提示
-                showToast('设置成功', `已选择 ${PRESET_AI_CONFIG.provider === 'kimi' ? 'Kimi AI' : 'Gemini-2.5-Flash'} 服务`, 'success');
+                showToast('设置成功', `已选择 ${PRESET_AI_CONFIG.provider === 'kimi' ? 'Kimi AI' : 'GLM-4-Flash'} 服务`, 'success');
             }
         }
         
@@ -1442,23 +1441,8 @@
         
         // 显示AI配置模态框
         function showAIConfigModal() {
-            if (!canUseAIFix()) {
-                showUpgradePrompt(
-                    'AI修复需要升级',
-                    'AI智能修复功能仅对高级用户开放。\n升级后可享受每日10次AI修复服务！',
-                    'ai'
-                );
-                return;
-            }
-            
-            // 根据用户级别显示不同的配置界面
-            if (currentUser.level === 'super_admin') {
-                // 超级管理员：显示完整配置界面
-                showFullAIConfig();
-            } else {
-                // 高级用户：显示简化配置界面
-                showSimpleAIConfig();
-            }
+            // 所有用户可直接打开完整配置
+            showFullAIConfig();
         }
         
         // 高级用户的简化AI配置界面
@@ -1470,7 +1454,7 @@
                     <div style="background: var(--preview-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
                         <h3 style="margin-top: 0; color: var(--accent-primary);">🎉 即开即用</h3>
                         <p style="margin: 10px 0; color: var(--text-secondary);">
-                            我们已为您预配置好 <strong>Kimi AI</strong> 和 <strong>Gemini-2.5-Flash</strong> 服务，无需额外设置！
+                            我们已为您预配置好 <strong>Kimi moonshot-v1-32k</strong> 和 <strong>GLM-4-Flash</strong> 服务，无需额外设置！
                         </p>
                         
                         <div style="margin: 15px 0;">
@@ -1479,8 +1463,8 @@
                                 <button id="selectKimi" onclick="selectAIProvider('kimi')" style="flex: 1; padding: 8px 12px; border: 2px solid var(--accent-primary); background: var(--accent-primary); color: white; border-radius: 6px; cursor: pointer; font-size: 14px;">
                                     🌙 Kimi (默认)
                                 </button>
-                                <button id="selectGemini" onclick="selectAIProvider('gemini')" style="flex: 1; padding: 8px 12px; border: 2px solid var(--text-muted); background: transparent; color: var(--text-primary); border-radius: 6px; cursor: pointer; font-size: 14px;">
-                                    💎 Gemini-2.5-Flash
+                                <button id="selectGLM" onclick="selectAIProvider('glm')" style="flex: 1; padding: 8px 12px; border: 2px solid var(--text-muted); background: transparent; color: var(--text-primary); border-radius: 6px; cursor: pointer; font-size: 14px;">
+                                    ⚡ GLM-4-Flash
                                 </button>
                             </div>
                         </div>
@@ -1502,13 +1486,6 @@
                             </ul>
                         </div>
                     </div>
-                    
-                    <div style="background: rgba(116, 185, 255, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid var(--info);">
-                        <div style="font-weight: 600; margin-bottom: 5px;">💡 升级提示</div>
-                        <div style="font-size: 14px; color: var(--text-secondary);">
-                            升级到超级管理员可自定义AI服务商，使用GLM、百川、DeepSeek等更多模型！
-                        </div>
-                    </div>
                 </div>
                 `,
                 '🚀'
@@ -1522,6 +1499,7 @@
         
         // 超级管理员的完整AI配置界面
         function showFullAIConfig() {
+            ensurePresetConfig();
             // 更新服务商选择器（加载自定义配置）
             updateProviderSelector();
             // 加载保存的配置
@@ -1529,7 +1507,7 @@
             document.getElementById('aiConfigModal').style.display = 'block';
         }
         
-        // 确保高级用户有预配置
+        // 确保有预配置
         function ensurePresetConfig() {
             const savedConfig = localStorage.getItem('aiConfig');
             if (!savedConfig) {
@@ -1540,7 +1518,7 @@
         
         // 更新简化界面的使用次数显示
         function updateSimpleAIUsageDisplay() {
-            if (!currentUser || currentUser.level !== 'advanced') return;
+            if (!currentUser) return;
             
             const today = new Date().toDateString();
             const usageKey = `ai_usage_${currentUser.level}_${today}`;
@@ -1549,7 +1527,7 @@
             
             const usageCountElement = document.getElementById('simpleAiUsageCount');
             if (usageCountElement) {
-                usageCountElement.textContent = `${limit - currentUsage}`;
+                usageCountElement.textContent = limit === -1 ? '∞' : `${Math.max(limit - currentUsage, 0)}`;
             }
         }
         
@@ -2025,7 +2003,7 @@
         
         // 检查是否可以使用AI修复功能
         function canUseAIFix() {
-            return currentUser && currentUser.features && currentUser.features.aiFix;
+            return !!currentUser;
         }
         
         // 检查AI使用配额

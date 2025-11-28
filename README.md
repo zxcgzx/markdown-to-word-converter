@@ -102,6 +102,7 @@
 - OpenAI
 - Gemini-2.5-Flash
 - 自定义服务商（支持 OpenAI 兼容 API）
+- 默认预置 Kimi `moonshot-v1-32k` 与 GLM `glm-4-flash`，所有用户可直接配置自己的 API Key 和代理地址
 
 ## 📁 项目结构
 
