@@ -2167,8 +2167,8 @@
 
 /* 表格转换器 */
 .table-converter-modal {
-    max-width: 1200px;
-    width: 90vw;
+    max-width: 1240px;
+    width: 92vw;
 }
 
 .table-converter-modal .table-converter-body {
@@ -2268,12 +2268,14 @@
 }
 
 .table-preview-card {
-    min-height: 230px;
-    background: white;
-    border: 1px dashed var(--border-color);
-    border-radius: 8px;
-    padding: 10px;
+    min-height: 240px;
+    background: linear-gradient(90deg, #fafbff 23px, transparent 1%) center, linear-gradient(#fafbff 23px, transparent 1%) center, white;
+    background-size: 24px 24px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px;
     overflow: auto;
+    box-shadow: var(--shadow-sm);
 }
 
 .table-preview-card table {

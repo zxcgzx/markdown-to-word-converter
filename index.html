@@ -600,7 +600,10 @@
                     <button onclick="closeTableConverterModal()" class="modal-close" title="关闭" aria-label="关闭">&times;</button>
                 </div>
                 <div class="modal-body table-converter-body">
-                    <p class="table-converter-tip">将 AI 生成的表格快速转换为可粘贴到 Excel / Word 的 HTML 表格，支持 HTML、纯文本、Markdown 三种输入。</p>
+                    <p class="table-converter-tip">
+                        将 AI 生成的表格快速转换为可粘贴到 Excel / Word 的 HTML 表格，支持 HTML、纯文本、Markdown 三种输入。
+                        <button class="btn-secondary" style="padding: 4px 10px; margin-left: 8px; font-size: 12px;" onclick="prefillTableConverterExamples()">填充示例</button>
+                    </p>
                     <div class="table-tab-bar" role="tablist">
                         <button class="table-tab active" data-tab="html" onclick="switchTableConverterTab('html')" role="tab" aria-selected="true">HTML 表格</button>
                         <button class="table-tab" data-tab="text" onclick="switchTableConverterTab('text')" role="tab" aria-selected="false">纯文本</button>
@@ -610,7 +613,10 @@
                     <div class="table-tab-panel active" data-tab="html" role="tabpanel">
                         <div class="table-panel-grid">
                             <div class="table-input-block">
-                                <label for="tableHtmlInput" class="table-block-title">输入 HTML 表格</label>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <label for="tableHtmlInput" class="table-block-title">输入 HTML 表格</label>
+                                    <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px;" onclick="prefillTableConverterExamples()">填充示例</button>
+                                </div>
                                 <textarea id="tableHtmlInput" class="table-converter-textarea" placeholder="在此粘贴 HTML 表格代码"></textarea>
                                 <div class="table-actions">
                                     <button class="btn" onclick="tableConvertHtml()">转换表格</button>
