@@ -1109,6 +1109,23 @@
             color: var(--text-secondary);
         }
 
+        .mini-toggle {
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 8px;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .mini-toggle:hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+            box-shadow: 0 4px 10px var(--shadow-hover);
+        }
+
         .mini-list {
             display: flex;
             flex-direction: column;
@@ -1170,6 +1187,10 @@
             color: var(--text-secondary);
             font-size: 12px;
             padding: 20px 0;
+        }
+
+        .preview-minimap.is-collapsed {
+            max-height: unset;
         }
 
         /* 改进按钮样式 */

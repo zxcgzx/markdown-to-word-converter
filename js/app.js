@@ -68,6 +68,7 @@
         let lastAIErrorMessage = '';
         let miniMapTargets = new Map();
         let miniMapObserver = null;
+        let minimapCollapsed = false;
         
         // 自定义密码管理
         const customPasswords = {
@@ -3993,6 +3994,10 @@
             const list = document.getElementById('previewMinimapList');
             if (!minimap || !list || !preview) return;
 
+            if (minimapCollapsed) {
+                return;
+            }
+
             miniMapTargets.clear();
             if (miniMapObserver) {
                 miniMapObserver.disconnect();
@@ -4072,6 +4077,20 @@
                 }
             });
             list.dataset.bound = 'true';
+        }
+
+        function toggleMinimap() {
+            const minimap = document.getElementById('previewMinimap');
+            const list = document.getElementById('previewMinimapList');
+            const btn = document.getElementById('miniToggleBtn');
+            if (!minimap || !list || !btn) return;
+            minimapCollapsed = !minimapCollapsed;
+            minimap.classList.toggle('is-collapsed', minimapCollapsed);
+            list.style.display = minimapCollapsed ? 'none' : 'flex';
+            btn.textContent = minimapCollapsed ? '+' : '—';
+            if (!minimapCollapsed) {
+                updatePreviewMinimap();
+            }
         }
 
         function updatePartialAIFixButtonState() {
