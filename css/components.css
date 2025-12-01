@@ -1091,24 +1091,52 @@
             z-index: 900;
         }
 
-        .mini-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            cursor: grab;
-            user-select: none;
-        }
+.mini-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    cursor: grab;
+    user-select: none;
+}
 
-        .mini-header:active {
-            cursor: grabbing;
-        }
+.mini-header:active {
+    cursor: grabbing;
+}
 
-        .mini-title {
-            font-weight: 700;
-            color: var(--text-primary);
-            font-size: 14px;
-        }
+.mini-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.mini-reset {
+    background: var(--glass-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    border-radius: 8px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.mini-reset:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    box-shadow: 0 4px 10px var(--shadow-hover);
+}
+
+.mini-reset:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 2px;
+}
+
+.mini-title {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 14px;
+}
 
         .mini-subtitle {
             font-size: 12px;
