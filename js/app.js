@@ -4135,20 +4135,22 @@
             applyMinimapPosition(minimapPosition);
 
             const startDrag = (event) => {
+                event.preventDefault();
                 minimapDragging = true;
                 const rect = minimap.getBoundingClientRect();
                 minimapDragOffset.x = event.clientX - rect.left;
                 minimapDragOffset.y = event.clientY - rect.top;
-                document.addEventListener('mousemove', onDrag);
-                document.addEventListener('mouseup', endDrag);
+                minimap.style.transition = 'none';
+                document.addEventListener('pointermove', onDrag);
+                document.addEventListener('pointerup', endDrag);
             };
 
             const onDrag = (event) => {
                 if (!minimapDragging) return;
                 const maxLeft = window.innerWidth - minimap.offsetWidth - 8;
-                const maxTop = window.innerHeight - 80;
+                const maxTop = window.innerHeight - minimap.offsetHeight - 12;
                 const left = Math.min(Math.max(event.clientX - minimapDragOffset.x, 8), maxLeft);
-                const top = Math.min(Math.max(event.clientY - minimapDragOffset.y, 60), maxTop);
+                const top = Math.min(Math.max(event.clientY - minimapDragOffset.y, 40), maxTop);
                 const pos = { left, top, mode: 'custom' };
                 applyMinimapPosition(pos);
                 saveMinimapPosition(pos);
@@ -4156,13 +4158,20 @@
 
             const endDrag = () => {
                 minimapDragging = false;
-                document.removeEventListener('mousemove', onDrag);
-                document.removeEventListener('mouseup', endDrag);
+                minimap.style.transition = '';
+                document.removeEventListener('pointermove', onDrag);
+                document.removeEventListener('pointerup', endDrag);
             };
 
-            header.addEventListener('mousedown', (event) => {
+            header.addEventListener('pointerdown', (event) => {
                 if (event.target.closest('.mini-toggle')) return;
                 startDrag(event);
+            });
+
+            header.addEventListener('dblclick', () => {
+                const defPos = getDefaultMinimapPosition();
+                applyMinimapPosition(defPos);
+                saveMinimapPosition(defPos);
             });
 
             window.addEventListener('resize', () => {
@@ -4196,6 +4205,22 @@
             } else {
                 minimap.style.left = 'auto';
                 minimap.style.right = `${pos.right || 22}px`;
+            }
+
+            if (minimapCollapsed) return;
+
+            // 保证不与主容器过度重叠：若重叠超过 30px，将其移到容器外空白区
+            const container = document.querySelector('.container');
+            if (container && pos.left !== undefined) {
+                const cRect = container.getBoundingClientRect();
+                const mRect = minimap.getBoundingClientRect();
+                const overlap = Math.min(mRect.right, cRect.right) - Math.max(mRect.left, cRect.left);
+                if (overlap > 30) {
+                    const newLeft = Math.max(cRect.right + 12, Math.min(mRect.left, window.innerWidth - mRect.width - 8));
+                    minimap.style.left = `${newLeft}px`;
+                    minimap.style.right = 'auto';
+                    saveMinimapPosition({ left: newLeft, top: pos.top, mode: 'custom' });
+                }
             }
         }
 

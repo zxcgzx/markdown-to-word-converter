@@ -1097,6 +1097,7 @@
             justify-content: space-between;
             margin-bottom: 10px;
             cursor: grab;
+            user-select: none;
         }
 
         .mini-header:active {
