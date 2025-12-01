@@ -19,6 +19,7 @@
     <script src="https://cdn.jsdelivr.net/npm/marked@9.0.0/marked.min.js"></script>
     <script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
 
     <!-- KaTeX数学公式支持 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
@@ -412,7 +413,9 @@
                             <div>
                                 <label class="ai-config-label">AI模型：</label>
                                 <select id="aiModel" class="ai-config-select">
+                                    <option value="moonshot-v1-32k">moonshot-v1-32k</option>
                                     <option value="moonshot-v1-8k">moonshot-v1-8k</option>
+                                    <option value="moonshot-v1-128k">moonshot-v1-128k</option>
                                 </select>
                             </div>
                             <div>
@@ -594,7 +597,7 @@
 
         <!-- 表格格式转换器 -->
         <div id="tableConverterModal" class="modal-overlay" style="display: none;">
-            <div class="modal-shell table-converter-modal" style="max-height: 90vh; overflow:auto;" style="max-height: 92vh; overflow:auto;">
+            <div class="modal-shell table-converter-modal">
                 <div class="modal-header">
                     <h2>📊 表格格式转换器</h2>
                     <button onclick="closeTableConverterModal()" class="modal-close" title="关闭" aria-label="关闭">&times;</button>
@@ -669,6 +672,12 @@
                                 <div id="tableMarkdownPreview" class="table-preview-card"></div>
                             </div>
                         </div>
+                    </div>
+                </div>
+                <div class="table-modal-footer">
+                    <div class="table-modal-hint">Esc 也可以关闭窗口</div>
+                    <div class="table-modal-actions">
+                        <button class="btn-secondary" onclick="closeTableConverterModal()">关闭窗口</button>
                     </div>
                 </div>
             </div>

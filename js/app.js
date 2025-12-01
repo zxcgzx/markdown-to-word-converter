@@ -61,6 +61,7 @@
         const AUTO_SAVE_KEY = 'markdown-auto-save';
         const AUTO_SAVE_TIMESTAMP_KEY = 'markdown-auto-save-timestamp';
         let tableExamplesInitialized = false;
+        let tableConverterKeyHandler = null;
         
         // 自定义密码管理
         const customPasswords = {
@@ -1117,8 +1118,8 @@
                 name: 'Kimi (moonshot)',
                 endpoint: 'https://api.moonshot.cn/v1/chat/completions',
                 models: [
-                    { value: 'moonshot-v1-8k', label: 'moonshot-v1-8k (8K上下文)' },
                     { value: 'moonshot-v1-32k', label: 'moonshot-v1-32k (默认)' },
+                    { value: 'moonshot-v1-8k', label: 'moonshot-v1-8k (8K备用)' },
                     { value: 'moonshot-v1-128k', label: 'moonshot-v1-128k (128K备用)' }
                 ]
             },
@@ -2206,25 +2207,19 @@
             }
 
             let config;
-
-            if (currentUser.level === 'advanced') {
-                ensurePresetConfig();
-                config = PRESET_AI_CONFIG;
-            } else {
-                const savedConfig = localStorage.getItem('aiConfig');
-                if (!savedConfig) {
-                    showToast('配置错误', '请先配置AI服务', 'warning');
-                    showAIConfigModal();
-                    return null;
-                }
-
+            ensurePresetConfig();
+            const savedConfig = localStorage.getItem('aiConfig');
+            if (savedConfig) {
                 try {
                     config = JSON.parse(savedConfig);
                 } catch (error) {
-                    showToast('配置错误', 'AI配置文件损坏，请重新配置', 'error');
-                    showAIConfigModal();
-                    return null;
+                    console.warn('AI配置解析失败，使用预设配置', error);
+                    config = PRESET_AI_CONFIG;
+                    localStorage.setItem('aiConfig', JSON.stringify(config));
                 }
+            } else {
+                config = PRESET_AI_CONFIG;
+                localStorage.setItem('aiConfig', JSON.stringify(config));
             }
 
             const allConfigs = customAIConfigs.getAll();
@@ -3321,6 +3316,25 @@
             gfm: true
         });
 
+        // 全局HTML净化助手，保护预览/导出/复制内容的安全性
+        function sanitizeHTML(html, options = {}) {
+            try {
+                if (window.DOMPurify && typeof DOMPurify.sanitize === 'function') {
+                    const baseOptions = { USE_PROFILES: { html: true } };
+                    return DOMPurify.sanitize(html, { ...baseOptions, ...options });
+                }
+            } catch (error) {
+                console.warn('DOMPurify 不可用，返回原始HTML', error);
+            }
+            return html;
+        }
+
+        // Markdown 统一解析出口，默认携带净化
+        function renderMarkdownToHTML(markdownText) {
+            const rawHtml = marked.parse(markdownText);
+            return sanitizeHTML(rawHtml);
+        }
+
         // DOM元素引用 - 移动到函数中按需获取，避免过早引用
 
         // 数学公式缓存系统
@@ -3660,7 +3674,7 @@
                     const startTime = performance.now();
                     
                     try {
-                        const html = marked.parse(chunk);
+                        const html = renderMarkdownToHTML(chunk);
                         processedChunks.push(html);
                         
                         if (onProgress) {
@@ -3987,7 +4001,7 @@
                             console.error('分片解析失败:', error);
                             showParseProgress(false);
                             // 降级到标准解析
-                            const html = marked.parse(markdownText);
+                            const html = renderMarkdownToHTML(markdownText);
                             preview.innerHTML = html;
                             throttledRenderMath(preview);
                             applyPreviewBlockMetadata(markdownText);
@@ -3995,7 +4009,7 @@
                     
                 } else {
                     // 短文档直接解析
-                    const html = marked.parse(markdownText);
+                    const html = renderMarkdownToHTML(markdownText);
                     preview.innerHTML = html;
                     throttledRenderMath(preview);
                     applyPreviewBlockMetadata(markdownText);
@@ -4252,7 +4266,7 @@ $$\\\\lim_{x \\\\to \\\\infty} \\\\frac{1}{x} = 0$$
 
             try {
                 // 解析markdown为HTML
-                const html = marked.parse(markdownText);
+                const html = renderMarkdownToHTML(markdownText);
                 
                 // 创建一个临时div来处理HTML
                 const tempDiv = document.createElement('div');
@@ -4318,6 +4332,24 @@ $$\\\\lim_{x \\\\to \\\\infty} \\\\frac{1}{x} = 0$$
             setTimeout(() => modal.classList.add('show'), 10);
             switchTableConverterTab('html');
 
+            if (tableConverterKeyHandler) {
+                window.removeEventListener('keydown', tableConverterKeyHandler);
+            }
+            tableConverterKeyHandler = (event) => {
+                if (event.key === 'Escape') {
+                    closeTableConverterModal();
+                }
+            };
+            window.addEventListener('keydown', tableConverterKeyHandler);
+            if (!modal.dataset.boundClose) {
+                modal.addEventListener('click', (event) => {
+                    if (event.target === modal) {
+                        closeTableConverterModal();
+                    }
+                });
+                modal.dataset.boundClose = 'true';
+            }
+
             if (!tableExamplesInitialized) {
                 prefillTableConverterExamples();
                 tableExamplesInitialized = true;
@@ -4331,6 +4363,10 @@ $$\\\\lim_{x \\\\to \\\\infty} \\\\frac{1}{x} = 0$$
             setTimeout(() => {
                 modal.style.display = 'none';
             }, 150);
+            if (tableConverterKeyHandler) {
+                window.removeEventListener('keydown', tableConverterKeyHandler);
+                tableConverterKeyHandler = null;
+            }
         }
 
         function switchTableConverterTab(tab) {
@@ -4401,7 +4437,8 @@ $$\\\\lim_{x \\\\to \\\\infty} \\\\frac{1}{x} = 0$$
                 html += '<tr>';
                 row.forEach(cell => {
                     const tag = hasHeader && rowIndex === 0 ? 'th' : 'td';
-                    html += `<${tag}>${cell}</${tag}>`;
+                    const safeCell = sanitizeHTML(cell, { ALLOWED_TAGS: ['br'], ALLOWED_ATTR: [] });
+                    html += `<${tag}>${safeCell}</${tag}>`;
                 });
                 html += '</tr>';
             });
@@ -4420,7 +4457,8 @@ $$\\\\lim_{x \\\\to \\\\infty} \\\\frac{1}{x} = 0$$
             }
 
             const temp = document.createElement('div');
-            temp.innerHTML = htmlInput;
+            const safeInput = sanitizeHTML(htmlInput);
+            temp.innerHTML = safeInput;
             const table = temp.querySelector('table');
             if (!table || !table.rows.length) {
                 showToast('提示', '未检测到有效的HTML表格', 'warning');
@@ -4724,7 +4762,7 @@ $$\\\\lim_{x \\\\to \\\\infty} \\\\frac{1}{x} = 0$$
                 await new Promise(resolve => setTimeout(resolve, 50)); // 给UI一点时间更新
                 updateWordConversionProgress({ step: '解析Markdown', progress: 20 });
                 
-                const html = marked.parse(markdownText);
+                const html = renderMarkdownToHTML(markdownText);
                 
                 // 将HTML转换为纯文本并保持基本格式
                 const tempDiv = document.createElement('div');
