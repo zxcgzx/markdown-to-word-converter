@@ -66,6 +66,8 @@
         let tableFitMode = 'full';
         let tableStriped = true;
         let lastAIErrorMessage = '';
+        let miniMapTargets = new Map();
+        let miniMapObserver = null;
         
         // 自定义密码管理
         const customPasswords = {
@@ -3985,6 +3987,93 @@
             clearPreviewSelection();
         }
 
+        // 预览缩略导航
+        function updatePreviewMinimap() {
+            const minimap = document.getElementById('previewMinimap');
+            const list = document.getElementById('previewMinimapList');
+            if (!minimap || !list || !preview) return;
+
+            miniMapTargets.clear();
+            if (miniMapObserver) {
+                miniMapObserver.disconnect();
+            }
+            list.innerHTML = '';
+
+            const blocks = Array.from(preview.querySelectorAll('h1, h2, h3, h4, p, li, table, pre, blockquote')).slice(0, 160);
+            if (blocks.length === 0) {
+                list.innerHTML = '<div class="mini-empty">暂无内容</div>';
+                return;
+            }
+
+            miniMapObserver = new IntersectionObserver((entries) => {
+                let activeId = null;
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        activeId = entry.target.dataset.miniId;
+                    }
+                });
+                if (activeId) {
+                    list.querySelectorAll('.mini-item').forEach(item => {
+                        item.classList.toggle('active', item.dataset.target === activeId);
+                    });
+                }
+            }, { root: null, threshold: [0.12, 0.4, 0.7] });
+
+            const typeClassMap = {
+                h1: 'mini-type-heading',
+                h2: 'mini-type-heading',
+                h3: 'mini-type-heading',
+                h4: 'mini-type-heading',
+                p: 'mini-type-text',
+                li: 'mini-type-list',
+                table: 'mini-type-table',
+                pre: 'mini-type-code',
+                code: 'mini-type-code',
+                blockquote: 'mini-type-text'
+            };
+
+            blocks.forEach((el, index) => {
+                const miniId = el.dataset.miniId || `mini-${index}`;
+                el.dataset.miniId = miniId;
+                miniMapTargets.set(miniId, el);
+
+                const text = (el.textContent || '').trim().replace(/\s+/g, ' ');
+                const shortText = text ? text.slice(0, 60) : '空内容';
+                const len = Math.max(text.length, 6);
+                const barWidth = Math.min(100, 14 + Math.sqrt(len) * 5);
+                const typeClass = typeClassMap[el.tagName.toLowerCase()] || 'mini-type-text';
+
+                const item = document.createElement('div');
+                item.className = 'mini-item';
+                item.dataset.target = miniId;
+                item.innerHTML = `
+                    <div class="mini-bar ${typeClass}" style="--bar-width:${barWidth}%;"></div>
+                    <div class="mini-label" title="${shortText}">${shortText}</div>
+                `;
+                list.appendChild(item);
+                miniMapObserver.observe(el);
+            });
+
+            bindMinimapEvents();
+        }
+
+        function bindMinimapEvents() {
+            const list = document.getElementById('previewMinimapList');
+            if (!list || list.dataset.bound) return;
+            list.addEventListener('click', (event) => {
+                const item = event.target.closest('.mini-item');
+                if (!item) return;
+                const targetId = item.dataset.target;
+                const targetEl = miniMapTargets.get(targetId);
+                if (targetEl) {
+                    targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    list.querySelectorAll('.mini-item').forEach(el => el.classList.remove('active'));
+                    item.classList.add('active');
+                }
+            });
+            list.dataset.bound = 'true';
+        }
+
         function updatePartialAIFixButtonState() {
             const partialBtn = document.getElementById('partialAIFixBtn');
             if (!partialBtn) return;
@@ -4052,6 +4141,7 @@
                             preview.innerHTML = html;
                             throttledRenderMath(preview);
                             applyPreviewBlockMetadata(markdownText);
+                            updatePreviewMinimap();
                             showParseProgress(false);
                         })
                         .catch(error => {
@@ -4062,6 +4152,7 @@
                             preview.innerHTML = html;
                             throttledRenderMath(preview);
                             applyPreviewBlockMetadata(markdownText);
+                            updatePreviewMinimap();
                         });
                     
                 } else {
@@ -4070,6 +4161,7 @@
                     preview.innerHTML = html;
                     throttledRenderMath(preview);
                     applyPreviewBlockMetadata(markdownText);
+                    updatePreviewMinimap();
                 }
 
             } catch (error) {
