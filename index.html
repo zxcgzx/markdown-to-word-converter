@@ -191,6 +191,16 @@
                 <div class="author-info">
                     由 <span class="author-name">Boning</span> 开发 · TJUT · <span style="color: #E8F5E8;">内测版</span>
                 </div>
+                <div class="ai-inline-status" id="aiStatusBar">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="ai-chip" id="aiStatusProvider">AI</span>
+                        <span class="ai-model" id="aiStatusModel">模型未选</span>
+                    </div>
+                    <div class="ai-meta">
+                        <span>今日剩余 <strong id="aiStatusQuota">--</strong></span>
+                        <span id="aiStatusLast">状态良好</span>
+                    </div>
+                </div>
                 
                 <!-- 用户权限状态显示 -->
                 <div class="user-status" id="userStatus" style="margin-top: 10px; padding: 8px 12px; background: var(--glass-bg); border-radius: 8px; border: 1px solid var(--glass-border); backdrop-filter: var(--blur); display: none;">
@@ -352,10 +362,10 @@
                         使用AI自动修复Markdown格式问题，优化文档结构
                     </div>
                     <div class="control-buttons" role="group" aria-label="AI修复操作">
-                        <button class="btn ai-fix-btn" onclick="performQuickAIFix()" aria-label="整体修复格式问题">⚡ 整体修复</button>
+                        <button class="btn ai-fix-btn btn-strong btn-pulse" onclick="performQuickAIFix()" aria-label="整体修复格式问题">⚡ 整体修复</button>
                         <button class="btn btn-secondary" id="partialAIFixBtn" onclick="performSelectedAIFix()" aria-label="局部修复选中内容" disabled>✂️ 局部修复</button>
                         <button class="btn btn-secondary" id="aiConfigBtn" onclick="showAIConfigModal()" aria-label="AI修复设置">⚙️ AI设置</button>
-                        <button class="btn btn-secondary" onclick="performAdvancedAIFix()" aria-label="深度优化内容">🧠 深度优化</button>
+                        <button class="btn btn-contrast" onclick="performAdvancedAIFix()" aria-label="深度优化内容">🧠 深度优化</button>
                     </div>
                     <div class="ai-usage-info" id="aiUsageInfo" style="margin-top: 8px; font-size: 12px; color: var(--text-secondary);">
                         今日剩余: <span id="aiUsageCount">--</span> 次
@@ -607,6 +617,16 @@
                         将 AI 生成的表格快速转换为可粘贴到 Excel / Word 的 HTML 表格，支持 HTML、纯文本、Markdown 三种输入。
                         <button class="btn-secondary" style="padding: 4px 10px; margin-left: 8px; font-size: 12px;" onclick="prefillTableConverterExamples()">填充示例</button>
                     </p>
+                    <div class="table-quick-controls">
+                        <div class="pill-group" role="group" aria-label="表格宽度模式">
+                            <button class="pill-toggle active" id="tableWidthFullBtn" onclick="setTableWidthMode('full')">填充宽度</button>
+                            <button class="pill-toggle" id="tableWidthAutoBtn" onclick="setTableWidthMode('auto')">自适应宽度</button>
+                        </div>
+                        <button class="switch-toggle active" id="tableStripeToggle" onclick="toggleTableStriped()">
+                            <span>条纹行</span>
+                            <span class="switch-dot"></span>
+                        </button>
+                    </div>
                     <div class="table-tab-bar" role="tablist">
                         <button class="table-tab active" data-tab="html" onclick="switchTableConverterTab('html')" role="tab" aria-selected="true">HTML 表格</button>
                         <button class="table-tab" data-tab="text" onclick="switchTableConverterTab('text')" role="tab" aria-selected="false">纯文本</button>
@@ -620,7 +640,8 @@
                                     <label for="tableHtmlInput" class="table-block-title">输入 HTML 表格</label>
                                     <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px;" onclick="prefillTableConverterExamples()">填充示例</button>
                                 </div>
-                                <textarea id="tableHtmlInput" class="table-converter-textarea" placeholder="在此粘贴 HTML 表格代码"></textarea>
+                                <textarea id="tableHtmlInput" class="table-converter-textarea" placeholder="在此粘贴 HTML 表格代码，支持直接粘贴浏览器复制的 &lt;table&gt; 片段"></textarea>
+                                <div class="table-char-count" id="tableHtmlInputCount">0 字符</div>
                                 <div class="table-actions">
                                     <button class="btn" onclick="tableConvertHtml()">转换表格</button>
                                     <button class="btn btn-secondary" onclick="tableCopyResult('tableHtmlPreview')">复制表格</button>
@@ -635,15 +656,16 @@
                     </div>
 
                     <div class="table-tab-panel" data-tab="text" role="tabpanel">
-                        <div class="table-panel-grid">
-                            <div class="table-input-block">
-                                <label for="tableTextInput" class="table-block-title">输入纯文本表格</label>
-                                <textarea id="tableTextInput" class="table-converter-textarea" placeholder="支持制表符、逗号、竖线、空格分隔的表格数据"></textarea>
-                                <div class="table-helper">支持 **加粗**，&lt;br&gt; 换行，自动检测分隔符。</div>
-                                <div class="table-actions">
-                                    <button class="btn" onclick="tableConvertText()">转换表格</button>
-                                    <button class="btn btn-secondary" onclick="tableCopyResult('tableTextPreview')">复制表格</button>
-                                    <button class="btn btn-secondary" onclick="tableReset('text')">重置</button>
+                            <div class="table-panel-grid">
+                                <div class="table-input-block">
+                                    <label for="tableTextInput" class="table-block-title">输入纯文本表格</label>
+                                    <textarea id="tableTextInput" class="table-converter-textarea" placeholder="支持制表符、逗号、竖线、空格分隔的表格数据"></textarea>
+                                    <div class="table-char-count" id="tableTextInputCount">0 字符</div>
+                                    <div class="table-helper">支持 **加粗**，&lt;br&gt; 换行，自动检测分隔符。</div>
+                                    <div class="table-actions">
+                                        <button class="btn" onclick="tableConvertText()">转换表格</button>
+                                        <button class="btn btn-secondary" onclick="tableCopyResult('tableTextPreview')">复制表格</button>
+                                        <button class="btn btn-secondary" onclick="tableReset('text')">重置</button>
                                 </div>
                             </div>
                             <div class="table-preview-block">
@@ -654,17 +676,18 @@
                     </div>
 
                     <div class="table-tab-panel" data-tab="markdown" role="tabpanel">
-                        <div class="table-panel-grid">
-                            <div class="table-input-block">
-                                <label for="tableMarkdownInput" class="table-block-title">输入 Markdown 表格</label>
-                                <textarea id="tableMarkdownInput" class="table-converter-textarea" placeholder="| 标题1 | 标题2 |
+                                <div class="table-panel-grid">
+                                    <div class="table-input-block">
+                                        <label for="tableMarkdownInput" class="table-block-title">输入 Markdown 表格</label>
+                                        <textarea id="tableMarkdownInput" class="table-converter-textarea" placeholder="| 标题1 | 标题2 |
 | --- | --- |
 | 内容1 | 内容2 |"></textarea>
-                                <div class="table-helper">支持 **加粗** 与 &lt;br&gt; 换行。</div>
-                                <div class="table-actions">
-                                    <button class="btn" onclick="tableConvertMarkdown()">转换表格</button>
-                                    <button class="btn btn-secondary" onclick="tableCopyResult('tableMarkdownPreview')">复制表格</button>
-                                    <button class="btn btn-secondary" onclick="tableReset('markdown')">重置</button>
+                                        <div class="table-char-count" id="tableMarkdownInputCount">0 字符</div>
+                                        <div class="table-helper">支持 **加粗** 与 &lt;br&gt; 换行。</div>
+                                        <div class="table-actions">
+                                            <button class="btn" onclick="tableConvertMarkdown()">转换表格</button>
+                                            <button class="btn btn-secondary" onclick="tableCopyResult('tableMarkdownPreview')">复制表格</button>
+                                            <button class="btn btn-secondary" onclick="tableReset('markdown')">重置</button>
                                 </div>
                             </div>
                             <div class="table-preview-block">

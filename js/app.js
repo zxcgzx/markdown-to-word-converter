@@ -62,6 +62,10 @@
         const AUTO_SAVE_TIMESTAMP_KEY = 'markdown-auto-save-timestamp';
         let tableExamplesInitialized = false;
         let tableConverterKeyHandler = null;
+        let tableEnhancementsBound = false;
+        let tableFitMode = 'full';
+        let tableStriped = true;
+        let lastAIErrorMessage = '';
         
         // 自定义密码管理
         const customPasswords = {
@@ -1991,6 +1995,7 @@
             
             // 更新使用次数显示
             updateAIUsageDisplay();
+            updateAIStatusBar();
         }
         
         // 加载AI配置
@@ -2017,6 +2022,8 @@
                 // 默认配置
                 updateAIModels();
             }
+
+            updateAIStatusBar();
         }
         
         // 检查是否可以使用AI修复功能
@@ -2065,6 +2072,51 @@
                     usageCountElement.textContent = `${limit - currentUsage}`;
                 }
             }
+
+            updateAIStatusBar();
+        }
+
+        function updateAIStatusBar() {
+            const bar = document.getElementById('aiStatusBar');
+            if (!bar) return;
+
+            ensurePresetConfig();
+            let config = PRESET_AI_CONFIG;
+            const savedConfig = localStorage.getItem('aiConfig');
+            if (savedConfig) {
+                try {
+                    config = JSON.parse(savedConfig);
+                } catch (error) {
+                    console.warn('AI状态栏配置解析失败，使用预设', error);
+                }
+            }
+
+            const allConfigs = customAIConfigs.getAll();
+            const providerName = allConfigs[config.provider]?.name || config.provider || '未配置';
+            const model = config.model || (allConfigs[config.provider]?.models?.[0]?.value) || '未选模型';
+
+            const providerEl = document.getElementById('aiStatusProvider');
+            const modelEl = document.getElementById('aiStatusModel');
+            const quotaEl = document.getElementById('aiStatusQuota');
+            const lastEl = document.getElementById('aiStatusLast');
+
+            if (providerEl) providerEl.textContent = providerName;
+            if (modelEl) modelEl.textContent = model;
+
+            let remaining = '--';
+            if (currentUser) {
+                const today = new Date().toDateString();
+                const usageKey = `ai_usage_${currentUser.level}_${today}`;
+                const currentUsage = parseInt(localStorage.getItem(usageKey) || '0');
+                const limit = AI_USAGE_LIMITS[currentUser.level];
+                remaining = limit === -1 ? '∞' : Math.max(limit - currentUsage, 0);
+            }
+            if (quotaEl) quotaEl.textContent = remaining;
+            if (lastEl) {
+                lastEl.textContent = lastAIErrorMessage ? `⚠️ ${lastAIErrorMessage}` : '✅ 状态良好';
+            }
+
+            bar.classList.toggle('is-warning', !!lastAIErrorMessage);
         }
 
         // AI修复交互状态
@@ -2383,6 +2435,8 @@
 
                 showAIResultModal(resultPacket);
                 completeAIStatus(isPartialFix ? '局部修复完成，等待确认' : 'AI修复完成，等待确认', true);
+                lastAIErrorMessage = '';
+                updateAIStatusBar();
 
                 return fixedContent;
             } catch (error) {
@@ -2392,6 +2446,8 @@
                 } else {
                     completeAIStatus('AI修复失败', false);
                     const friendly = mapAIErrorMessage(error);
+                    lastAIErrorMessage = friendly;
+                    updateAIStatusBar();
                     showToast('修复失败', friendly, 'error', 5000);
 
                     if (/401|403|API密钥/.test(error.message)) {
@@ -3163,6 +3219,7 @@
         function initializeApp() {
             // 更新用户状态显示
             updateUserStatus();
+            updateAIStatusBar();
             
             // 初始化AI修复功能组显示
             initializeAIFixFeatures();
@@ -4331,6 +4388,8 @@ $$\\\\lim_{x \\\\to \\\\infty} \\\\frac{1}{x} = 0$$
             modal.style.display = 'block';
             setTimeout(() => modal.classList.add('show'), 10);
             switchTableConverterTab('html');
+            ensureTableConverterBindings();
+            refreshTablePreviewSkins();
 
             if (tableConverterKeyHandler) {
                 window.removeEventListener('keydown', tableConverterKeyHandler);
@@ -4378,6 +4437,61 @@ $$\\\\lim_{x \\\\to \\\\infty} \\\\frac{1}{x} = 0$$
 
             document.querySelectorAll('.table-tab-panel').forEach(panel => {
                 panel.classList.toggle('active', panel.dataset.tab === tab);
+            });
+        }
+
+        function ensureTableConverterBindings() {
+            if (tableEnhancementsBound) return;
+            const pairs = [
+                ['tableHtmlInput', 'tableHtmlInputCount'],
+                ['tableTextInput', 'tableTextInputCount'],
+                ['tableMarkdownInput', 'tableMarkdownInputCount']
+            ];
+            pairs.forEach(([inputId, countId]) => {
+                const input = document.getElementById(inputId);
+                if (!input) return;
+                input.addEventListener('input', () => updateTableCharCount(inputId, countId));
+                updateTableCharCount(inputId, countId);
+            });
+            tableEnhancementsBound = true;
+        }
+
+        function updateTableCharCount(inputId, counterId) {
+            const input = document.getElementById(inputId);
+            const counter = document.getElementById(counterId);
+            if (!input || !counter) return;
+            counter.textContent = `${input.value.length} 字符`;
+        }
+
+        function setTableWidthMode(mode) {
+            tableFitMode = mode === 'auto' ? 'auto' : 'full';
+            const fullBtn = document.getElementById('tableWidthFullBtn');
+            const autoBtn = document.getElementById('tableWidthAutoBtn');
+            if (fullBtn && autoBtn) {
+                fullBtn.classList.toggle('active', tableFitMode === 'full');
+                autoBtn.classList.toggle('active', tableFitMode === 'auto');
+            }
+            refreshTablePreviewSkins();
+        }
+
+        function toggleTableStriped() {
+            tableStriped = !tableStriped;
+            const toggle = document.getElementById('tableStripeToggle');
+            if (toggle) {
+                toggle.classList.toggle('active', tableStriped);
+            }
+            refreshTablePreviewSkins();
+        }
+
+        function refreshTablePreviewSkins() {
+            document.querySelectorAll('.table-preview-card').forEach(card => {
+                card.classList.toggle('striped-table', tableStriped);
+                card.classList.toggle('fit-auto', tableFitMode === 'auto');
+                const tableEl = card.querySelector('table');
+                if (tableEl) {
+                    tableEl.style.width = tableFitMode === 'full' ? '100%' : 'auto';
+                    tableEl.style.tableLayout = tableFitMode === 'full' ? 'fixed' : 'auto';
+                }
             });
         }
 
@@ -4445,6 +4559,13 @@ $$\\\\lim_{x \\\\to \\\\infty} \\\\frac{1}{x} = 0$$
             html += '</tbody></table>';
 
             target.innerHTML = html;
+            const tableEl = target.querySelector('table');
+            if (tableEl) {
+                tableEl.style.width = tableFitMode === 'full' ? '100%' : 'auto';
+                tableEl.style.tableLayout = tableFitMode === 'full' ? 'fixed' : 'auto';
+            }
+            target.classList.toggle('striped-table', tableStriped);
+            target.classList.toggle('fit-auto', tableFitMode === 'auto');
         }
 
         function tableConvertHtml() {
@@ -4589,8 +4710,12 @@ $$\\\\lim_{x \\\\to \\\\infty} \\\\frac{1}{x} = 0$$
             if (!config) return;
             const inputEl = document.getElementById(config.input);
             const previewEl = document.getElementById(config.preview);
-            if (inputEl) inputEl.value = '';
+            if (inputEl) {
+                inputEl.value = '';
+                updateTableCharCount(config.input, `${config.input}Count`);
+            }
             if (previewEl) previewEl.innerHTML = '';
+            refreshTablePreviewSkins();
         }
 
         function prefillTableConverterExamples() {
@@ -4651,6 +4776,10 @@ $$\\\\lim_{x \\\\to \\\\infty} \\\\frac{1}{x} = 0$$
             if (textInput) textInput.value = textExample;
             if (mdInput) mdInput.value = markdownExample;
             if (htmlInput) htmlInput.value = htmlExample;
+            updateTableCharCount('tableTextInput', 'tableTextInputCount');
+            updateTableCharCount('tableMarkdownInput', 'tableMarkdownInputCount');
+            updateTableCharCount('tableHtmlInput', 'tableHtmlInputCount');
+            refreshTablePreviewSkins();
         }
 
         // 提取文档标题（用于文件命名和文档属性）

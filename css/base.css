@@ -364,8 +364,8 @@
             margin: 0 8px;
             transition: var(--transition);
             box-shadow: 
-                0 4px 14px var(--shadow-hover),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+                0 3px 12px var(--shadow-hover),
+                inset 0 1px 0 rgba(255, 255, 255, 0.18);
             backdrop-filter: var(--blur);
             border: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
@@ -390,8 +390,8 @@
         .btn:hover {
             transform: translateY(-2px);
             box-shadow: 
-                0 8px 24px var(--shadow-focus),
-                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+                0 6px 18px var(--shadow-focus),
+                inset 0 1px 0 rgba(255, 255, 255, 0.26);
             filter: brightness(1.05) saturate(1.1);
         }
 

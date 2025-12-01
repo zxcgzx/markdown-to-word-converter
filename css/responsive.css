@@ -112,6 +112,49 @@
             }
         }
 
+        /* 主应用响应式 */
+        @media (max-width: 960px) {
+            .header {
+                text-align: center;
+            }
+
+            .header h1 {
+                line-height: 1.2;
+            }
+
+            .author-info {
+                justify-content: center;
+            }
+
+            .ai-inline-status {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .header h1 {
+                font-size: 1.6rem;
+            }
+
+            .header p {
+                font-size: 0.95rem;
+            }
+
+            .ai-inline-status {
+                align-items: stretch;
+            }
+
+            #markdownInput,
+            #preview {
+                min-height: 280px;
+            }
+        }
+
         @media (max-width: 480px) {
             .password-overlay {
                 padding: 5px;
