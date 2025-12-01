@@ -4198,20 +4198,21 @@
         function applyMinimapPosition(pos) {
             const minimap = document.getElementById('previewMinimap');
             if (!minimap || !pos) return;
-            minimap.style.top = `${pos.top || 140}px`;
-            if (pos.left !== undefined) {
-                minimap.style.left = `${pos.left}px`;
+            const clamped = sanitizeMinimapPosition(pos, minimap);
+            minimap.style.top = `${clamped.top}px`;
+            if (clamped.left !== undefined) {
+                minimap.style.left = `${clamped.left}px`;
                 minimap.style.right = 'auto';
             } else {
                 minimap.style.left = 'auto';
-                minimap.style.right = `${pos.right || 22}px`;
+                minimap.style.right = `${clamped.right}px`;
             }
 
             if (minimapCollapsed) return;
 
             // 保证不与主容器过度重叠：若重叠超过 30px，将其移到容器外空白区
             const container = document.querySelector('.container');
-            if (container && pos.left !== undefined) {
+            if (container && clamped.left !== undefined) {
                 const cRect = container.getBoundingClientRect();
                 const mRect = minimap.getBoundingClientRect();
                 const overlap = Math.min(mRect.right, cRect.right) - Math.max(mRect.left, cRect.left);
@@ -4219,7 +4220,7 @@
                     const newLeft = Math.max(cRect.right + 12, Math.min(mRect.left, window.innerWidth - mRect.width - 8));
                     minimap.style.left = `${newLeft}px`;
                     minimap.style.right = 'auto';
-                    saveMinimapPosition({ left: newLeft, top: pos.top, mode: 'custom' });
+                    saveMinimapPosition({ left: newLeft, top: clamped.top, mode: 'custom' });
                 }
             }
         }
@@ -4229,7 +4230,7 @@
             if (raw) {
                 try {
                     const pos = JSON.parse(raw);
-                    if (typeof pos === 'object') return pos;
+                    if (typeof pos === 'object') return sanitizeMinimapPosition(pos);
                 } catch (e) {
                     console.warn('缩略导航位置解析失败', e);
                 }
@@ -4242,6 +4243,26 @@
         function saveMinimapPosition(pos) {
             minimapPosition = pos;
             localStorage.setItem(MINIMAP_POS_KEY, JSON.stringify(pos));
+        }
+
+        function sanitizeMinimapPosition(pos, minimapEl) {
+            const minLeft = 6;
+            const minTop = 40;
+            const el = minimapEl || document.getElementById('previewMinimap');
+            const width = el ? el.offsetWidth : 220;
+            const height = el ? el.offsetHeight : 320;
+            const maxLeft = Math.max(minLeft, window.innerWidth - width - 6);
+            const maxTop = Math.max(minTop, window.innerHeight - height - 8);
+            const top = Math.min(Math.max(pos.top || minTop, minTop), maxTop);
+
+            if (pos.left !== undefined) {
+                const left = Math.min(Math.max(pos.left, minLeft), maxLeft);
+                return { left, top, mode: pos.mode || 'custom' };
+            }
+
+            // right-based定位，确保不超界
+            const right = Math.min(Math.max(pos.right || 22, 6), window.innerWidth - width - 6);
+            return { right, top, mode: pos.mode || 'default' };
         }
 
         function updatePartialAIFixButtonState() {
