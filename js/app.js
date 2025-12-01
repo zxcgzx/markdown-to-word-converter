@@ -69,6 +69,10 @@
         let miniMapTargets = new Map();
         let miniMapObserver = null;
         let minimapCollapsed = false;
+        let minimapPosition = null;
+        let minimapDragging = false;
+        let minimapDragOffset = { x: 0, y: 0 };
+        const MINIMAP_POS_KEY = 'minimapPosition';
         const syncMinimapActive = throttle(() => {
             if (minimapCollapsed) return;
             const list = document.getElementById('previewMinimapList');
@@ -3263,6 +3267,8 @@
                 loadExample();
             }
 
+            initializeMinimapPosition();
+
             if (!introModalShown && shouldShowIntroModal()) {
                 setTimeout(() => {
                     if (!introModalShown) {
@@ -4119,6 +4125,99 @@
         window.addEventListener('scroll', () => {
             syncMinimapActive();
         }, { passive: true });
+
+        function initializeMinimapPosition() {
+            const minimap = document.getElementById('previewMinimap');
+            const header = document.querySelector('.mini-header');
+            if (!minimap || !header) return;
+
+            minimapPosition = loadMinimapPosition();
+            applyMinimapPosition(minimapPosition);
+
+            const startDrag = (event) => {
+                minimapDragging = true;
+                const rect = minimap.getBoundingClientRect();
+                minimapDragOffset.x = event.clientX - rect.left;
+                minimapDragOffset.y = event.clientY - rect.top;
+                document.addEventListener('mousemove', onDrag);
+                document.addEventListener('mouseup', endDrag);
+            };
+
+            const onDrag = (event) => {
+                if (!minimapDragging) return;
+                const maxLeft = window.innerWidth - minimap.offsetWidth - 8;
+                const maxTop = window.innerHeight - 80;
+                const left = Math.min(Math.max(event.clientX - minimapDragOffset.x, 8), maxLeft);
+                const top = Math.min(Math.max(event.clientY - minimapDragOffset.y, 60), maxTop);
+                const pos = { left, top, mode: 'custom' };
+                applyMinimapPosition(pos);
+                saveMinimapPosition(pos);
+            };
+
+            const endDrag = () => {
+                minimapDragging = false;
+                document.removeEventListener('mousemove', onDrag);
+                document.removeEventListener('mouseup', endDrag);
+            };
+
+            header.addEventListener('mousedown', (event) => {
+                if (event.target.closest('.mini-toggle')) return;
+                startDrag(event);
+            });
+
+            window.addEventListener('resize', () => {
+                const saved = loadMinimapPosition();
+                const isCustom = saved && saved.mode === 'custom' && saved.left !== undefined;
+                if (!isCustom) {
+                    const defPos = getDefaultMinimapPosition();
+                    applyMinimapPosition(defPos);
+                    saveMinimapPosition(defPos);
+                }
+            });
+        }
+
+        function getDefaultMinimapPosition() {
+            const container = document.querySelector('.container');
+            const top = 140;
+            if (!container) return { right: 22, top, mode: 'default' };
+            const rect = container.getBoundingClientRect();
+            const gap = Math.max(12, window.innerWidth - rect.right - 12);
+            const right = Math.min(Math.max(gap, 12), 140);
+            return { right, top, mode: 'default' };
+        }
+
+        function applyMinimapPosition(pos) {
+            const minimap = document.getElementById('previewMinimap');
+            if (!minimap || !pos) return;
+            minimap.style.top = `${pos.top || 140}px`;
+            if (pos.left !== undefined) {
+                minimap.style.left = `${pos.left}px`;
+                minimap.style.right = 'auto';
+            } else {
+                minimap.style.left = 'auto';
+                minimap.style.right = `${pos.right || 22}px`;
+            }
+        }
+
+        function loadMinimapPosition() {
+            const raw = localStorage.getItem(MINIMAP_POS_KEY);
+            if (raw) {
+                try {
+                    const pos = JSON.parse(raw);
+                    if (typeof pos === 'object') return pos;
+                } catch (e) {
+                    console.warn('缩略导航位置解析失败', e);
+                }
+            }
+            const def = getDefaultMinimapPosition();
+            saveMinimapPosition(def);
+            return def;
+        }
+
+        function saveMinimapPosition(pos) {
+            minimapPosition = pos;
+            localStorage.setItem(MINIMAP_POS_KEY, JSON.stringify(pos));
+        }
 
         function updatePartialAIFixButtonState() {
             const partialBtn = document.getElementById('partialAIFixBtn');

@@ -1096,6 +1096,11 @@
             align-items: center;
             justify-content: space-between;
             margin-bottom: 10px;
+            cursor: grab;
+        }
+
+        .mini-header:active {
+            cursor: grabbing;
         }
 
         .mini-title {
