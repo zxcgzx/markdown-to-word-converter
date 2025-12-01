@@ -199,6 +199,8 @@
                     <div class="ai-meta">
                         <span>今日剩余 <strong id="aiStatusQuota">--</strong></span>
                         <span id="aiStatusLast">状态良好</span>
+                        <button class="btn-secondary" style="padding: 6px 10px; font-size: 12px;" onclick="quickSwitchAI('kimi')">Kimi</button>
+                        <button class="btn-secondary" style="padding: 6px 10px; font-size: 12px;" onclick="quickSwitchAI('glm')">GLM</button>
                     </div>
                 </div>
                 
@@ -645,6 +647,7 @@
                                 <div class="table-actions">
                                     <button class="btn" onclick="tableConvertHtml()">转换表格</button>
                                     <button class="btn btn-secondary" onclick="tableCopyResult('tableHtmlPreview')">复制表格</button>
+                                    <button class="btn btn-secondary" onclick="tableCopyPlain('tableHtmlPreview')">复制纯文本</button>
                                     <button class="btn btn-secondary" onclick="tableReset('html')">重置</button>
                                 </div>
                             </div>
@@ -665,8 +668,9 @@
                                     <div class="table-actions">
                                         <button class="btn" onclick="tableConvertText()">转换表格</button>
                                         <button class="btn btn-secondary" onclick="tableCopyResult('tableTextPreview')">复制表格</button>
+                                        <button class="btn btn-secondary" onclick="tableCopyPlain('tableTextPreview')">复制纯文本</button>
                                         <button class="btn btn-secondary" onclick="tableReset('text')">重置</button>
-                                </div>
+                                    </div>
                             </div>
                             <div class="table-preview-block">
                                 <div class="table-block-title">预览</div>
@@ -687,8 +691,9 @@
                                         <div class="table-actions">
                                             <button class="btn" onclick="tableConvertMarkdown()">转换表格</button>
                                             <button class="btn btn-secondary" onclick="tableCopyResult('tableMarkdownPreview')">复制表格</button>
+                                            <button class="btn btn-secondary" onclick="tableCopyPlain('tableMarkdownPreview')">复制纯文本</button>
                                             <button class="btn btn-secondary" onclick="tableReset('markdown')">重置</button>
-                                </div>
+                                        </div>
                             </div>
                             <div class="table-preview-block">
                                 <div class="table-block-title">预览</div>

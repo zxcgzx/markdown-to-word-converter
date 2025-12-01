@@ -4483,6 +4483,39 @@ $$\\\\lim_{x \\\\to \\\\infty} \\\\frac{1}{x} = 0$$
             refreshTablePreviewSkins();
         }
 
+        function quickSwitchAI(provider) {
+            if (PRESET_AI_CONFIGS[provider]) {
+                selectAIProvider(provider);
+                updateAIStatusBar();
+            } else {
+                showToast('提示', '仅支持 Kimi 与 GLM 快速切换', 'warning');
+            }
+        }
+
+        function tableCopyPlain(targetId) {
+            const target = document.getElementById(targetId);
+            if (!target || !target.textContent.trim()) {
+                showToast('提示', '没有可复制的内容', 'warning');
+                return;
+            }
+            const text = target.textContent.trim();
+            const doCopy = async () => {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    showToast('复制成功', '纯文本已复制', 'success');
+                } catch (error) {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    const ok = document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    showToast(ok ? '复制成功' : '复制失败', ok ? '纯文本已复制' : '请手动复制', ok ? 'success' : 'error');
+                }
+            };
+            doCopy();
+        }
+
         function refreshTablePreviewSkins() {
             document.querySelectorAll('.table-preview-card').forEach(card => {
                 card.classList.toggle('striped-table', tableStriped);
