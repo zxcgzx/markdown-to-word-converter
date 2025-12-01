@@ -69,6 +69,28 @@
         let miniMapTargets = new Map();
         let miniMapObserver = null;
         let minimapCollapsed = false;
+        const syncMinimapActive = throttle(() => {
+            if (minimapCollapsed) return;
+            const list = document.getElementById('previewMinimapList');
+            if (!list || !miniMapTargets.size) return;
+            const entries = Array.from(miniMapTargets.entries()).map(([id, el]) => {
+                const rect = el.getBoundingClientRect();
+                return { id, top: rect.top };
+            });
+            const viewportTop = 90;
+            const below = entries.filter(e => e.top >= viewportTop);
+            let targetId;
+            if (below.length) {
+                targetId = below.sort((a, b) => a.top - b.top)[0].id;
+            } else {
+                targetId = entries.sort((a, b) => b.top - a.top)[0].id;
+            }
+            if (targetId) {
+                list.querySelectorAll('.mini-item').forEach(item => {
+                    item.classList.toggle('active', item.dataset.target === targetId);
+                });
+            }
+        }, 120);
         
         // 自定义密码管理
         const customPasswords = {
@@ -4060,6 +4082,7 @@
             });
 
             bindMinimapEvents();
+            syncMinimapActive();
         }
 
         function bindMinimapEvents() {
@@ -4092,6 +4115,10 @@
                 updatePreviewMinimap();
             }
         }
+
+        window.addEventListener('scroll', () => {
+            syncMinimapActive();
+        }, { passive: true });
 
         function updatePartialAIFixButtonState() {
             const partialBtn = document.getElementById('partialAIFixBtn');

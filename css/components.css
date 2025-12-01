@@ -1078,8 +1078,8 @@
         /* 预览缩略导航 */
         .preview-minimap {
             position: fixed;
-            top: 150px;
-            right: 18px;
+            top: 140px;
+            right: clamp(8px, 2vw, 22px);
             width: 220px;
             max-height: 70vh;
             background: var(--glass-bg);
@@ -1126,6 +1126,11 @@
             box-shadow: 0 4px 10px var(--shadow-hover);
         }
 
+        .mini-toggle:focus-visible {
+            outline: 2px solid var(--border-focus);
+            outline-offset: 2px;
+        }
+
         .mini-list {
             display: flex;
             flex-direction: column;
@@ -1145,6 +1150,7 @@
             border-radius: 10px;
             cursor: pointer;
             transition: var(--transition);
+            pointer-events: auto;
         }
 
         .mini-item:hover {
@@ -1190,7 +1196,26 @@
         }
 
         .preview-minimap.is-collapsed {
+            width: 60px;
             max-height: unset;
+            padding: 8px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .preview-minimap.is-collapsed .mini-title,
+        .preview-minimap.is-collapsed .mini-subtitle,
+        .preview-minimap.is-collapsed .mini-header > div {
+            display: none;
+        }
+
+        .preview-minimap.is-collapsed .mini-list {
+            display: none !important;
+        }
+
+        .preview-minimap.is-collapsed .mini-toggle {
+            width: 100%;
+            height: 36px;
         }
 
         /* 改进按钮样式 */
