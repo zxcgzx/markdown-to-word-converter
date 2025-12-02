@@ -4202,7 +4202,7 @@
 
         function getDefaultMinimapPosition() {
             const container = document.querySelector('.container');
-            const top = 140;
+            const top = getSafeMinimapTop(200);
             if (!container) return { right: 22, top, mode: 'default' };
             const rect = container.getBoundingClientRect();
             const gap = Math.max(12, window.innerWidth - rect.right - 12);
@@ -4246,9 +4246,29 @@
             localStorage.setItem(MINIMAP_POS_KEY, JSON.stringify(pos));
         }
 
+        function getSafeMinimapTop(fallback = 140) {
+            const header = document.querySelector('.header');
+            const status = document.getElementById('userStatus');
+            const aiBar = document.getElementById('aiStatusBar');
+            const candidates = [fallback];
+            if (aiBar) {
+                const r = aiBar.getBoundingClientRect();
+                candidates.push(r.bottom + 16);
+            }
+            if (status && status.style.display !== 'none') {
+                const r = status.getBoundingClientRect();
+                candidates.push(r.bottom + 16);
+            }
+            if (header) {
+                const r = header.getBoundingClientRect();
+                candidates.push(r.bottom + 20);
+            }
+            return Math.max(...candidates);
+        }
+
         function sanitizeMinimapPosition(pos, minimapEl) {
             const minLeft = 6;
-            const minTop = 40;
+            const minTop = getSafeMinimapTop(120);
             const el = minimapEl || document.getElementById('previewMinimap');
             const width = el ? el.offsetWidth : 220;
             const height = el ? el.offsetHeight : 320;
