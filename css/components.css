@@ -1127,16 +1127,37 @@
     box-shadow: 0 4px 10px var(--shadow-hover);
 }
 
-.mini-reset:focus-visible {
-    outline: 2px solid var(--border-focus);
-    outline-offset: 2px;
-}
+        .mini-reset:focus-visible {
+            outline: 2px solid var(--border-focus);
+            outline-offset: 2px;
+        }
 
-.mini-title {
-    font-weight: 700;
-    color: var(--text-primary);
-    font-size: 14px;
-}
+        .minimap-restore {
+            position: fixed;
+            bottom: 18px;
+            right: 18px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.14);
+            cursor: pointer;
+            z-index: 950;
+            display: none;
+        }
+
+        .minimap-restore:hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+            box-shadow: 0 12px 24px var(--shadow-hover);
+        }
+
+        .mini-title {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
 
         .mini-subtitle {
             font-size: 12px;

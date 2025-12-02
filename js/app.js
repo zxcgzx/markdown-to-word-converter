@@ -73,6 +73,7 @@
         let minimapDragging = false;
         let minimapDragOffset = { x: 0, y: 0 };
         const MINIMAP_POS_KEY = 'minimapPosition';
+        const MINIMAP_OFFSCREEN_THRESHOLD = 20;
         const syncMinimapActive = throttle(() => {
             if (minimapCollapsed) return;
             const list = document.getElementById('previewMinimapList');
@@ -3268,6 +3269,7 @@
             }
 
             initializeMinimapPosition();
+            updateMinimapVisibilityIndicator();
 
             if (!introModalShown && shouldShowIntroModal()) {
                 setTimeout(() => {
@@ -4089,6 +4091,7 @@
 
             bindMinimapEvents();
             syncMinimapActive();
+            updateMinimapVisibilityIndicator();
         }
 
         function bindMinimapEvents() {
@@ -4120,10 +4123,12 @@
             if (!minimapCollapsed) {
                 updatePreviewMinimap();
             }
+            updateMinimapVisibilityIndicator();
         }
 
         window.addEventListener('scroll', () => {
             syncMinimapActive();
+            updateMinimapVisibilityIndicator();
         }, { passive: true });
 
         function initializeMinimapPosition() {
@@ -4165,6 +4170,7 @@
 
             header.addEventListener('pointerdown', (event) => {
                 if (event.target.closest('.mini-toggle')) return;
+                if (event.target.closest('.mini-reset')) return;
                 startDrag(event);
             });
 
@@ -4172,6 +4178,7 @@
                 const defPos = getDefaultMinimapPosition();
                 applyMinimapPosition(defPos);
                 saveMinimapPosition(defPos);
+                updateMinimapVisibilityIndicator();
             });
 
             window.addEventListener('resize', () => {
@@ -4182,7 +4189,12 @@
                     applyMinimapPosition(defPos);
                     saveMinimapPosition(defPos);
                 }
+                updateMinimapVisibilityIndicator();
             });
+
+            window.addEventListener('resize', throttle(() => {
+                updateMinimapVisibilityIndicator();
+            }, 200));
         }
 
         function getDefaultMinimapPosition() {
@@ -4208,21 +4220,7 @@
                 minimap.style.right = `${clamped.right}px`;
             }
 
-            if (minimapCollapsed) return;
-
-            // 保证不与主容器过度重叠：若重叠超过 30px，将其移到容器外空白区
-            const container = document.querySelector('.container');
-            if (container && clamped.left !== undefined) {
-                const cRect = container.getBoundingClientRect();
-                const mRect = minimap.getBoundingClientRect();
-                const overlap = Math.min(mRect.right, cRect.right) - Math.max(mRect.left, cRect.left);
-                if (overlap > 30) {
-                    const newLeft = Math.max(cRect.right + 12, Math.min(mRect.left, window.innerWidth - mRect.width - 8));
-                    minimap.style.left = `${newLeft}px`;
-                    minimap.style.right = 'auto';
-                    saveMinimapPosition({ left: newLeft, top: clamped.top, mode: 'custom' });
-                }
-            }
+            updateMinimapVisibilityIndicator();
         }
 
         function loadMinimapPosition() {
@@ -4263,6 +4261,43 @@
             // right-based定位，确保不超界
             const right = Math.min(Math.max(pos.right || 22, 6), window.innerWidth - width - 6);
             return { right, top, mode: pos.mode || 'default' };
+        }
+
+        function isMinimapOffscreen(rect) {
+            return (
+                rect.bottom < MINIMAP_OFFSCREEN_THRESHOLD ||
+                rect.top > window.innerHeight - MINIMAP_OFFSCREEN_THRESHOLD ||
+                rect.right < MINIMAP_OFFSCREEN_THRESHOLD ||
+                rect.left > window.innerWidth - MINIMAP_OFFSCREEN_THRESHOLD
+            );
+        }
+
+        function updateMinimapVisibilityIndicator() {
+            const minimap = document.getElementById('previewMinimap');
+            const restore = document.getElementById('minimapRestore');
+            if (!minimap || !restore) return;
+            const rect = minimap.getBoundingClientRect();
+            const offscreen = isMinimapOffscreen(rect);
+            restore.style.display = offscreen ? 'block' : 'none';
+        }
+
+        function forceShowMinimap() {
+            minimapCollapsed = false;
+            const minimap = document.getElementById('previewMinimap');
+            const list = document.getElementById('previewMinimapList');
+            const btn = document.getElementById('miniToggleBtn');
+            if (minimap) minimap.classList.remove('is-collapsed');
+            if (list) list.style.display = 'flex';
+            if (btn) btn.textContent = '—';
+            const def = getDefaultMinimapPosition();
+            applyMinimapPosition(def);
+            saveMinimapPosition(def);
+            updatePreviewMinimap();
+            updateMinimapVisibilityIndicator();
+        }
+
+        function resetMinimapPosition() {
+            forceShowMinimap();
         }
 
         function updatePartialAIFixButtonState() {
