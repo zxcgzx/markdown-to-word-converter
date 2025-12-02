@@ -1143,9 +1143,10 @@
             color: var(--text-primary);
             box-shadow: 0 10px 20px rgba(0,0,0,0.14);
             cursor: pointer;
-            z-index: 950;
+            z-index: 12000;
             display: block;
-            opacity: 0.6;
+            opacity: 0.8;
+            pointer-events: auto;
         }
 
         .minimap-restore:hover {
