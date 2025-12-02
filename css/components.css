@@ -1144,13 +1144,15 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.14);
             cursor: pointer;
             z-index: 950;
-            display: none;
+            display: block;
+            opacity: 0.6;
         }
 
         .minimap-restore:hover {
             border-color: var(--accent-primary);
             color: var(--accent-primary);
             box-shadow: 0 12px 24px var(--shadow-hover);
+            opacity: 1;
         }
 
         .mini-title {

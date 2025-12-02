@@ -3269,7 +3269,7 @@
             }
 
             initializeMinimapPosition();
-            updateMinimapVisibilityIndicator();
+            ensureMinimapVisible();
 
             if (!introModalShown && shouldShowIntroModal()) {
                 setTimeout(() => {
@@ -4091,7 +4091,7 @@
 
             bindMinimapEvents();
             syncMinimapActive();
-            updateMinimapVisibilityIndicator();
+            ensureMinimapVisible();
         }
 
         function bindMinimapEvents() {
@@ -4122,13 +4122,15 @@
             btn.textContent = minimapCollapsed ? '+' : '—';
             if (!minimapCollapsed) {
                 updatePreviewMinimap();
+                const saved = loadMinimapPosition();
+                applyMinimapPosition(saved);
             }
-            updateMinimapVisibilityIndicator();
+            ensureMinimapVisible();
         }
 
         window.addEventListener('scroll', () => {
             syncMinimapActive();
-            updateMinimapVisibilityIndicator();
+            ensureMinimapVisible();
         }, { passive: true });
 
         function initializeMinimapPosition() {
@@ -4166,6 +4168,7 @@
                 minimap.style.transition = '';
                 document.removeEventListener('pointermove', onDrag);
                 document.removeEventListener('pointerup', endDrag);
+                ensureMinimapVisible();
             };
 
             header.addEventListener('pointerdown', (event) => {
@@ -4178,7 +4181,7 @@
                 const defPos = getDefaultMinimapPosition();
                 applyMinimapPosition(defPos);
                 saveMinimapPosition(defPos);
-                updateMinimapVisibilityIndicator();
+                ensureMinimapVisible();
             });
 
             window.addEventListener('resize', () => {
@@ -4189,11 +4192,11 @@
                     applyMinimapPosition(defPos);
                     saveMinimapPosition(defPos);
                 }
-                updateMinimapVisibilityIndicator();
+                ensureMinimapVisible();
             });
 
             window.addEventListener('resize', throttle(() => {
-                updateMinimapVisibilityIndicator();
+                ensureMinimapVisible();
             }, 200));
         }
 
@@ -4220,7 +4223,7 @@
                 minimap.style.right = `${clamped.right}px`;
             }
 
-            updateMinimapVisibilityIndicator();
+            ensureMinimapVisible();
         }
 
         function loadMinimapPosition() {
@@ -4278,7 +4281,8 @@
             if (!minimap || !restore) return;
             const rect = minimap.getBoundingClientRect();
             const offscreen = isMinimapOffscreen(rect);
-            restore.style.display = offscreen ? 'block' : 'none';
+            restore.style.display = offscreen ? 'block' : 'block';
+            restore.textContent = offscreen ? '↺ 找回缩略导航' : '↺ 重置缩略导航';
         }
 
         function forceShowMinimap() {
@@ -4293,11 +4297,25 @@
             applyMinimapPosition(def);
             saveMinimapPosition(def);
             updatePreviewMinimap();
-            updateMinimapVisibilityIndicator();
+            ensureMinimapVisible();
         }
 
         function resetMinimapPosition() {
             forceShowMinimap();
+        }
+
+        function ensureMinimapVisible() {
+            const minimap = document.getElementById('previewMinimap');
+            if (!minimap) return;
+            const rect = minimap.getBoundingClientRect();
+            const offscreen = isMinimapOffscreen(rect);
+            if (offscreen) {
+                const def = getDefaultMinimapPosition();
+                applyMinimapPosition(def);
+                saveMinimapPosition(def);
+                showToast('已找回缩略导航', '位置已重置到右侧空白区', 'info');
+            }
+            updateMinimapVisibilityIndicator();
         }
 
         function updatePartialAIFixButtonState() {
