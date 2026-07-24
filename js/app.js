@@ -6,7 +6,9 @@
         autosave: 'md2word.personal.autosave.v3',
         split: 'md2word.personal.split.v3',
         ai: 'md2word.personal.ai.v3',
-        view: 'md2word.personal.view.v5'
+        viewLegacy: 'md2word.personal.view.v5',
+        viewDesktop: 'md2word.personal.view.desktop.v5.1',
+        viewMobile: 'md2word.personal.view.mobile.v5.1'
     };
 
     const DEFAULT_SETTINGS = Object.freeze({
@@ -28,7 +30,7 @@
         glm: { type: 'openai', endpoint: 'https://open.bigmodel.cn/api/paas/v4/chat/completions', model: 'glm-4.7-flashx' },
         deepseek: { type: 'openai', endpoint: 'https://api.deepseek.com/v1/chat/completions', model: 'deepseek-v4-flash' },
         openai: { type: 'openai', endpoint: 'https://api.openai.com/v1/chat/completions', model: 'gpt-5-mini' },
-        gemini: { type: 'gemini', endpoint: 'https://generativelanguage.googleapis.com/v1beta', model: 'gemini-3.5-flash' }
+        gemini: { type: 'gemini', endpoint: 'https://generativelanguage.googleapis.com/v1beta', model: 'gemini-3.6-flash' }
     });
 
     const THEME_ORDER = Object.freeze(['amber', 'forest', 'noir', 'aurora']);
@@ -47,7 +49,7 @@
         gemini: 'Gemini'
     });
     const FALLBACK_ACCESS = Object.freeze({
-        sessionKey: 'md2word.fusion.auth.v5',
+        sessionKey: 'md2word.fusion.auth.v5.1',
         users: Object.freeze({
             basic123: Object.freeze({ level: 'basic', name: '基础用户', icon: '🆓', label: '基础版' }),
             '517517': Object.freeze({ level: 'advanced', name: '高级用户', icon: '⭐', label: '高级版' }),
@@ -79,7 +81,12 @@
         renderGeneration: 0,
         renderResult: null,
         currentFileName: '未命名.md',
+        documentName: '未命名',
         dirty: false,
+        draftDirty: false,
+        lastDraftSavedAt: null,
+        fileOrigin: 'new',
+        fileSyncedAt: null,
         autosaveTimer: null,
         pendingDraft: null,
         lastDestructiveSnapshot: null,
@@ -96,7 +103,9 @@
         currentUser: null,
         authReady: false,
         initialized: false,
-        exporting: false
+        exporting: false,
+        exportReport: null,
+        viewportMode: ''
     };
 
     const dom = {};
@@ -122,6 +131,32 @@
         }
     }
 
+    function localStorageGet(key) {
+        try {
+            return window.localStorage.getItem(key);
+        } catch (_error) {
+            return null;
+        }
+    }
+
+    function localStorageSet(key, value) {
+        try {
+            window.localStorage.setItem(key, value);
+            return true;
+        } catch (_error) {
+            return false;
+        }
+    }
+
+    function localStorageRemove(key) {
+        try {
+            window.localStorage.removeItem(key);
+            return true;
+        } catch (_error) {
+            return false;
+        }
+    }
+
     function nextFrame() {
         return new Promise((resolve) => requestAnimationFrame(() => resolve()));
     }
@@ -138,6 +173,8 @@
         if (state.initialized) return;
         state.initialized = true;
         cacheDom();
+        state.viewportMode = getViewportMode();
+        syncDocumentNameInput();
         loadSettings();
         loadAIConfig();
         applySettings();
@@ -151,6 +188,7 @@
         renderPreview({ immediate: true });
         updateTableOutput();
         updateAIToolSummary();
+        updateExportReadiness();
         initializeAccessGate();
     }
 
@@ -168,6 +206,8 @@
             fileInput: byId('fileInput'),
             saveDot: byId('saveDot'),
             saveStatus: byId('saveStatus'),
+            fileSaveStatus: byId('fileSaveStatus'),
+            documentNameInput: byId('documentNameInput'),
             mathStatus: byId('mathStatus'),
             mathStatusText: byId('mathStatusText'),
             outlineSelect: byId('outlineSelect'),
@@ -187,15 +227,26 @@
             toastRegion: byId('toastRegion'),
             settingsDialog: byId('settingsDialog'),
             settingsForm: byId('settingsForm'),
+            settingsNav: byId('settingsNav'),
             toolDrawer: byId('toolDrawer'),
             toolDrawerTitle: byId('toolDrawerTitle'),
             tableToolPanel: byId('tableToolPanel'),
             aiToolPanel: byId('aiToolPanel'),
+            exportCheckToolPanel: byId('exportCheckToolPanel'),
+            exportCheckSummary: byId('exportCheckSummary'),
+            exportCheckDetail: byId('exportCheckDetail'),
+            exportCheckList: byId('exportCheckList'),
+            exportReadinessChip: byId('exportReadinessChip'),
+            forceExportButton: byId('forceExportButton'),
             aiProgress: byId('aiProgress'),
             aiResultPanel: byId('aiResultPanel'),
             aiConflict: byId('aiConflict'),
             applyAiResultButton: byId('applyAiResultButton'),
             downloadWordButton: byId('downloadWordButton'),
+            downloadWordIcon: byId('downloadWordIcon'),
+            downloadWordLabel: byId('downloadWordLabel'),
+            exportIssueBadge: byId('exportIssueBadge'),
+            toolbarMoreMenu: byId('toolbarMoreMenu'),
             passwordOverlay: byId('passwordOverlay'),
             passwordForm: byId('passwordForm'),
             passwordInput: byId('passwordInput'),
@@ -213,8 +264,18 @@
     function bindEvents() {
         dom.markdownInput.addEventListener('input', onEditorInput);
         dom.markdownInput.addEventListener('keydown', onEditorKeydown);
+        dom.documentNameInput.addEventListener('input', onDocumentNameInput);
+        dom.documentNameInput.addEventListener('blur', normalizeDocumentNameInput);
+        dom.documentNameInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                dom.documentNameInput.blur();
+            }
+        });
         dom.markdownInput.addEventListener('scroll', () => syncScrollFrom(dom.markdownInput, dom.preview));
         dom.preview.addEventListener('scroll', () => syncScrollFrom(dom.preview, dom.markdownInput));
+        dom.preview.addEventListener('click', handlePreviewMathActivation);
+        dom.preview.addEventListener('keydown', handlePreviewMathActivation);
         dom.fileInput.addEventListener('change', onFileChosen);
         dom.outlineSelect.addEventListener('change', navigateOutline);
         dom.syncScrollToggle.addEventListener('change', () => {
@@ -231,6 +292,9 @@
         dom.applyMathNormalization.addEventListener('click', applyMathNormalization);
         document.addEventListener('click', handleDelegatedClick);
         document.addEventListener('keydown', onGlobalKeydown);
+        document.addEventListener('click', (event) => {
+            if (dom.toolbarMoreMenu && dom.toolbarMoreMenu.open && !dom.toolbarMoreMenu.contains(event.target)) closeToolbarMoreMenu();
+        });
         bindViewSwitch();
         bindSplitter();
         bindDragAndDrop();
@@ -238,6 +302,12 @@
         bindAccessEvents();
         window.addEventListener('resize', debounce(() => {
             sanitizeSplitPosition();
+            const nextMode = getViewportMode();
+            if (nextMode !== state.viewportMode) {
+                state.viewportMode = nextMode;
+                restoreView();
+            }
+            closeToolbarMoreMenu();
             if (state.settings.theme === 'system') applyTheme();
         }, 120));
 
@@ -250,8 +320,15 @@
     }
 
     function handleDelegatedClick(event) {
+        const settingsTab = event.target.closest('[data-settings-tab]');
+        if (settingsTab) {
+            activateSettingsTab(settingsTab.dataset.settingsTab, { focus: true });
+            return;
+        }
+
         const commandButton = event.target.closest('[data-command]');
         if (commandButton) {
+            closeToolbarMoreMenu();
             applyEditorCommand(commandButton.dataset.command);
             return;
         }
@@ -259,6 +336,10 @@
         const actionButton = event.target.closest('[data-action]');
         if (!actionButton) return;
         const action = actionButton.dataset.action;
+        if (action === 'locate-source') {
+            locateSourceRange(Number(actionButton.dataset.sourceStart), Number(actionButton.dataset.sourceEnd));
+            return;
+        }
         const handlers = {
             reload: () => window.location.reload(),
             'new-document': newDocument,
@@ -268,7 +349,9 @@
             'load-formula-example': loadFormulaExample,
             'restore-draft': restorePendingDraft,
             'copy-rich': copyRichText,
-            'download-word': downloadWord,
+            'download-word': () => downloadWord(),
+            'rerun-export-check': () => openExportCheck(buildExportReport()),
+            'run-export-anyway': () => downloadWord({ force: true }),
             'open-table': openTableTool,
             'run-ai-direct': runAIDirect,
             'close-tool-drawer': closeToolDrawer,
@@ -279,13 +362,19 @@
             'apply-ai-result': applyAIResult,
             'open-settings-ai': () => openSettings('ai'),
             'open-settings': () => openSettings('interface'),
+            'close-settings': () => closeDialog(dom.settingsDialog, 'cancel'),
             'reset-settings': resetSettings,
             'close-formula-inspector': () => toggleFormulaInspector(false),
             'undo-document': undoDocumentChange,
             'clear-status': clearStatusMessage,
             logout: logoutAccess
         };
+        closeToolbarMoreMenu();
         if (handlers[action]) handlers[action]();
+    }
+
+    function closeToolbarMoreMenu() {
+        if (dom.toolbarMoreMenu) dom.toolbarMoreMenu.open = false;
     }
 
     function checkDependencies() {
@@ -294,6 +383,7 @@
         if (!window.DOMPurify || typeof window.DOMPurify.sanitize !== 'function') missing.push('DOMPurify');
         if (!window.katex || typeof window.katex.renderToString !== 'function') missing.push('KaTeX（公式会显示源码）');
         if (!window.Md2WordMath) missing.push('本地公式引擎');
+        if (!window.Md2WordPreflight || typeof window.Md2WordPreflight.analyze !== 'function') missing.push('导出检查器');
         if (!window.docx) missing.push('docx（Word 导出不可用）');
         if (typeof window.saveAs !== 'function') missing.push('FileSaver（将使用浏览器下载降级）');
 
@@ -446,7 +536,7 @@
     }
 
     function loadSettings() {
-        const stored = safeJsonParse(localStorage.getItem(STORAGE.settings), {});
+        const stored = safeJsonParse(localStorageGet(STORAGE.settings), {});
         const legacyTheme = stored.theme === 'light' ? 'amber' : stored.theme === 'dark' ? 'noir' : stored.theme;
         const allowedThemes = new Set([...THEME_ORDER, 'system']);
         state.settings = {
@@ -462,7 +552,7 @@
     }
 
     function persistSettings() {
-        localStorage.setItem(STORAGE.settings, JSON.stringify(state.settings));
+        localStorageSet(STORAGE.settings, JSON.stringify(state.settings));
     }
 
     function applySettings() {
@@ -496,14 +586,30 @@
 
     function openSettings(section = 'interface') {
         populateSettingsForm();
+        activateSettingsTab(section);
         showDialog(dom.settingsDialog);
-        const targets = {
-            interface: byId('settingsInterfaceSection'),
-            ai: byId('settingsAISection'),
-            shortcuts: byId('settingsShortcutSection')
-        };
-        const target = targets[section];
-        if (target) requestAnimationFrame(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+        requestAnimationFrame(() => {
+            const active = dom.settingsNav && dom.settingsNav.querySelector('[aria-selected="true"]');
+            if (active) active.focus({ preventScroll: true });
+        });
+    }
+
+    function activateSettingsTab(section = 'interface', options = {}) {
+        const tabs = queryAll('[data-settings-tab]', dom.settingsDialog);
+        const panels = queryAll('[data-settings-panel]', dom.settingsDialog);
+        const valid = tabs.some((tab) => tab.dataset.settingsTab === section) ? section : 'interface';
+        tabs.forEach((tab) => {
+            const active = tab.dataset.settingsTab === valid;
+            tab.classList.toggle('active', active);
+            tab.setAttribute('aria-selected', String(active));
+            tab.tabIndex = active ? 0 : -1;
+            if (active && options.focus) tab.focus();
+        });
+        panels.forEach((panel) => {
+            const active = panel.dataset.settingsPanel === valid;
+            panel.hidden = !active;
+            panel.classList.toggle('active', active);
+        });
     }
 
     function populateSettingsForm() {
@@ -550,6 +656,21 @@
             closeDialog(dom.settingsDialog, 'save');
             setStatusMessage('设置已保存。', { duration: 2600 });
         });
+
+        if (dom.settingsNav) {
+            dom.settingsNav.addEventListener('keydown', (event) => {
+                const tabs = queryAll('[data-settings-tab]', dom.settingsNav);
+                const current = tabs.indexOf(document.activeElement);
+                if (current < 0 || !['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+                event.preventDefault();
+                let next = current;
+                if (event.key === 'Home') next = 0;
+                else if (event.key === 'End') next = tabs.length - 1;
+                else if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') next = (current - 1 + tabs.length) % tabs.length;
+                else next = (current + 1) % tabs.length;
+                activateSettingsTab(tabs[next].dataset.settingsTab, { focus: true });
+            });
+        }
     }
 
     function resetSettings() {
@@ -604,10 +725,55 @@
         return String(value).replace(/[&<>"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[char]));
     }
 
+    function deriveDocumentName(fileName) {
+        return sanitizeFileName(String(fileName || '未命名').replace(/\.(?:md|markdown|txt|docx)$/i, ''));
+    }
+
+    function syncDocumentNameInput() {
+        if (!dom.documentNameInput) return;
+        dom.documentNameInput.value = state.documentName || deriveDocumentName(state.currentFileName);
+    }
+
+    function setDocumentIdentity(fileName, options = {}) {
+        const proposedName = options.documentName || deriveDocumentName(fileName);
+        state.documentName = sanitizeFileName(proposedName);
+        state.currentFileName = ensureExtension(state.documentName, '.md');
+        if (options.origin) state.fileOrigin = options.origin;
+        if (Object.prototype.hasOwnProperty.call(options, 'syncedAt')) state.fileSyncedAt = options.syncedAt;
+        syncDocumentNameInput();
+    }
+
+    function onDocumentNameInput() {
+        const value = String(dom.documentNameInput.value || '').replace(/[<>:"/\\|?*\x00-\x1f]/g, '-').slice(0, 80);
+        state.documentName = value.trim() || '未命名';
+        state.currentFileName = ensureExtension(state.documentName, '.md');
+        state.dirty = true;
+        state.draftDirty = true;
+        updateSaveStatus();
+        scheduleAutosave();
+        updateExportReadiness();
+    }
+
+    function normalizeDocumentNameInput() {
+        const normalized = sanitizeFileName(dom.documentNameInput ? dom.documentNameInput.value : state.documentName);
+        const changed = normalized !== state.documentName;
+        state.documentName = normalized;
+        state.currentFileName = ensureExtension(normalized, '.md');
+        syncDocumentNameInput();
+        if (changed) {
+            state.dirty = true;
+            state.draftDirty = true;
+            scheduleAutosave();
+        }
+        updateSaveStatus();
+        return normalized;
+    }
+
     function onEditorInput() {
         state.dirty = true;
-        dom.saveDot.classList.add('dirty');
+        state.draftDirty = true;
         updateStats();
+        updateSaveStatus();
         scheduleRender();
         scheduleAutosave();
     }
@@ -646,6 +812,7 @@
             };
             updateMathStatus();
             buildOutline();
+            updateExportReadiness();
             dom.renderStatus.textContent = '等待输入';
             return state.renderResult;
         }
@@ -653,13 +820,16 @@
         if (!window.Md2WordMath || !window.marked) {
             dom.preview.innerHTML = '<div class="math-error">核心解析依赖未加载，请刷新页面。</div>';
             dom.renderStatus.textContent = '解析器未加载';
+            state.renderResult = null;
+            updateMathStatus();
+            updateExportReadiness();
             return null;
         }
 
         try {
             const sanitize = (html) => {
                 if (window.DOMPurify && typeof window.DOMPurify.sanitize === 'function') {
-                    return window.DOMPurify.sanitize(html, { USE_PROFILES: { html: true }, ADD_ATTR: ['target', 'rel'] });
+                    return window.DOMPurify.sanitize(html, { USE_PROFILES: { html: true }, ADD_ATTR: ['target', 'rel', 'data-math-index', 'data-math-start', 'data-math-end', 'data-math-source', 'data-math-display', 'role', 'tabindex'] });
                 }
                 return html;
             };
@@ -676,6 +846,7 @@
             decoratePreviewLinks();
             buildOutline();
             updateMathStatus();
+            updateExportReadiness();
             requestAnimationFrame(() => setScrollRatio(dom.preview, previousRatio));
 
             const elapsed = Math.max(1, Math.round(performance.now() - startedAt));
@@ -687,6 +858,7 @@
             dom.renderStatus.textContent = '渲染失败';
             state.renderResult = null;
             updateMathStatus();
+            updateExportReadiness();
             toast('预览解析失败', error.message || String(error), 'error', 6500);
             return null;
         }
@@ -708,7 +880,7 @@
         const errors = Array.isArray(result.errors) ? result.errors.length : 0;
         const fixes = Number(result.looseDelimiterFixes || 0);
         dom.mathStatus.classList.remove('ok', 'warning', 'error');
-        dom.mathStatusText.textContent = `公式 ${count} · 错误 ${errors} · 修复 ${fixes}`;
+        dom.mathStatusText.textContent = `公式 ${count} · 渲染错误 ${errors} · 边界修复 ${fixes}`;
         if (errors) dom.mathStatus.classList.add('error');
         else if ((result.warnings && result.warnings.length) || fixes) dom.mathStatus.classList.add('warning');
         else if (count) dom.mathStatus.classList.add('ok');
@@ -722,6 +894,69 @@
         if (shouldOpen) renderFormulaInspector();
     }
 
+    function resolveSourceRange(item) {
+        const source = dom.markdownInput.value;
+        if (!item) return null;
+        const start = Number(item.start);
+        const end = Number(item.end);
+        if (Number.isFinite(start) && Number.isFinite(end) && start >= 0 && end >= start && end <= source.length) {
+            const slice = source.slice(start, end);
+            if (!item.content || slice.includes(item.content) || slice === item.raw) return { start, end };
+        }
+        const raw = String(item.raw || '');
+        if (raw) {
+            const rawIndex = source.indexOf(raw);
+            if (rawIndex >= 0) return { start: rawIndex, end: rawIndex + raw.length };
+        }
+        const content = String(item.content || '');
+        if (content) {
+            const contentIndex = source.indexOf(content);
+            if (contentIndex >= 0) return { start: contentIndex, end: contentIndex + content.length };
+        }
+        return Number.isFinite(start) ? { start: clamp(start, 0, source.length), end: clamp(Number.isFinite(end) ? end : start, 0, source.length) } : null;
+    }
+
+    function sourceLineColumn(offset) {
+        const source = dom.markdownInput.value;
+        const safe = clamp(Number(offset) || 0, 0, source.length);
+        const lines = source.slice(0, safe).split('\n');
+        return { line: lines.length, column: lines[lines.length - 1].length + 1 };
+    }
+
+    function locateSourceRange(start, end) {
+        const source = dom.markdownInput.value;
+        if (!Number.isFinite(start)) return;
+        const safeStart = clamp(Math.round(start), 0, source.length);
+        const safeEnd = clamp(Number.isFinite(end) ? Math.round(end) : safeStart, safeStart, source.length);
+        setView(getViewportMode() === 'mobile' ? 'editor' : 'split');
+        requestAnimationFrame(() => {
+            dom.markdownInput.focus({ preventScroll: true });
+            dom.markdownInput.setSelectionRange(safeStart, safeEnd);
+            const totalLines = Math.max(1, source.split('\n').length - 1);
+            const beforeLines = source.slice(0, safeStart).split('\n').length - 1;
+            const ratio = beforeLines / totalLines;
+            const maxScroll = Math.max(0, dom.markdownInput.scrollHeight - dom.markdownInput.clientHeight);
+            dom.markdownInput.scrollTop = Math.max(0, ratio * maxScroll - dom.markdownInput.clientHeight * 0.28);
+            const editorPanel = byId('editorPanel');
+            if (editorPanel) {
+                editorPanel.classList.remove('source-pulse');
+                void editorPanel.offsetWidth;
+                editorPanel.classList.add('source-pulse');
+                window.setTimeout(() => editorPanel.classList.remove('source-pulse'), 1200);
+            }
+            const location = sourceLineColumn(safeStart);
+            setStatusMessage(`已定位到第 ${location.line} 行，第 ${location.column} 列。`, { duration: 3600 });
+        });
+    }
+
+    function handlePreviewMathActivation(event) {
+        if (event.type === 'keydown' && !['Enter', ' '].includes(event.key)) return;
+        const target = event.target.closest('.math-error[data-math-start]');
+        if (!target || !dom.preview.contains(target)) return;
+        if (event.type === 'keydown') event.preventDefault();
+        locateSourceRange(Number(target.dataset.mathStart), Number(target.dataset.mathEnd));
+    }
+
     function renderFormulaInspector() {
         const result = state.renderResult || {
             mathCount: 0, errors: [], warnings: [], looseDelimiterFixes: 0, segments: [], normalizedMarkdown: dom.markdownInput.value
@@ -732,14 +967,22 @@
         const items = [];
 
         errors.forEach((error) => {
-            items.push(`<div class="diagnostic-item error"><strong>公式 ${error.index + 1} 渲染失败</strong><div>${escapeHtml(error.message)}</div><code>${escapeHtml(error.content)}</code></div>`);
+            const segment = segments[error.index] || error;
+            const range = resolveSourceRange(segment);
+            const locate = range ? `<button type="button" class="diagnostic-locate" data-action="locate-source" data-source-start="${range.start}" data-source-end="${range.end}">定位源码</button>` : '';
+            items.push(`<div class="diagnostic-item error"><div class="diagnostic-copy"><strong>公式 ${Number(error.index) + 1} 渲染失败</strong><div>${escapeHtml(error.message)}</div><code>${escapeHtml(error.content)}</code></div><div class="diagnostic-actions">${locate}</div></div>`);
         });
         warnings.forEach((warning) => {
-            items.push(`<div class="diagnostic-item warning"><strong>发现未闭合边界</strong><div>位置 ${warning.index + 1}，边界 ${escapeHtml(warning.delimiter)}</div></div>`);
+            const start = Number(warning.start != null ? warning.start : warning.index);
+            const end = Number(warning.end != null ? warning.end : start + String(warning.delimiter || '').length);
+            const locate = Number.isFinite(start) ? `<button type="button" class="diagnostic-locate" data-action="locate-source" data-source-start="${start}" data-source-end="${end}">定位源码</button>` : '';
+            items.push(`<div class="diagnostic-item warning"><div class="diagnostic-copy"><strong>发现未闭合边界</strong><div>边界 ${escapeHtml(warning.delimiter || '未知')}，请补齐结束标记。</div></div><div class="diagnostic-actions">${locate}</div></div>`);
         });
         if (!errors.length && !warnings.length && segments.length) {
             segments.slice(0, 8).forEach((segment) => {
-                items.push(`<div class="diagnostic-item"><strong>公式 ${segment.index + 1} · ${segment.display ? '独立公式' : '行内公式'}</strong><code>${escapeHtml(segment.content)}</code></div>`);
+                const range = resolveSourceRange(segment);
+                const locate = range ? `<button type="button" class="diagnostic-locate" data-action="locate-source" data-source-start="${range.start}" data-source-end="${range.end}">定位</button>` : '';
+                items.push(`<div class="diagnostic-item"><div class="diagnostic-copy"><strong>公式 ${segment.index + 1} · ${segment.display ? '独立公式' : '行内公式'}</strong><code>${escapeHtml(segment.content)}</code></div><div class="diagnostic-actions">${locate}</div></div>`);
             });
             if (segments.length > 8) items.push(`<div class="diagnostic-item muted">另有 ${segments.length - 8} 个公式未在列表中展开。</div>`);
         }
@@ -824,7 +1067,7 @@
     }
 
     function prepareAutosave() {
-        const payload = safeJsonParse(localStorage.getItem(STORAGE.autosave), null);
+        const payload = safeJsonParse(localStorageGet(STORAGE.autosave), null);
         if (!payload || typeof payload.content !== 'string' || !payload.content.trim()) {
             state.pendingDraft = null;
             return;
@@ -839,7 +1082,8 @@
             updateSaveStatus();
             return;
         }
-        dom.saveStatus.textContent = '等待自动保存…';
+        state.draftDirty = true;
+        updateSaveStatus();
         state.autosaveTimer = window.setTimeout(saveAutosave, 650);
     }
 
@@ -847,57 +1091,106 @@
         if (!state.settings.autosave) return;
         const content = dom.markdownInput.value;
         if (!content.trim()) {
-            try { localStorage.removeItem(STORAGE.autosave); } catch (_error) { /* ignore */ }
+            localStorageRemove(STORAGE.autosave)
             state.pendingDraft = null;
+            state.draftDirty = false;
+            state.lastDraftSavedAt = null;
             updateSaveStatus();
             return;
         }
-        const payload = { content, fileName: state.currentFileName, updatedAt: Date.now() };
+        const payload = {
+            content,
+            fileName: state.currentFileName,
+            documentName: state.documentName,
+            updatedAt: Date.now(),
+            fileDirty: state.dirty,
+            fileOrigin: state.fileOrigin,
+            fileSyncedAt: state.fileSyncedAt
+        };
         try {
-            localStorage.setItem(STORAGE.autosave, JSON.stringify(payload));
+            if (!localStorageSet(STORAGE.autosave, JSON.stringify(payload))) throw new Error('localStorage unavailable');
             state.pendingDraft = payload;
-            state.dirty = false;
-            updateSaveStatus(payload.updatedAt);
+            state.draftDirty = false;
+            state.lastDraftSavedAt = payload.updatedAt;
+            updateSaveStatus();
         } catch (error) {
             console.warn('自动保存失败:', error);
-            dom.saveStatus.textContent = '自动保存失败（本地空间可能已满）';
-            dom.saveDot.classList.add('dirty');
+            state.draftDirty = true;
+            updateSaveStatus();
             toast('自动保存失败', '浏览器本地空间可能已满。', 'error');
         }
     }
 
     function restorePendingDraft(options = {}) {
-        const payload = state.pendingDraft || safeJsonParse(localStorage.getItem(STORAGE.autosave), null);
+        const payload = state.pendingDraft || safeJsonParse(localStorageGet(STORAGE.autosave), null);
         if (!payload || typeof payload.content !== 'string' || !payload.content.trim()) {
             setStatusMessage('没有可恢复的本地草稿。', { duration: 2600 });
             return;
         }
         if (dom.markdownInput.value.trim()) takeDocumentSnapshot('恢复草稿前的内容');
         dom.markdownInput.value = payload.content;
-        state.currentFileName = payload.fileName || '未命名.md';
-        state.dirty = false;
-        state.pendingDraft = null;
+        setDocumentIdentity(payload.fileName || '未命名.md', {
+            documentName: payload.documentName,
+            origin: payload.fileOrigin || 'draft',
+            syncedAt: payload.fileSyncedAt || null
+        });
+        state.dirty = typeof payload.fileDirty === 'boolean' ? payload.fileDirty : true;
+        state.draftDirty = false;
+        state.lastDraftSavedAt = payload.updatedAt || null;
+        state.pendingDraft = payload;
         updateStats();
-        updateSaveStatus(payload.updatedAt);
+        updateSaveStatus();
         renderPreview({ immediate: true, force: true });
-        if (!options.silent) setStatusMessage(`已恢复本地草稿 · ${formatDateTime(payload.updatedAt)}`, { undo: Boolean(state.lastDestructiveSnapshot), duration: 8000 });
+        if (!options.silent) setStatusMessage(`已恢复浏览器草稿 · ${formatDateTime(payload.updatedAt)}`, { undo: Boolean(state.lastDestructiveSnapshot), duration: 8000 });
     }
 
-    function updateSaveStatus(timestamp = null) {
+    function updateSaveStatus() {
+        const hasContent = Boolean(dom.markdownInput.value.trim());
+        dom.saveDot.classList.remove('dirty', 'saved', 'disabled');
+
         if (!state.settings.autosave) {
-            dom.saveStatus.textContent = '自动保存已关闭';
-            dom.saveDot.classList.toggle('dirty', state.dirty);
-            return;
+            dom.saveStatus.textContent = '浏览器草稿：自动保存已关闭';
+            dom.saveStatus.dataset.state = 'disabled';
+            dom.saveDot.classList.add('disabled');
+        } else if (!hasContent && state.pendingDraft && !state.settings.restoreDraftOnStart) {
+            dom.saveStatus.textContent = `浏览器草稿：可恢复 ${formatTime(state.pendingDraft.updatedAt)}`;
+            dom.saveStatus.dataset.state = 'recoverable';
+            dom.saveDot.classList.add('saved');
+        } else if (!hasContent) {
+            dom.saveStatus.textContent = '浏览器草稿：空白文档';
+            dom.saveStatus.dataset.state = 'idle';
+        } else if (state.draftDirty) {
+            dom.saveStatus.textContent = '浏览器草稿：等待自动保存…';
+            dom.saveStatus.dataset.state = 'saving';
+            dom.saveDot.classList.add('dirty');
+        } else if (state.lastDraftSavedAt || (state.pendingDraft && state.pendingDraft.updatedAt)) {
+            const savedAt = state.lastDraftSavedAt || state.pendingDraft.updatedAt;
+            dom.saveStatus.textContent = `浏览器草稿：已保存 ${formatTime(savedAt)}`;
+            dom.saveStatus.dataset.state = 'saved';
+            dom.saveDot.classList.add('saved');
+        } else {
+            dom.saveStatus.textContent = '浏览器草稿：自动保存已启用';
+            dom.saveStatus.dataset.state = 'idle';
         }
-        if (!dom.markdownInput.value.trim() && state.pendingDraft && !state.settings.restoreDraftOnStart) {
-            dom.saveStatus.textContent = `空白启动 · 有草稿可恢复（${formatTime(state.pendingDraft.updatedAt)}）`;
-            dom.saveDot.classList.remove('dirty');
-            return;
+
+        if (!hasContent) {
+            dom.fileSaveStatus.textContent = 'Markdown 文件：尚未下载';
+            dom.fileSaveStatus.dataset.state = 'idle';
+        } else if (state.dirty) {
+            if (state.fileOrigin === 'opened') dom.fileSaveStatus.textContent = '源文件已打开 · 当前修改未下载';
+            else if (state.fileOrigin === 'downloaded') dom.fileSaveStatus.textContent = 'Markdown 文件：下载后有新修改';
+            else dom.fileSaveStatus.textContent = 'Markdown 文件：当前修改尚未下载';
+            dom.fileSaveStatus.dataset.state = 'dirty';
+        } else if (state.fileOrigin === 'opened') {
+            dom.fileSaveStatus.textContent = '源文件：已打开（浏览器不会覆盖原文件）';
+            dom.fileSaveStatus.dataset.state = 'opened';
+        } else if (state.fileOrigin === 'downloaded' && state.fileSyncedAt) {
+            dom.fileSaveStatus.textContent = `Markdown 文件：已下载 ${formatTime(state.fileSyncedAt)}`;
+            dom.fileSaveStatus.dataset.state = 'saved';
+        } else {
+            dom.fileSaveStatus.textContent = 'Markdown 文件：尚未下载';
+            dom.fileSaveStatus.dataset.state = 'idle';
         }
-        const payload = timestamp ? { updatedAt: timestamp } : safeJsonParse(localStorage.getItem(STORAGE.autosave), null);
-        if (dom.markdownInput.value.trim() && payload && payload.updatedAt) dom.saveStatus.textContent = `本地已保存 · ${formatTime(payload.updatedAt)}`;
-        else dom.saveStatus.textContent = '空白文档 · 本地自动保存已启用';
-        dom.saveDot.classList.toggle('dirty', state.dirty);
     }
 
     function formatTime(value) {
@@ -920,7 +1213,12 @@
         state.lastDestructiveSnapshot = {
             content: dom.markdownInput.value,
             fileName: state.currentFileName,
+            documentName: state.documentName,
             dirty: state.dirty,
+            draftDirty: state.draftDirty,
+            fileOrigin: state.fileOrigin,
+            fileSyncedAt: state.fileSyncedAt,
+            lastDraftSavedAt: state.lastDraftSavedAt,
             selectionStart: dom.markdownInput.selectionStart,
             selectionEnd: dom.markdownInput.selectionEnd,
             reason,
@@ -931,8 +1229,9 @@
     function loadFormulaExample() {
         if (dom.markdownInput.value.trim()) takeDocumentSnapshot('加载示例前的内容');
         dom.markdownInput.value = FORMULA_EXAMPLE;
-        state.currentFileName = '公式示例.md';
+        setDocumentIdentity('公式示例.md', { origin: 'new', syncedAt: null });
         state.dirty = true;
+        state.draftDirty = true;
         onEditorInput();
         dom.markdownInput.focus();
         setStatusMessage('已加载公式示例。', { undo: Boolean(state.lastDestructiveSnapshot), duration: 8000 });
@@ -945,9 +1244,11 @@
         }
         takeDocumentSnapshot('清空前的内容');
         dom.markdownInput.value = '';
-        state.currentFileName = '未命名.md';
+        setDocumentIdentity('未命名.md', { origin: 'new', syncedAt: null });
         state.dirty = false;
-        try { localStorage.removeItem(STORAGE.autosave); } catch (_error) { /* ignore */ }
+        state.draftDirty = false;
+        state.lastDraftSavedAt = null;
+        localStorageRemove(STORAGE.autosave)
         state.pendingDraft = null;
         updateStats();
         updateSaveStatus();
@@ -959,9 +1260,11 @@
     function newDocument() {
         if (dom.markdownInput.value.trim()) takeDocumentSnapshot('新建前的内容');
         dom.markdownInput.value = '';
-        state.currentFileName = '未命名.md';
+        setDocumentIdentity('未命名.md', { origin: 'new', syncedAt: null });
         state.dirty = false;
-        try { localStorage.removeItem(STORAGE.autosave); } catch (_error) { /* ignore */ }
+        state.draftDirty = false;
+        state.lastDraftSavedAt = null;
+        localStorageRemove(STORAGE.autosave)
         state.pendingDraft = null;
         updateStats();
         updateSaveStatus();
@@ -974,14 +1277,21 @@
         const snapshot = state.lastDestructiveSnapshot;
         if (!snapshot) return;
         dom.markdownInput.value = snapshot.content;
-        state.currentFileName = snapshot.fileName || '未命名.md';
-        state.dirty = snapshot.dirty;
+        setDocumentIdentity(snapshot.fileName || '未命名.md', {
+            documentName: snapshot.documentName,
+            origin: snapshot.fileOrigin || 'new',
+            syncedAt: snapshot.fileSyncedAt || null
+        });
+        state.dirty = Boolean(snapshot.dirty);
+        state.draftDirty = Boolean(snapshot.draftDirty);
+        state.lastDraftSavedAt = snapshot.lastDraftSavedAt || null;
         updateStats();
         updateSaveStatus();
         renderPreview({ immediate: true, force: true });
         dom.markdownInput.focus();
         dom.markdownInput.setSelectionRange(snapshot.selectionStart || 0, snapshot.selectionEnd || 0);
         state.lastDestructiveSnapshot = null;
+        scheduleAutosave();
         setStatusMessage(`已撤销：${snapshot.reason}。`, { duration: 3200 });
     }
 
@@ -1060,6 +1370,10 @@
 
     function onGlobalKeydown(event) {
         if (document.body.classList.contains('auth-locked')) return;
+        if (event.key === 'Escape') {
+            closeToolbarMoreMenu();
+            return;
+        }
         const modifier = event.ctrlKey || event.metaKey;
         const key = event.key.toLowerCase();
         if (modifier && key === 's') {
@@ -1116,11 +1430,13 @@
         reader.onload = () => {
             if (dom.markdownInput.value.trim()) takeDocumentSnapshot('打开文件前的内容');
             dom.markdownInput.value = String(reader.result || '');
-            state.currentFileName = file.name;
+            setDocumentIdentity(file.name, { origin: 'opened', syncedAt: Date.now() });
             state.dirty = false;
+            state.draftDirty = true;
             updateStats();
             renderPreview({ immediate: true, force: true });
             saveAutosave();
+            updateSaveStatus();
             dom.markdownInput.focus();
             setStatusMessage(`已打开 ${file.name} · ${formatBytes(file.size)}`, { undo: Boolean(state.lastDestructiveSnapshot), duration: 7000 });
         };
@@ -1172,11 +1488,14 @@
             setStatusMessage('没有可保存的 Markdown 内容。', { tone: 'warning', duration: 3000 });
             return;
         }
-        const suggested = ensureExtension(sanitizeFileName(state.currentFileName), '.md');
+        normalizeDocumentNameInput();
+        const suggested = ensureExtension(sanitizeFileName(state.documentName), '.md');
         const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
         downloadBlob(blob, suggested);
-        state.currentFileName = suggested;
+        setDocumentIdentity(suggested, { origin: 'downloaded', syncedAt: Date.now() });
         state.dirty = false;
+        state.draftDirty = true;
+        saveAutosave();
         updateSaveStatus();
         setStatusMessage(`Markdown 已下载：${suggested}`, { duration: 3200 });
     }
@@ -1209,7 +1528,7 @@
     function extractTitle(markdown) {
         const heading = String(markdown || '').match(/^#\s+(.+)$/m);
         if (heading) return heading[1].replace(/[*_`~]/g, '').trim();
-        return sanitizeFileName(state.currentFileName || '未命名');
+        return state.documentName || sanitizeFileName(state.currentFileName || '未命名');
     }
 
     function bindViewSwitch() {
@@ -1218,25 +1537,44 @@
         });
     }
 
+    function getViewportMode() {
+        return window.innerWidth <= 680 ? 'mobile' : 'desktop';
+    }
+
+    function getViewStorageKey(mode = getViewportMode()) {
+        return mode === 'mobile' ? STORAGE.viewMobile : STORAGE.viewDesktop;
+    }
+
     function restoreView() {
-        const stored = localStorage.getItem(STORAGE.view);
-        setView(['editor', 'split', 'preview'].includes(stored) ? stored : 'split', { persist: false });
+        const mode = getViewportMode();
+        const key = getViewStorageKey(mode);
+        let stored = localStorageGet(key);
+        if (!stored && mode === 'desktop') {
+            const legacy = localStorageGet(STORAGE.viewLegacy);
+            if (['editor', 'split', 'preview'].includes(legacy)) stored = legacy;
+        }
+        const fallback = mode === 'mobile' ? 'editor' : 'split';
+        setView(['editor', 'split', 'preview'].includes(stored) ? stored : fallback, { persist: false });
     }
 
     function setView(view, options = {}) {
         if (!['editor', 'split', 'preview'].includes(view)) return;
         dom.workspace.dataset.view = view;
-        queryAll('#viewSwitch [data-view]').forEach((button) => button.classList.toggle('active', button.dataset.view === view));
-        if (options.persist !== false) localStorage.setItem(STORAGE.view, view);
+        queryAll('#viewSwitch [data-view]').forEach((button) => {
+            const active = button.dataset.view === view;
+            button.classList.toggle('active', active);
+            button.setAttribute('aria-pressed', String(active));
+        });
+        if (options.persist !== false) localStorageSet(getViewStorageKey(), view);
         if (view === 'preview') renderPreview({ immediate: true, force: true });
     }
 
     function readSplitPosition() {
-        return safeJsonParse(localStorage.getItem(STORAGE.split), {});
+        return safeJsonParse(localStorageGet(STORAGE.split), {});
     }
 
     function persistSplitPosition(partial) {
-        localStorage.setItem(STORAGE.split, JSON.stringify({ ...readSplitPosition(), ...partial }));
+        localStorageSet(STORAGE.split, JSON.stringify({ ...readSplitPosition(), ...partial }));
     }
 
     function updateSplitterAria(value, mobile) {
@@ -1408,6 +1746,7 @@
         dom.toolDrawerTitle.textContent = title;
         dom.tableToolPanel.hidden = panel !== 'table';
         dom.aiToolPanel.hidden = panel !== 'ai';
+        dom.exportCheckToolPanel.hidden = panel !== 'export';
         requestAnimationFrame(() => dom.toolDrawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
     }
 
@@ -1416,6 +1755,7 @@
         dom.toolDrawer.hidden = true;
         dom.tableToolPanel.hidden = true;
         dom.aiToolPanel.hidden = true;
+        dom.exportCheckToolPanel.hidden = true;
     }
 
     function openTableTool() {
@@ -1498,7 +1838,7 @@
     }
 
     function loadAIConfig() {
-        const stored = safeJsonParse(localStorage.getItem(STORAGE.ai), null);
+        const stored = safeJsonParse(localStorageGet(STORAGE.ai), null);
         state.aiConfig = {
             provider: stored && stored.provider ? stored.provider : 'custom',
             endpoint: stored && typeof stored.endpoint === 'string' ? stored.endpoint : '',
@@ -1510,7 +1850,7 @@
     }
 
     function persistAIConfig() {
-        localStorage.setItem(STORAGE.ai, JSON.stringify(state.aiConfig));
+        localStorageSet(STORAGE.ai, JSON.stringify(state.aiConfig));
     }
 
     function populateAISettings() {
@@ -1641,7 +1981,6 @@
             body: JSON.stringify({
                 model: config.model,
                 messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: source }],
-                temperature: 0.2,
                 stream: false
             }),
             signal
@@ -1736,7 +2075,98 @@
         setStatusMessage('AI 结果已应用，请在预览中确认公式与结构。', { undo: true, duration: 9000 });
     }
 
-    async function downloadWord() {
+    function buildExportReport() {
+        const missingCore = [];
+        if (!window.Md2WordMath || typeof window.Md2WordMath.renderMarkdownWithMath !== 'function') missingCore.push('公式与 Markdown 预处理引擎');
+        if (!window.marked || typeof window.marked.parse !== 'function') missingCore.push('Marked.js');
+        if (!window.Md2WordPreflight || typeof window.Md2WordPreflight.analyze !== 'function') missingCore.push('导出检查器');
+        if (missingCore.length) {
+            const issue = {
+                id: 'preflight-unavailable', severity: 'error', type: 'dependency',
+                title: '核心导出依赖未加载', message: `缺少：${missingCore.join('、')}。请检查网络并刷新页面。`,
+                start: null, end: null, line: null, column: null, locatable: false
+            };
+            return Object.freeze({
+                issues: Object.freeze([issue]), errors: Object.freeze([issue]), warnings: Object.freeze([]),
+                errorCount: 1, warningCount: 0, total: 1, readiness: 'error', checkedAt: Date.now()
+            });
+        }
+        return window.Md2WordPreflight.analyze(dom.markdownInput.value, state.renderResult);
+    }
+
+    function updateExportReadiness(report = null) {
+        const next = report || buildExportReport();
+        state.exportReport = next;
+        if (!dom.downloadWordButton || state.exporting) return next;
+        const hasContent = Boolean(dom.markdownInput.value.trim());
+        const readiness = hasContent ? next.readiness : 'empty';
+        dom.downloadWordButton.dataset.readiness = readiness;
+        dom.downloadWordButton.classList.remove('export-ready', 'export-warning', 'export-error');
+        dom.exportIssueBadge.hidden = true;
+        dom.exportIssueBadge.textContent = '';
+        dom.downloadWordIcon.textContent = '📄';
+        dom.downloadWordLabel.textContent = '下载 Word';
+
+        if (!hasContent) {
+            dom.downloadWordButton.title = '请先输入内容，再导出 DOCX（Ctrl+D）';
+        } else if (next.errorCount) {
+            dom.downloadWordButton.classList.add('export-error');
+            dom.downloadWordIcon.textContent = '⛔';
+            dom.exportIssueBadge.textContent = `${next.errorCount} 错误`;
+            dom.exportIssueBadge.hidden = false;
+            dom.downloadWordButton.title = `导出前发现 ${next.errorCount} 个错误和 ${next.warningCount} 个提醒；点击查看`;
+        } else if (next.warningCount) {
+            dom.downloadWordButton.classList.add('export-warning');
+            dom.downloadWordIcon.textContent = '⚠️';
+            dom.exportIssueBadge.textContent = `${next.warningCount} 提醒`;
+            dom.exportIssueBadge.hidden = false;
+            dom.downloadWordButton.title = `导出前有 ${next.warningCount} 个提醒；点击查看`;
+        } else {
+            dom.downloadWordButton.classList.add('export-ready');
+            dom.downloadWordButton.title = '文档检查通过，导出 DOCX（Ctrl+D）';
+        }
+        return next;
+    }
+
+    function openExportCheck(report = null) {
+        const next = updateExportReadiness(report || buildExportReport());
+        renderExportCheck(next);
+        openToolDrawer('export', '导出前检查');
+    }
+
+    function renderExportCheck(report) {
+        const issues = Array.isArray(report.issues) ? report.issues : [];
+        dom.exportReadinessChip.className = 'export-readiness-chip';
+        if (report.errorCount) {
+            dom.exportReadinessChip.textContent = `${report.errorCount} 错误`;
+            dom.exportReadinessChip.classList.add('error');
+            dom.exportCheckSummary.textContent = `发现 ${report.errorCount} 个需要优先处理的问题`;
+            dom.exportCheckDetail.textContent = `另有 ${report.warningCount} 个提醒。可定位修改，也可以确认后仍然导出。`;
+        } else if (report.warningCount) {
+            dom.exportReadinessChip.textContent = `${report.warningCount} 提醒`;
+            dom.exportReadinessChip.classList.add('warning');
+            dom.exportCheckSummary.textContent = '文档可以导出，但有兼容性提醒';
+            dom.exportCheckDetail.textContent = '部分结果在 Word 中可能与网页预览不同。';
+        } else {
+            dom.exportReadinessChip.textContent = '检查通过';
+            dom.exportReadinessChip.classList.add('ready');
+            dom.exportCheckSummary.textContent = '文档可以导出';
+            dom.exportCheckDetail.textContent = '未发现会明显影响 Word 结果的问题。';
+        }
+
+        if (!issues.length) {
+            dom.exportCheckList.innerHTML = '<div class="export-check-empty">检查通过：公式边界、代码围栏、图片、表格和标题层级均未发现明显问题。</div>';
+        } else {
+            dom.exportCheckList.innerHTML = issues.map((issue) => {
+                const location = issue.line ? `<span class="export-issue-location">第 ${issue.line} 行${issue.column ? ` · 第 ${issue.column} 列` : ''}</span>` : '';
+                const locate = issue.locatable ? `<button type="button" class="diagnostic-locate" data-action="locate-source" data-source-start="${issue.start}" data-source-end="${issue.end}">定位修改</button>` : '';
+                return `<article class="export-check-item ${issue.severity}"><div class="export-check-copy"><div class="export-check-title-row"><strong>${escapeHtml(issue.title)}</strong>${location}</div><p>${escapeHtml(issue.message)}</p></div><div class="diagnostic-actions">${locate}</div></article>`;
+            }).join('');
+        }
+        dom.forceExportButton.textContent = issues.length ? '仍然导出' : '立即导出';
+    }
+
+    async function downloadWord(options = {}) {
         if (state.exporting) return;
         const markdown = dom.markdownInput.value.trim();
         if (!markdown) {
@@ -1748,20 +2178,30 @@
             return;
         }
 
-        showExportProgress(true, '正在更新预览与公式…');
+        normalizeDocumentNameInput();
+        dom.renderStatus.textContent = '正在执行导出前检查…';
+        const renderResult = renderPreview({ immediate: true, force: true });
+        await nextFrame();
+        const report = updateExportReadiness(buildExportReport());
+        if (!options.force && report.issues.length) {
+            openExportCheck(report);
+            setStatusMessage(`导出前发现 ${report.errorCount} 个错误、${report.warningCount} 个提醒。`, { tone: report.errorCount ? 'error' : 'warning', duration: 6000 });
+            dom.renderStatus.textContent = '等待确认导出检查';
+            return;
+        }
+
+        if (state.activeTool === 'export') closeToolDrawer();
+        showExportProgress(true, '正在转换标题、列表、表格与公式…');
         try {
-            const renderResult = renderPreview({ immediate: true, force: true });
-            await nextFrame();
-            showExportProgress(true, '正在转换标题、列表、表格与公式…');
             const children = convertPreviewToDocxChildren(dom.preview);
             if (!children.length) throw new Error('没有可写入 Word 的内容');
 
-            const title = extractTitle(markdown) || '未命名文档';
+            const title = state.documentName || extractTitle(markdown) || '未命名文档';
             const margin = cmToTwip(state.settings.wordMarginCm);
             const line = Math.round(240 * state.settings.wordLineSpacing);
             const fontSize = Math.round(state.settings.wordFontSize * 2);
             const doc = new window.docx.Document({
-                creator: 'AI智能Markdown转Word转换器 · 融合体验版 v5',
+                creator: 'AI智能Markdown转Word转换器 · 融合体验版 v5.1',
                 title,
                 description: '由浏览器本地生成；公式转换为可编辑文本与上下标',
                 styles: {
@@ -1778,12 +2218,12 @@
 
             showExportProgress(true, '正在打包 DOCX 文件…');
             const blob = await window.docx.Packer.toBlob(doc);
-            const fileName = `${sanitizeFileName(title)}-${new Date().toISOString().slice(0, 10)}.docx`;
+            const fileName = `${sanitizeFileName(state.documentName || title)}.docx`;
             downloadBlob(blob, fileName);
             const mathCount = renderResult ? Number(renderResult.mathCount || 0) : 0;
             const mathErrors = renderResult && renderResult.errors ? renderResult.errors.length : 0;
             showExportProgress(false);
-            setStatusMessage(`Word 已生成：${fileName} · 公式 ${mathCount} 个，预览错误 ${mathErrors} 个。`, { duration: 6500 });
+            setStatusMessage(`Word 已生成：${fileName} · 公式 ${mathCount} 个，渲染错误 ${mathErrors} 个。`, { duration: 6500 });
         } catch (error) {
             console.error('Word 导出失败:', error);
             showExportProgress(false);
@@ -2099,7 +2539,13 @@
         state.exporting = visible;
         dom.downloadWordButton.disabled = visible;
         dom.downloadWordButton.setAttribute('aria-busy', String(visible));
-        dom.downloadWordButton.textContent = visible ? '⏳ 生成中…' : '📄 下载 Word';
+        if (visible) {
+            dom.downloadWordIcon.textContent = '⏳';
+            dom.downloadWordLabel.textContent = '生成中…';
+            dom.exportIssueBadge.hidden = true;
+        } else {
+            updateExportReadiness();
+        }
         if (text) dom.renderStatus.textContent = text;
         else if (!visible && dom.markdownInput.value.trim()) dom.renderStatus.textContent = '导出完成';
     }
@@ -2155,6 +2601,13 @@
             renderPreview,
             convertTableInput,
             convertPreviewToDocxChildren,
+            buildExportReport,
+            updateExportReadiness,
+            openExportCheck,
+            locateSourceRange,
+            activateSettingsTab,
+            setView,
+            getViewportMode,
             getState: () => ({ ...state }),
             resetSplitPosition,
             toggleFormulaInspector
