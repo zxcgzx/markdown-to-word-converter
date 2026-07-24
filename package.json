@@ -1,0 +1,10 @@
+{
+  "name": "markdown-to-word-converter-fusion-v5-1-1",
+  "version": "5.1.1",
+  "private": true,
+  "description": "保留原版玻璃态与密码入口，加入双层常驻工具栏、导出前检查、公式源码定位、独立保存状态、响应式更多菜单和分类设置的纯前端 Markdown 转 Word 工具",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "check": "node --check js/access-config.js && node --check js/math-engine.js && node --check js/preflight.js && node --check js/app.js"
+  }
+}
