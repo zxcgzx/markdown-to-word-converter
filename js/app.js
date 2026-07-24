@@ -5,13 +5,15 @@
         settings: 'md2word.personal.settings.v3',
         autosave: 'md2word.personal.autosave.v3',
         split: 'md2word.personal.split.v3',
-        ai: 'md2word.personal.ai.v3'
+        ai: 'md2word.personal.ai.v3',
+        view: 'md2word.personal.view.v5'
     };
 
     const DEFAULT_SETTINGS = Object.freeze({
-        theme: 'system',
+        theme: 'amber',
         editorFontSize: 15,
         autosave: true,
+        restoreDraftOnStart: false,
         repairLooseMath: true,
         syncScroll: false,
         wordFont: '宋体',
@@ -22,11 +24,35 @@
 
     const AI_PRESETS = Object.freeze({
         custom: { type: 'openai', endpoint: '', model: '' },
-        kimi: { type: 'openai', endpoint: 'https://api.moonshot.cn/v1/chat/completions', model: 'moonshot-v1-32k' },
-        glm: { type: 'openai', endpoint: 'https://open.bigmodel.cn/api/paas/v4/chat/completions', model: 'glm-4-flash' },
-        deepseek: { type: 'openai', endpoint: 'https://api.deepseek.com/chat/completions', model: 'deepseek-chat' },
-        openai: { type: 'openai', endpoint: 'https://api.openai.com/v1/chat/completions', model: '' },
-        gemini: { type: 'gemini', endpoint: 'https://generativelanguage.googleapis.com/v1beta', model: 'gemini-2.5-flash' }
+        kimi: { type: 'openai', endpoint: 'https://api.moonshot.ai/v1/chat/completions', model: 'kimi-k2.5' },
+        glm: { type: 'openai', endpoint: 'https://open.bigmodel.cn/api/paas/v4/chat/completions', model: 'glm-4.7-flashx' },
+        deepseek: { type: 'openai', endpoint: 'https://api.deepseek.com/v1/chat/completions', model: 'deepseek-v4-flash' },
+        openai: { type: 'openai', endpoint: 'https://api.openai.com/v1/chat/completions', model: 'gpt-5-mini' },
+        gemini: { type: 'gemini', endpoint: 'https://generativelanguage.googleapis.com/v1beta', model: 'gemini-3.5-flash' }
+    });
+
+    const THEME_ORDER = Object.freeze(['amber', 'forest', 'noir', 'aurora']);
+    const THEME_LABELS = Object.freeze({
+        amber: '暖阳琥珀',
+        forest: '经典浅林',
+        noir: '现代黑金',
+        aurora: '极光幻彩'
+    });
+    const AI_PROVIDER_LABELS = Object.freeze({
+        custom: '自定义',
+        kimi: 'Kimi',
+        glm: 'GLM',
+        deepseek: 'DeepSeek',
+        openai: 'OpenAI',
+        gemini: 'Gemini'
+    });
+    const FALLBACK_ACCESS = Object.freeze({
+        sessionKey: 'md2word.fusion.auth.v5',
+        users: Object.freeze({
+            basic123: Object.freeze({ level: 'basic', name: '基础用户', icon: '🆓', label: '基础版' }),
+            '517517': Object.freeze({ level: 'advanced', name: '高级用户', icon: '⭐', label: '高级版' }),
+            lingling: Object.freeze({ level: 'super_admin', name: '超级管理员', icon: '👑', label: '管理版' })
+        })
     });
 
     const FORMULA_EXAMPLE = String.raw`# 化学结构示例
@@ -47,16 +73,6 @@
 
 > 公式会在 Markdown 解析前被保护，因此反斜杠不会再被 Marked 当成普通转义吃掉。`;
 
-    const EMPTY_PREVIEW_HTML = `
-        <div class="preview-empty">
-            <div class="preview-empty-card">
-                <div class="preview-empty-icon" aria-hidden="true">✦</div>
-                <h3>从一段 Markdown 开始</h3>
-                <p>粘贴内容后会立即预览。公式支持 <code>$...$</code>、<code>$$...$$</code>、<code>\\(...\\)</code> 和 <code>\\[...\\]</code>。</p>
-                <button type="button" class="primary-button" data-action="load-formula-example">加载公式示例</button>
-            </div>
-        </div>`;
-
     const state = {
         settings: { ...DEFAULT_SETTINGS },
         renderTimer: null,
@@ -65,6 +81,9 @@
         currentFileName: '未命名.md',
         dirty: false,
         autosaveTimer: null,
+        pendingDraft: null,
+        lastDestructiveSnapshot: null,
+        statusTimer: null,
         syncLock: false,
         dragDepth: 0,
         splitterDrag: null,
@@ -73,8 +92,11 @@
         aiConfig: null,
         tableMarkdown: '',
         themeMedia: null,
-        lastLooseFixNoticeHash: '',
-        initialized: false
+        activeTool: '',
+        currentUser: null,
+        authReady: false,
+        initialized: false,
+        exporting: false
     };
 
     const dom = {};
@@ -121,12 +143,15 @@
         applySettings();
         checkDependencies();
         bindEvents();
-        restoreAutosave();
+        prepareAutosave();
         restoreSplitPosition();
+        restoreView();
         updateStats();
         updateSaveStatus();
         renderPreview({ immediate: true });
         updateTableOutput();
+        updateAIToolSummary();
+        initializeAccessGate();
     }
 
     function cacheDom() {
@@ -146,8 +171,15 @@
             mathStatus: byId('mathStatus'),
             mathStatusText: byId('mathStatusText'),
             outlineSelect: byId('outlineSelect'),
+            formulaInspector: byId('formulaInspector'),
+            formulaInspectorContent: byId('formulaInspectorContent'),
+            applyMathNormalization: byId('applyMathNormalization'),
             syncScrollToggle: byId('syncScrollToggle'),
+            settingsSyncScrollToggle: byId('settingsSyncScrollToggle'),
             renderStatus: byId('renderStatus'),
+            statusMessage: byId('statusMessage'),
+            statusMessageText: byId('statusMessageText'),
+            undoDocumentButton: byId('undoDocumentButton'),
             charCount: byId('charCount'),
             wordCount: byId('wordCount'),
             lineCount: byId('lineCount'),
@@ -155,16 +187,26 @@
             toastRegion: byId('toastRegion'),
             settingsDialog: byId('settingsDialog'),
             settingsForm: byId('settingsForm'),
-            aiDialog: byId('aiDialog'),
-            aiResultDialog: byId('aiResultDialog'),
-            tableDialog: byId('tableDialog'),
-            diagnosticsDialog: byId('diagnosticsDialog'),
-            shortcutDialog: byId('shortcutDialog'),
-            diagnosticsContent: byId('diagnosticsContent'),
-            applyMathNormalization: byId('applyMathNormalization'),
-            exportProgress: byId('exportProgress'),
-            exportProgressTitle: byId('exportProgressTitle'),
-            exportProgressText: byId('exportProgressText')
+            toolDrawer: byId('toolDrawer'),
+            toolDrawerTitle: byId('toolDrawerTitle'),
+            tableToolPanel: byId('tableToolPanel'),
+            aiToolPanel: byId('aiToolPanel'),
+            aiProgress: byId('aiProgress'),
+            aiResultPanel: byId('aiResultPanel'),
+            aiConflict: byId('aiConflict'),
+            applyAiResultButton: byId('applyAiResultButton'),
+            downloadWordButton: byId('downloadWordButton'),
+            passwordOverlay: byId('passwordOverlay'),
+            passwordForm: byId('passwordForm'),
+            passwordInput: byId('passwordInput'),
+            passwordToggle: byId('passwordToggle'),
+            pasteShareCodeButton: byId('pasteShareCodeButton'),
+            passwordError: byId('passwordError'),
+            userStatus: byId('userStatus'),
+            userIcon: byId('userIcon'),
+            userName: byId('userName'),
+            userLevel: byId('userLevel'),
+            themeText: byId('themeText')
         });
     }
 
@@ -177,21 +219,23 @@
         dom.outlineSelect.addEventListener('change', navigateOutline);
         dom.syncScrollToggle.addEventListener('change', () => {
             state.settings.syncScroll = dom.syncScrollToggle.checked;
+            if (dom.settingsSyncScrollToggle) dom.settingsSyncScrollToggle.checked = state.settings.syncScroll;
             persistSettings();
+            setStatusMessage(state.settings.syncScroll ? '已开启编辑与预览同步滚动。' : '已关闭同步滚动。', { duration: 2600 });
         });
-        dom.mathStatus.addEventListener('click', openDiagnostics);
+        dom.mathStatus.addEventListener('click', () => toggleFormulaInspector());
         byId('themeButton').addEventListener('click', toggleTheme);
-        byId('settingsButton').addEventListener('click', openSettings);
-        byId('shortcutButton').addEventListener('click', () => showDialog(dom.shortcutDialog));
+        byId('settingsButton').addEventListener('click', () => openSettings('interface'));
+        byId('tableInput').addEventListener('input', updateTableOutput);
+        byId('aiProvider').addEventListener('change', applyAIPreset);
+        dom.applyMathNormalization.addEventListener('click', applyMathNormalization);
         document.addEventListener('click', handleDelegatedClick);
         document.addEventListener('keydown', onGlobalKeydown);
         bindViewSwitch();
         bindSplitter();
         bindDragAndDrop();
         bindSettingsDialog();
-        bindAIDialog();
-        bindTableDialog();
-        bindDiagnosticsDialog();
+        bindAccessEvents();
         window.addEventListener('resize', debounce(() => {
             sanitizeSplitPosition();
             if (state.settings.theme === 'system') applyTheme();
@@ -222,18 +266,24 @@
             'save-markdown': saveMarkdownFile,
             'clear-document': clearDocument,
             'load-formula-example': loadFormulaExample,
-            'refresh-preview': () => renderPreview({ immediate: true, force: true }),
+            'restore-draft': restorePendingDraft,
             'copy-rich': copyRichText,
             'download-word': downloadWord,
-            'open-ai': openAI,
-            'open-table': () => showDialog(dom.tableDialog),
-            'reset-settings': resetSettings,
-            'run-ai': runAIRepair,
+            'open-table': openTableTool,
+            'run-ai-direct': runAIDirect,
+            'close-tool-drawer': closeToolDrawer,
+            'copy-table': copyTableMarkdown,
+            'insert-table': insertTableMarkdown,
             'cancel-ai': cancelAIRequest,
             'copy-ai-result': copyAIResult,
             'apply-ai-result': applyAIResult,
-            'copy-table': copyTableMarkdown,
-            'insert-table': insertTableMarkdown
+            'open-settings-ai': () => openSettings('ai'),
+            'open-settings': () => openSettings('interface'),
+            'reset-settings': resetSettings,
+            'close-formula-inspector': () => toggleFormulaInspector(false),
+            'undo-document': undoDocumentChange,
+            'clear-status': clearStatusMessage,
+            logout: logoutAccess
         };
         if (handlers[action]) handlers[action]();
     }
@@ -255,12 +305,156 @@
         }
     }
 
+    function getAccessConfig() {
+        const config = window.MD2WORD_ACCESS;
+        if (!config || !config.users || typeof config.users !== 'object') return FALLBACK_ACCESS;
+        return { sessionKey: config.sessionKey || FALLBACK_ACCESS.sessionKey, users: config.users };
+    }
+
+    function bindAccessEvents() {
+        if (!dom.passwordForm) return;
+        dom.passwordForm.addEventListener('submit', verifyAccessPassword);
+        dom.passwordToggle.addEventListener('click', toggleAccessPassword);
+        dom.pasteShareCodeButton.addEventListener('click', pasteShareCode);
+        dom.passwordInput.addEventListener('input', () => { dom.passwordError.hidden = true; });
+    }
+
+    function initializeAccessGate() {
+        if (state.authReady) return;
+        state.authReady = true;
+        const config = getAccessConfig();
+        let restored = null;
+        try {
+            const session = safeJsonParse(sessionStorage.getItem(config.sessionKey), null);
+            if (session && session.password && config.users[session.password]) {
+                restored = { password: session.password, ...config.users[session.password] };
+            }
+        } catch (_error) {
+            restored = null;
+        }
+        if (restored) unlockApp(restored, false);
+        else lockApp();
+    }
+
+    function lockApp() {
+        document.body.classList.add('auth-locked');
+        dom.app.setAttribute('aria-hidden', 'true');
+        dom.passwordOverlay.hidden = false;
+        dom.passwordOverlay.classList.remove('is-leaving');
+        dom.passwordInput.value = '';
+        dom.passwordInput.type = 'password';
+        dom.passwordToggle.textContent = '👁️';
+        dom.passwordToggle.setAttribute('aria-label', '显示密码');
+        window.setTimeout(() => dom.passwordInput.focus(), 80);
+    }
+
+    function unlockApp(user, animate = true) {
+        state.currentUser = user;
+        updateUserStatus();
+        dom.app.setAttribute('aria-hidden', 'false');
+        document.body.classList.remove('auth-locked');
+
+        if (animate) {
+            dom.passwordOverlay.classList.add('is-leaving');
+            window.setTimeout(() => {
+                dom.passwordOverlay.hidden = true;
+                dom.passwordOverlay.classList.remove('is-leaving');
+                dom.markdownInput.focus();
+            }, 360);
+        } else {
+            dom.passwordOverlay.hidden = true;
+        }
+    }
+
+    function normalizeSharedPassword(value) {
+        const raw = String(value || '').trim();
+        if (!raw) return '';
+        if (/^PWD:/i.test(raw)) return raw.slice(4).split('|')[0].trim();
+        return raw.split(/\r?\n/)[0].trim();
+    }
+
+    function verifyAccessPassword(event) {
+        event.preventDefault();
+        const password = normalizeSharedPassword(dom.passwordInput.value);
+        const config = getAccessConfig();
+        const user = config.users[password];
+        if (!user) {
+            showAccessError('密码不正确，请检查后重试。');
+            dom.passwordInput.select();
+            return;
+        }
+        try {
+            sessionStorage.setItem(config.sessionKey, JSON.stringify({ password, authenticatedAt: Date.now() }));
+        } catch (_error) {
+            // 浏览器禁用会话存储时，本次页面仍可继续使用。
+        }
+        unlockApp({ password, ...user }, true);
+    }
+
+    function showAccessError(message) {
+        dom.passwordError.textContent = message;
+        dom.passwordError.hidden = false;
+        dom.passwordError.style.animation = 'none';
+        requestAnimationFrame(() => { dom.passwordError.style.animation = ''; });
+    }
+
+    function toggleAccessPassword() {
+        const visible = dom.passwordInput.type === 'text';
+        dom.passwordInput.type = visible ? 'password' : 'text';
+        dom.passwordToggle.textContent = visible ? '👁️' : '🙈';
+        dom.passwordToggle.setAttribute('aria-label', visible ? '显示密码' : '隐藏密码');
+        dom.passwordInput.focus();
+    }
+
+    async function pasteShareCode() {
+        let value = '';
+        try {
+            if (navigator.clipboard && typeof navigator.clipboard.readText === 'function') value = await navigator.clipboard.readText();
+        } catch (_error) {
+            value = '';
+        }
+        if (!value) value = window.prompt('请粘贴分享码或访问密码：') || '';
+        const password = normalizeSharedPassword(value);
+        if (!password) {
+            showAccessError('没有读取到有效的分享码。');
+            return;
+        }
+        dom.passwordInput.value = password;
+        dom.passwordInput.focus();
+        dom.passwordInput.select();
+        dom.passwordError.hidden = true;
+    }
+
+    function logoutAccess() {
+        const config = getAccessConfig();
+        try { sessionStorage.removeItem(config.sessionKey); } catch (_error) { /* ignore */ }
+        state.currentUser = null;
+        closeDialog(dom.settingsDialog, 'logout');
+        closeToolDrawer();
+        clearStatusMessage();
+        lockApp();
+    }
+
+    function updateUserStatus() {
+        const user = state.currentUser;
+        if (!user || !dom.userStatus) return;
+        dom.userIcon.textContent = user.icon || '👤';
+        dom.userName.textContent = user.name || '用户';
+        dom.userLevel.textContent = user.label || user.level || '个人版';
+        const settingsCurrentUser = byId('settingsCurrentUser');
+        if (settingsCurrentUser) settingsCurrentUser.textContent = `${user.icon || '👤'} ${user.name || '用户'} · ${user.label || user.level || '个人版'}`;
+    }
+
     function loadSettings() {
         const stored = safeJsonParse(localStorage.getItem(STORAGE.settings), {});
+        const legacyTheme = stored.theme === 'light' ? 'amber' : stored.theme === 'dark' ? 'noir' : stored.theme;
+        const allowedThemes = new Set([...THEME_ORDER, 'system']);
         state.settings = {
             ...DEFAULT_SETTINGS,
             ...stored,
+            theme: allowedThemes.has(legacyTheme) ? legacyTheme : DEFAULT_SETTINGS.theme,
             editorFontSize: clamp(Number(stored.editorFontSize ?? DEFAULT_SETTINGS.editorFontSize), 12, 24),
+            restoreDraftOnStart: Boolean(stored.restoreDraftOnStart),
             wordFontSize: clamp(Number(stored.wordFontSize ?? DEFAULT_SETTINGS.wordFontSize), 9, 18),
             wordLineSpacing: clamp(Number(stored.wordLineSpacing ?? DEFAULT_SETTINGS.wordLineSpacing), 1, 2.5),
             wordMarginCm: clamp(Number(stored.wordMarginCm ?? DEFAULT_SETTINGS.wordMarginCm), 1, 4)
@@ -275,6 +469,7 @@
         applyTheme();
         document.documentElement.style.setProperty('--editor-font-size', `${state.settings.editorFontSize}px`);
         dom.syncScrollToggle.checked = Boolean(state.settings.syncScroll);
+        if (dom.settingsSyncScrollToggle) dom.settingsSyncScrollToggle.checked = Boolean(state.settings.syncScroll);
     }
 
     function applyTheme() {
@@ -282,42 +477,54 @@
             ? state.themeMedia.matches
             : window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         const resolved = state.settings.theme === 'system'
-            ? (prefersDark ? 'dark' : 'light')
-            : state.settings.theme;
+            ? (prefersDark ? 'noir' : 'amber')
+            : (THEME_ORDER.includes(state.settings.theme) ? state.settings.theme : 'amber');
         document.documentElement.dataset.theme = resolved;
-        byId('themeButton').textContent = resolved === 'dark' ? '☀' : '◐';
-        byId('themeButton').title = resolved === 'dark' ? '切换到浅色主题' : '切换到深色主题';
+        if (dom.themeText) dom.themeText.textContent = THEME_LABELS[resolved] || '暖阳琥珀';
+        const button = byId('themeButton');
+        if (button) button.title = `当前：${THEME_LABELS[resolved] || resolved}，点击切换下一套主题`;
     }
 
     function toggleTheme() {
-        const current = document.documentElement.dataset.theme || 'light';
-        state.settings.theme = current === 'dark' ? 'light' : 'dark';
+        const current = document.documentElement.dataset.theme || 'amber';
+        const index = Math.max(0, THEME_ORDER.indexOf(current));
+        state.settings.theme = THEME_ORDER[(index + 1) % THEME_ORDER.length];
         persistSettings();
         applyTheme();
         populateSettingsForm();
     }
 
-    function openSettings() {
+    function openSettings(section = 'interface') {
         populateSettingsForm();
         showDialog(dom.settingsDialog);
+        const targets = {
+            interface: byId('settingsInterfaceSection'),
+            ai: byId('settingsAISection'),
+            shortcuts: byId('settingsShortcutSection')
+        };
+        const target = targets[section];
+        if (target) requestAnimationFrame(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }));
     }
 
     function populateSettingsForm() {
         byId('themeSelect').value = state.settings.theme;
         byId('editorFontSize').value = state.settings.editorFontSize;
         byId('autosaveToggle').checked = Boolean(state.settings.autosave);
+        byId('restoreDraftOnStartToggle').checked = Boolean(state.settings.restoreDraftOnStart);
         byId('repairLooseMathToggle').checked = Boolean(state.settings.repairLooseMath);
+        byId('settingsSyncScrollToggle').checked = Boolean(state.settings.syncScroll);
         byId('wordFont').value = state.settings.wordFont;
         byId('wordFontSize').value = state.settings.wordFontSize;
         byId('wordLineSpacing').value = String(state.settings.wordLineSpacing);
         byId('wordMarginCm').value = state.settings.wordMarginCm;
+        populateAISettings();
     }
 
     function bindSettingsDialog() {
         dom.settingsForm.addEventListener('submit', (event) => {
             event.preventDefault();
             if (event.submitter && event.submitter.value === 'cancel') {
-                dom.settingsDialog.close('cancel');
+                closeDialog(dom.settingsDialog, 'cancel');
                 return;
             }
             state.settings = {
@@ -325,29 +532,37 @@
                 theme: byId('themeSelect').value,
                 editorFontSize: clamp(Number(byId('editorFontSize').value), 12, 24),
                 autosave: byId('autosaveToggle').checked,
+                restoreDraftOnStart: byId('restoreDraftOnStartToggle').checked,
                 repairLooseMath: byId('repairLooseMathToggle').checked,
+                syncScroll: byId('settingsSyncScrollToggle').checked,
                 wordFont: byId('wordFont').value,
                 wordFontSize: clamp(Number(byId('wordFontSize').value), 9, 18),
                 wordLineSpacing: clamp(Number(byId('wordLineSpacing').value), 1, 2.5),
                 wordMarginCm: clamp(Number(byId('wordMarginCm').value), 1, 4)
             };
+            state.aiConfig = collectAIConfigFromSettings();
             persistSettings();
+            persistAIConfig();
             applySettings();
             updateSaveStatus();
+            updateAIToolSummary();
             renderPreview({ immediate: true, force: true });
-            dom.settingsDialog.close('save');
-            toast('设置已保存', '界面与导出偏好已更新。', 'success');
+            closeDialog(dom.settingsDialog, 'save');
+            setStatusMessage('设置已保存。', { duration: 2600 });
         });
     }
 
     function resetSettings() {
         state.settings = { ...DEFAULT_SETTINGS };
+        state.aiConfig = { provider: 'custom', endpoint: '', model: '', key: '', mode: 'format', extraPrompt: '' };
         persistSettings();
+        persistAIConfig();
         applySettings();
         populateSettingsForm();
         updateSaveStatus();
+        updateAIToolSummary();
         renderPreview({ immediate: true, force: true });
-        toast('已恢复默认设置', '', 'success');
+        setStatusMessage('已恢复默认设置。', { duration: 2600 });
     }
 
     function showDialog(dialog) {
@@ -363,6 +578,30 @@
         if (!dialog) return;
         if (typeof dialog.close === 'function' && dialog.open) dialog.close(value);
         else dialog.removeAttribute('open');
+    }
+
+    function getEmptyPreviewHtml() {
+        const draftAction = state.pendingDraft && state.pendingDraft.content && state.pendingDraft.content.trim()
+            ? `<button type="button" class="secondary-button" data-action="restore-draft">恢复本地草稿 · ${escapeHtml(formatDateTime(state.pendingDraft.updatedAt))}</button>`
+            : '';
+        return `
+            <div class="preview-empty">
+                <div class="preview-empty-card">
+                    <div class="preview-empty-icon" aria-hidden="true">✦</div>
+                    <h3>空白启动，按你的节奏开始</h3>
+                    <p>粘贴 Markdown 后会立即预览。示例不会自动载入，本地草稿也只在你主动恢复时进入编辑器。</p>
+                    <div class="preview-empty-actions">
+                        <button type="button" class="secondary-button" data-action="open-file">打开 Markdown</button>
+                        <button type="button" class="secondary-button" data-action="load-formula-example">加载公式示例</button>
+                        ${draftAction}
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    function escapeHtml(value) {
+        if (window.Md2WordMath && typeof window.Md2WordMath.escapeHtml === 'function') return window.Md2WordMath.escapeHtml(String(value));
+        return String(value).replace(/[&<>"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[char]));
     }
 
     function onEditorInput() {
@@ -394,9 +633,10 @@
         const previousRatio = getScrollRatio(dom.preview);
 
         if (!text.trim()) {
-            dom.preview.innerHTML = EMPTY_PREVIEW_HTML;
+            const emptyHtml = getEmptyPreviewHtml();
+            dom.preview.innerHTML = emptyHtml;
             state.renderResult = {
-                html: EMPTY_PREVIEW_HTML,
+                html: emptyHtml,
                 mathCount: 0,
                 errors: [],
                 warnings: [],
@@ -419,10 +659,7 @@
         try {
             const sanitize = (html) => {
                 if (window.DOMPurify && typeof window.DOMPurify.sanitize === 'function') {
-                    return window.DOMPurify.sanitize(html, {
-                        USE_PROFILES: { html: true },
-                        ADD_ATTR: ['target', 'rel']
-                    });
+                    return window.DOMPurify.sanitize(html, { USE_PROFILES: { html: true }, ADD_ATTR: ['target', 'rel'] });
                 }
                 return html;
             };
@@ -431,9 +668,7 @@
                 marked: window.marked,
                 katex: window.katex,
                 sanitize
-            }, {
-                repairLooseDelimiters: state.settings.repairLooseMath
-            });
+            }, { repairLooseDelimiters: state.settings.repairLooseMath });
 
             if (generation !== state.renderGeneration) return state.renderResult;
             dom.preview.innerHTML = result.html;
@@ -445,18 +680,14 @@
 
             const elapsed = Math.max(1, Math.round(performance.now() - startedAt));
             dom.renderStatus.textContent = `已渲染 · ${elapsed} ms`;
-            maybeNotifyLooseMathFix(result, text);
             return result;
         } catch (error) {
             console.error('Markdown 渲染失败:', error);
-            dom.preview.innerHTML = `
-                <div class="math-error">
-                    <strong>预览解析失败</strong>
-                    <code>${window.Md2WordMath.escapeHtml(error.message || String(error))}</code>
-                </div>`;
+            dom.preview.innerHTML = `<div class="math-error"><strong>预览解析失败</strong><code>${escapeHtml(error.message || String(error))}</code></div>`;
             dom.renderStatus.textContent = '渲染失败';
             state.renderResult = null;
             updateMathStatus();
+            toast('预览解析失败', error.message || String(error), 'error', 6500);
             return null;
         }
     }
@@ -471,50 +702,77 @@
         });
     }
 
-    function maybeNotifyLooseMathFix(result, source) {
-        if (!result || !result.looseDelimiterFixes) return;
-        const hash = window.Md2WordMath.simpleHash(`${source}:${result.looseDelimiterFixes}`);
-        if (hash === state.lastLooseFixNoticeHash) return;
-        state.lastLooseFixNoticeHash = hash;
-        toast(
-            '已兼容松散公式边界',
-            `检测并临时修复 ${result.looseDelimiterFixes} 处独立 [ … ] 公式块。点击公式状态可写回标准 \\[ … \\] 语法。`,
-            'info',
-            5200
-        );
+    function updateMathStatus() {
+        const result = state.renderResult || { mathCount: 0, errors: [], warnings: [], looseDelimiterFixes: 0 };
+        const count = Number(result.mathCount || 0);
+        const errors = Array.isArray(result.errors) ? result.errors.length : 0;
+        const fixes = Number(result.looseDelimiterFixes || 0);
+        dom.mathStatus.classList.remove('ok', 'warning', 'error');
+        dom.mathStatusText.textContent = `公式 ${count} · 错误 ${errors} · 修复 ${fixes}`;
+        if (errors) dom.mathStatus.classList.add('error');
+        else if ((result.warnings && result.warnings.length) || fixes) dom.mathStatus.classList.add('warning');
+        else if (count) dom.mathStatus.classList.add('ok');
+        if (!dom.formulaInspector.hidden) renderFormulaInspector();
     }
 
-    function updateMathStatus() {
-        const result = state.renderResult;
-        dom.mathStatus.classList.remove('ok', 'warning', 'error');
-        if (!result || !result.mathCount) {
-            dom.mathStatusText.textContent = '未检测到公式';
-            return;
-        }
+    function toggleFormulaInspector(force) {
+        const shouldOpen = typeof force === 'boolean' ? force : dom.formulaInspector.hidden;
+        dom.formulaInspector.hidden = !shouldOpen;
+        dom.mathStatus.setAttribute('aria-expanded', String(shouldOpen));
+        if (shouldOpen) renderFormulaInspector();
+    }
 
-        if (result.errors.length) {
-            dom.mathStatus.classList.add('error');
-            dom.mathStatusText.textContent = `${result.mathCount} 个公式 · ${result.errors.length} 个错误`;
-        } else if (result.warnings.length || result.looseDelimiterFixes) {
-            dom.mathStatus.classList.add('warning');
-            const extra = result.looseDelimiterFixes ? ` · 修复 ${result.looseDelimiterFixes} 处边界` : '';
-            dom.mathStatusText.textContent = `${result.mathCount} 个公式${extra}`;
-        } else {
-            dom.mathStatus.classList.add('ok');
-            dom.mathStatusText.textContent = `${result.mathCount} 个公式 · 正常`;
+    function renderFormulaInspector() {
+        const result = state.renderResult || {
+            mathCount: 0, errors: [], warnings: [], looseDelimiterFixes: 0, segments: [], normalizedMarkdown: dom.markdownInput.value
+        };
+        const errors = result.errors || [];
+        const warnings = result.warnings || [];
+        const segments = result.segments || [];
+        const items = [];
+
+        errors.forEach((error) => {
+            items.push(`<div class="diagnostic-item error"><strong>公式 ${error.index + 1} 渲染失败</strong><div>${escapeHtml(error.message)}</div><code>${escapeHtml(error.content)}</code></div>`);
+        });
+        warnings.forEach((warning) => {
+            items.push(`<div class="diagnostic-item warning"><strong>发现未闭合边界</strong><div>位置 ${warning.index + 1}，边界 ${escapeHtml(warning.delimiter)}</div></div>`);
+        });
+        if (!errors.length && !warnings.length && segments.length) {
+            segments.slice(0, 8).forEach((segment) => {
+                items.push(`<div class="diagnostic-item"><strong>公式 ${segment.index + 1} · ${segment.display ? '独立公式' : '行内公式'}</strong><code>${escapeHtml(segment.content)}</code></div>`);
+            });
+            if (segments.length > 8) items.push(`<div class="diagnostic-item muted">另有 ${segments.length - 8} 个公式未在列表中展开。</div>`);
         }
+        if (!items.length) items.push('<div class="diagnostic-item muted">当前文档未检测到公式。</div>');
+
+        dom.formulaInspectorContent.innerHTML = `
+            <div class="diagnostics-summary">
+                <div class="diagnostic-stat"><strong>${result.mathCount || 0}</strong><span>识别公式</span></div>
+                <div class="diagnostic-stat"><strong>${errors.length}</strong><span>渲染错误</span></div>
+                <div class="diagnostic-stat"><strong>${result.looseDelimiterFixes || 0}</strong><span>边界修复</span></div>
+            </div>
+            <div class="diagnostics-list">${items.join('')}</div>`;
+        dom.applyMathNormalization.hidden = !(result.looseDelimiterFixes && result.normalizedMarkdown !== dom.markdownInput.value);
+    }
+
+    function applyMathNormalization() {
+        if (!state.renderResult || !state.renderResult.normalizedMarkdown) return;
+        takeDocumentSnapshot('公式边界标准化');
+        dom.markdownInput.value = state.renderResult.normalizedMarkdown;
+        state.dirty = true;
+        onEditorInput();
+        toggleFormulaInspector(false);
+        setStatusMessage('已把松散 [ … ] 公式边界写回为标准 \\[ … \\]。', { undo: true, duration: 9000 });
     }
 
     function buildOutline() {
         const headings = queryAll('h1, h2, h3, h4, h5, h6', dom.preview);
         dom.outlineSelect.innerHTML = '';
         if (!headings.length) {
-            const option = new Option('无标题', '');
-            dom.outlineSelect.add(option);
+            dom.outlineSelect.add(new Option('无标题', ''));
             dom.outlineSelect.disabled = true;
             return;
         }
-
         dom.outlineSelect.disabled = false;
         dom.outlineSelect.add(new Option(`大纲（${headings.length}）`, ''));
         const used = new Set();
@@ -535,13 +793,7 @@
     }
 
     function slugify(value) {
-        return String(value)
-            .trim()
-            .toLowerCase()
-            .replace(/[^\p{L}\p{N}\s-]/gu, '')
-            .replace(/\s+/g, '-')
-            .replace(/-+/g, '-')
-            .slice(0, 80);
+        return String(value).trim().toLowerCase().replace(/[^\p{L}\p{N}\s-]/gu, '').replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 80);
     }
 
     function navigateOutline() {
@@ -571,41 +823,64 @@
         dom.readTime.textContent = minutes.toLocaleString();
     }
 
+    function prepareAutosave() {
+        const payload = safeJsonParse(localStorage.getItem(STORAGE.autosave), null);
+        if (!payload || typeof payload.content !== 'string' || !payload.content.trim()) {
+            state.pendingDraft = null;
+            return;
+        }
+        state.pendingDraft = payload;
+        if (state.settings.restoreDraftOnStart) restorePendingDraft({ silent: true });
+    }
+
     function scheduleAutosave() {
         window.clearTimeout(state.autosaveTimer);
         if (!state.settings.autosave) {
             updateSaveStatus();
             return;
         }
-        dom.saveStatus.textContent = '正在等待自动保存…';
+        dom.saveStatus.textContent = '等待自动保存…';
         state.autosaveTimer = window.setTimeout(saveAutosave, 650);
     }
 
     function saveAutosave() {
         if (!state.settings.autosave) return;
-        const payload = {
-            content: dom.markdownInput.value,
-            fileName: state.currentFileName,
-            updatedAt: Date.now()
-        };
+        const content = dom.markdownInput.value;
+        if (!content.trim()) {
+            try { localStorage.removeItem(STORAGE.autosave); } catch (_error) { /* ignore */ }
+            state.pendingDraft = null;
+            updateSaveStatus();
+            return;
+        }
+        const payload = { content, fileName: state.currentFileName, updatedAt: Date.now() };
         try {
             localStorage.setItem(STORAGE.autosave, JSON.stringify(payload));
+            state.pendingDraft = payload;
+            state.dirty = false;
             updateSaveStatus(payload.updatedAt);
         } catch (error) {
             console.warn('自动保存失败:', error);
             dom.saveStatus.textContent = '自动保存失败（本地空间可能已满）';
             dom.saveDot.classList.add('dirty');
+            toast('自动保存失败', '浏览器本地空间可能已满。', 'error');
         }
     }
 
-    function restoreAutosave() {
-        const payload = safeJsonParse(localStorage.getItem(STORAGE.autosave), null);
-        if (!payload || typeof payload.content !== 'string' || !payload.content.trim()) return;
+    function restorePendingDraft(options = {}) {
+        const payload = state.pendingDraft || safeJsonParse(localStorage.getItem(STORAGE.autosave), null);
+        if (!payload || typeof payload.content !== 'string' || !payload.content.trim()) {
+            setStatusMessage('没有可恢复的本地草稿。', { duration: 2600 });
+            return;
+        }
+        if (dom.markdownInput.value.trim()) takeDocumentSnapshot('恢复草稿前的内容');
         dom.markdownInput.value = payload.content;
         state.currentFileName = payload.fileName || '未命名.md';
         state.dirty = false;
+        state.pendingDraft = null;
+        updateStats();
         updateSaveStatus(payload.updatedAt);
-        toast('已恢复本地草稿', formatDateTime(payload.updatedAt), 'info', 3600);
+        renderPreview({ immediate: true, force: true });
+        if (!options.silent) setStatusMessage(`已恢复本地草稿 · ${formatDateTime(payload.updatedAt)}`, { undo: Boolean(state.lastDestructiveSnapshot), duration: 8000 });
     }
 
     function updateSaveStatus(timestamp = null) {
@@ -614,14 +889,14 @@
             dom.saveDot.classList.toggle('dirty', state.dirty);
             return;
         }
-        const payload = timestamp
-            ? { updatedAt: timestamp }
-            : safeJsonParse(localStorage.getItem(STORAGE.autosave), null);
-        if (payload && payload.updatedAt) {
-            dom.saveStatus.textContent = `本地已保存 · ${formatTime(payload.updatedAt)}`;
-        } else {
-            dom.saveStatus.textContent = '本地草稿已启用';
+        if (!dom.markdownInput.value.trim() && state.pendingDraft && !state.settings.restoreDraftOnStart) {
+            dom.saveStatus.textContent = `空白启动 · 有草稿可恢复（${formatTime(state.pendingDraft.updatedAt)}）`;
+            dom.saveDot.classList.remove('dirty');
+            return;
         }
+        const payload = timestamp ? { updatedAt: timestamp } : safeJsonParse(localStorage.getItem(STORAGE.autosave), null);
+        if (dom.markdownInput.value.trim() && payload && payload.updatedAt) dom.saveStatus.textContent = `本地已保存 · ${formatTime(payload.updatedAt)}`;
+        else dom.saveStatus.textContent = '空白文档 · 本地自动保存已启用';
         dom.saveDot.classList.toggle('dirty', state.dirty);
     }
 
@@ -635,44 +910,79 @@
 
     function formatDateTime(value) {
         try {
-            return new Intl.DateTimeFormat('zh-CN', {
-                month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
-            }).format(new Date(value));
+            return new Intl.DateTimeFormat('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(value));
         } catch (_error) {
             return new Date(value).toLocaleString();
         }
     }
 
+    function takeDocumentSnapshot(reason = '上一步') {
+        state.lastDestructiveSnapshot = {
+            content: dom.markdownInput.value,
+            fileName: state.currentFileName,
+            dirty: state.dirty,
+            selectionStart: dom.markdownInput.selectionStart,
+            selectionEnd: dom.markdownInput.selectionEnd,
+            reason,
+            createdAt: Date.now()
+        };
+    }
+
     function loadFormulaExample() {
-        if (dom.markdownInput.value.trim() && !window.confirm('当前内容将被公式示例替换，继续吗？')) return;
+        if (dom.markdownInput.value.trim()) takeDocumentSnapshot('加载示例前的内容');
         dom.markdownInput.value = FORMULA_EXAMPLE;
         state.currentFileName = '公式示例.md';
         state.dirty = true;
         onEditorInput();
         dom.markdownInput.focus();
-        toast('已加载公式示例', '包含你截图中的化学结构公式。', 'success');
+        setStatusMessage('已加载公式示例。', { undo: Boolean(state.lastDestructiveSnapshot), duration: 8000 });
     }
 
     function clearDocument() {
-        if (!dom.markdownInput.value) return;
-        if (!window.confirm('确认清空当前文档？本地自动保存会同步更新。')) return;
-        dom.markdownInput.value = '';
-        state.currentFileName = '未命名.md';
-        state.dirty = true;
-        onEditorInput();
-        dom.markdownInput.focus();
-    }
-
-    function newDocument() {
-        if (dom.markdownInput.value.trim() && state.dirty && !window.confirm('新建文档会清空当前编辑内容，继续吗？')) return;
+        if (!dom.markdownInput.value) {
+            setStatusMessage('当前文档已经是空白。', { duration: 2200 });
+            return;
+        }
+        takeDocumentSnapshot('清空前的内容');
         dom.markdownInput.value = '';
         state.currentFileName = '未命名.md';
         state.dirty = false;
-        if (state.settings.autosave) localStorage.removeItem(STORAGE.autosave);
+        try { localStorage.removeItem(STORAGE.autosave); } catch (_error) { /* ignore */ }
+        state.pendingDraft = null;
         updateStats();
         updateSaveStatus();
         renderPreview({ immediate: true, force: true });
         dom.markdownInput.focus();
+        setStatusMessage('内容已清空。', { undo: true, duration: 9000 });
+    }
+
+    function newDocument() {
+        if (dom.markdownInput.value.trim()) takeDocumentSnapshot('新建前的内容');
+        dom.markdownInput.value = '';
+        state.currentFileName = '未命名.md';
+        state.dirty = false;
+        try { localStorage.removeItem(STORAGE.autosave); } catch (_error) { /* ignore */ }
+        state.pendingDraft = null;
+        updateStats();
+        updateSaveStatus();
+        renderPreview({ immediate: true, force: true });
+        dom.markdownInput.focus();
+        setStatusMessage('已新建空白文档。', { undo: Boolean(state.lastDestructiveSnapshot), duration: 9000 });
+    }
+
+    function undoDocumentChange() {
+        const snapshot = state.lastDestructiveSnapshot;
+        if (!snapshot) return;
+        dom.markdownInput.value = snapshot.content;
+        state.currentFileName = snapshot.fileName || '未命名.md';
+        state.dirty = snapshot.dirty;
+        updateStats();
+        updateSaveStatus();
+        renderPreview({ immediate: true, force: true });
+        dom.markdownInput.focus();
+        dom.markdownInput.setSelectionRange(snapshot.selectionStart || 0, snapshot.selectionEnd || 0);
+        state.lastDestructiveSnapshot = null;
+        setStatusMessage(`已撤销：${snapshot.reason}。`, { duration: 3200 });
     }
 
     function applyEditorCommand(command) {
@@ -680,7 +990,6 @@
         const start = input.selectionStart;
         const end = input.selectionEnd;
         const selected = input.value.slice(start, end);
-
         const commands = {
             heading: () => prefixSelectedLines('## '),
             bold: () => wrapSelection('**', '**', '重点内容'),
@@ -688,9 +997,7 @@
             quote: () => prefixSelectedLines('> '),
             'unordered-list': () => prefixSelectedLines('- '),
             'ordered-list': () => prefixSelectedLines((_line, index) => `${index + 1}. `),
-            code: () => selected.includes('\n')
-                ? wrapSelection('```\n', '\n```', '代码')
-                : wrapSelection('`', '`', '代码'),
+            code: () => selected.includes('\n') ? wrapSelection('```\n', '\n```', '代码') : wrapSelection('`', '`', '代码'),
             'inline-math': () => wrapSelection('\\(', '\\)', 'x_1'),
             'display-math': () => wrapSelection('\n\\[\n', '\n\\]\n', String.raw`\text{示例}_2`)
         };
@@ -702,8 +1009,7 @@
         const start = input.selectionStart;
         const end = input.selectionEnd;
         const selected = input.value.slice(start, end) || placeholder;
-        const replacement = `${before}${selected}${after}`;
-        input.setRangeText(replacement, start, end, 'end');
+        input.setRangeText(`${before}${selected}${after}`, start, end, 'end');
         const selectionStart = start + before.length;
         input.setSelectionRange(selectionStart, selectionStart + selected.length);
         input.focus();
@@ -735,16 +1041,12 @@
             onEditorInput();
             return;
         }
-
         const value = input.value;
         const blockStart = value.lastIndexOf('\n', start - 1) + 1;
         let blockEnd = value.indexOf('\n', end);
         if (blockEnd === -1) blockEnd = value.length;
         const block = value.slice(blockStart, blockEnd);
-        const transformed = block.split('\n').map((line) => {
-            if (event.shiftKey) return line.replace(/^( {1,4}|\t)/, '');
-            return `    ${line}`;
-        }).join('\n');
+        const transformed = block.split('\n').map((line) => event.shiftKey ? line.replace(/^( {1,4}|\t)/, '') : `    ${line}`).join('\n');
         input.setRangeText(transformed, blockStart, blockEnd, 'select');
         onEditorInput();
     }
@@ -757,6 +1059,7 @@
     }
 
     function onGlobalKeydown(event) {
+        if (document.body.classList.contains('auth-locked')) return;
         const modifier = event.ctrlKey || event.metaKey;
         const key = event.key.toLowerCase();
         if (modifier && key === 's') {
@@ -779,7 +1082,7 @@
             applyEditorCommand('italic');
         } else if (modifier && key === '/') {
             event.preventDefault();
-            showDialog(dom.shortcutDialog);
+            openSettings('shortcuts');
         } else if (modifier && key === 'n') {
             event.preventDefault();
             newDocument();
@@ -811,55 +1114,52 @@
         }
         const reader = new FileReader();
         reader.onload = () => {
+            if (dom.markdownInput.value.trim()) takeDocumentSnapshot('打开文件前的内容');
             dom.markdownInput.value = String(reader.result || '');
             state.currentFileName = file.name;
             state.dirty = false;
             updateStats();
-            updateSaveStatus();
             renderPreview({ immediate: true, force: true });
             saveAutosave();
-            toast('文件已打开', `${file.name} · ${formatBytes(file.size)}`, 'success');
+            dom.markdownInput.focus();
+            setStatusMessage(`已打开 ${file.name} · ${formatBytes(file.size)}`, { undo: Boolean(state.lastDestructiveSnapshot), duration: 7000 });
         };
-        reader.onerror = () => toast('读取失败', '浏览器无法读取该文件。', 'error');
-        reader.readAsText(file, 'UTF-8');
+        reader.onerror = () => toast('读取文件失败', reader.error ? reader.error.message : '未知错误', 'error');
+        reader.readAsText(file, 'utf-8');
     }
 
     function formatBytes(bytes) {
         if (bytes < 1024) return `${bytes} B`;
         if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+        return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
     }
 
     function bindDragAndDrop() {
-        const enter = (event) => {
+        const target = dom.editorFrame;
+        target.addEventListener('dragenter', (event) => {
             if (!hasFiles(event)) return;
             event.preventDefault();
             state.dragDepth += 1;
             dom.dropOverlay.classList.add('visible');
-        };
-        const over = (event) => {
+        });
+        target.addEventListener('dragover', (event) => {
             if (!hasFiles(event)) return;
             event.preventDefault();
-            event.dataTransfer.dropEffect = 'copy';
-        };
-        const leave = (event) => {
+            if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
+        });
+        target.addEventListener('dragleave', (event) => {
             if (!hasFiles(event)) return;
-            event.preventDefault();
             state.dragDepth = Math.max(0, state.dragDepth - 1);
             if (!state.dragDepth) dom.dropOverlay.classList.remove('visible');
-        };
-        const drop = (event) => {
+        });
+        target.addEventListener('drop', (event) => {
             if (!hasFiles(event)) return;
             event.preventDefault();
             state.dragDepth = 0;
             dom.dropOverlay.classList.remove('visible');
-            const file = event.dataTransfer.files && event.dataTransfer.files[0];
+            const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
             if (file) loadFile(file);
-        };
-        document.addEventListener('dragenter', enter);
-        document.addEventListener('dragover', over);
-        document.addEventListener('dragleave', leave);
-        document.addEventListener('drop', drop);
+        });
     }
 
     function hasFiles(event) {
@@ -867,18 +1167,18 @@
     }
 
     function saveMarkdownFile() {
-        const content = dom.markdownInput.value;
-        if (!content.trim()) {
-            toast('没有可保存的内容', '', 'warning');
+        const text = dom.markdownInput.value;
+        if (!text.trim()) {
+            setStatusMessage('没有可保存的 Markdown 内容。', { tone: 'warning', duration: 3000 });
             return;
         }
-        const name = ensureExtension(sanitizeFileName(state.currentFileName || extractTitle(content) || '未命名'), '.md');
-        downloadBlob(new Blob([content], { type: 'text/markdown;charset=utf-8' }), name);
-        state.currentFileName = name;
+        const suggested = ensureExtension(sanitizeFileName(state.currentFileName), '.md');
+        const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
+        downloadBlob(blob, suggested);
+        state.currentFileName = suggested;
         state.dirty = false;
-        dom.saveDot.classList.remove('dirty');
         updateSaveStatus();
-        toast('Markdown 已下载', name, 'success');
+        setStatusMessage(`Markdown 已下载：${suggested}`, { duration: 3200 });
     }
 
     function downloadBlob(blob, fileName) {
@@ -897,12 +1197,7 @@
     }
 
     function sanitizeFileName(value) {
-        const cleaned = String(value || '')
-            .replace(/\.(md|markdown|txt|docx)$/i, '')
-            .replace(/[<>:"/\\|?*\u0000-\u001f]/g, '-')
-            .replace(/\s+/g, ' ')
-            .trim()
-            .slice(0, 80);
+        const cleaned = String(value || '').replace(/\.(md|markdown|txt|docx)$/i, '').replace(/[<>:"/\\|?*\u0000-\u001f]/g, '-').replace(/\s+/g, ' ').trim().slice(0, 80);
         return cleaned || '未命名';
     }
 
@@ -923,13 +1218,30 @@
         });
     }
 
-    function setView(view) {
+    function restoreView() {
+        const stored = localStorage.getItem(STORAGE.view);
+        setView(['editor', 'split', 'preview'].includes(stored) ? stored : 'split', { persist: false });
+    }
+
+    function setView(view, options = {}) {
         if (!['editor', 'split', 'preview'].includes(view)) return;
         dom.workspace.dataset.view = view;
-        queryAll('#viewSwitch [data-view]').forEach((button) => {
-            button.classList.toggle('active', button.dataset.view === view);
-        });
+        queryAll('#viewSwitch [data-view]').forEach((button) => button.classList.toggle('active', button.dataset.view === view));
+        if (options.persist !== false) localStorage.setItem(STORAGE.view, view);
         if (view === 'preview') renderPreview({ immediate: true, force: true });
+    }
+
+    function readSplitPosition() {
+        return safeJsonParse(localStorage.getItem(STORAGE.split), {});
+    }
+
+    function persistSplitPosition(partial) {
+        localStorage.setItem(STORAGE.split, JSON.stringify({ ...readSplitPosition(), ...partial }));
+    }
+
+    function updateSplitterAria(value, mobile) {
+        dom.splitter.setAttribute('aria-valuenow', String(Math.round(value)));
+        dom.splitter.setAttribute('aria-orientation', mobile ? 'horizontal' : 'vertical');
     }
 
     function bindSplitter() {
@@ -947,57 +1259,73 @@
             if (mobile) {
                 const percent = clamp(((event.clientY - rect.top) / rect.height) * 100, 28, 72);
                 dom.workspace.style.gridTemplateRows = `${percent}% 9px minmax(300px, 1fr)`;
-                localStorage.setItem(STORAGE.split, JSON.stringify({ mobilePercent: percent }));
+                persistSplitPosition({ mobilePercent: percent });
+                updateSplitterAria(percent, true);
             } else {
                 const percent = clamp(((event.clientX - rect.left) / rect.width) * 100, 24, 76);
                 document.documentElement.style.setProperty('--editor-width', `${percent}%`);
-                localStorage.setItem(STORAGE.split, JSON.stringify({ desktopPercent: percent }));
+                persistSplitPosition({ desktopPercent: percent });
+                updateSplitterAria(percent, false);
             }
         });
         const finish = (event) => {
             if (!state.splitterDrag) return;
-            if (event && state.splitterDrag.pointerId === event.pointerId && dom.splitter.hasPointerCapture(event.pointerId)) {
-                dom.splitter.releasePointerCapture(event.pointerId);
-            }
+            if (event && state.splitterDrag.pointerId === event.pointerId && dom.splitter.hasPointerCapture(event.pointerId)) dom.splitter.releasePointerCapture(event.pointerId);
             state.splitterDrag = null;
             dom.splitter.classList.remove('dragging');
         };
         dom.splitter.addEventListener('pointerup', finish);
         dom.splitter.addEventListener('pointercancel', finish);
+        dom.splitter.addEventListener('dblclick', resetSplitPosition);
         dom.splitter.addEventListener('keydown', (event) => {
-            const stored = safeJsonParse(localStorage.getItem(STORAGE.split), {});
+            const stored = readSplitPosition();
             if (window.innerWidth <= 820) {
                 if (!['ArrowUp', 'ArrowDown'].includes(event.key)) return;
                 event.preventDefault();
-                const current = Number(stored.mobilePercent || 50);
-                const next = clamp(current + (event.key === 'ArrowDown' ? 2 : -2), 28, 72);
+                const next = clamp(Number(stored.mobilePercent || 50) + (event.key === 'ArrowDown' ? 2 : -2), 28, 72);
                 dom.workspace.style.gridTemplateRows = `${next}% 9px minmax(300px, 1fr)`;
-                localStorage.setItem(STORAGE.split, JSON.stringify({ ...stored, mobilePercent: next }));
+                persistSplitPosition({ mobilePercent: next });
+                updateSplitterAria(next, true);
             } else {
                 if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
                 event.preventDefault();
-                const current = Number(stored.desktopPercent || 50);
-                const next = clamp(current + (event.key === 'ArrowRight' ? 2 : -2), 24, 76);
+                const next = clamp(Number(stored.desktopPercent || 50) + (event.key === 'ArrowRight' ? 2 : -2), 24, 76);
                 document.documentElement.style.setProperty('--editor-width', `${next}%`);
-                localStorage.setItem(STORAGE.split, JSON.stringify({ ...stored, desktopPercent: next }));
+                persistSplitPosition({ desktopPercent: next });
+                updateSplitterAria(next, false);
             }
         });
     }
 
+    function resetSplitPosition() {
+        document.documentElement.style.setProperty('--editor-width', '50%');
+        dom.workspace.style.gridTemplateRows = window.innerWidth <= 820 ? '50% 9px minmax(300px, 1fr)' : '';
+        persistSplitPosition({ desktopPercent: 50, mobilePercent: 50 });
+        updateSplitterAria(50, window.innerWidth <= 820);
+        setStatusMessage('分栏已恢复为均分。', { duration: 2400 });
+    }
+
     function restoreSplitPosition() {
-        const stored = safeJsonParse(localStorage.getItem(STORAGE.split), {});
-        if (Number.isFinite(Number(stored.desktopPercent))) {
-            document.documentElement.style.setProperty('--editor-width', `${clamp(Number(stored.desktopPercent), 24, 76)}%`);
-        }
-        if (window.innerWidth <= 820 && Number.isFinite(Number(stored.mobilePercent))) {
-            const value = clamp(Number(stored.mobilePercent), 28, 72);
-            dom.workspace.style.gridTemplateRows = `${value}% 9px minmax(300px, 1fr)`;
+        const stored = readSplitPosition();
+        const desktop = Number.isFinite(Number(stored.desktopPercent)) ? clamp(Number(stored.desktopPercent), 24, 76) : 50;
+        document.documentElement.style.setProperty('--editor-width', `${desktop}%`);
+        if (window.innerWidth <= 820) {
+            const mobile = Number.isFinite(Number(stored.mobilePercent)) ? clamp(Number(stored.mobilePercent), 28, 72) : 50;
+            dom.workspace.style.gridTemplateRows = `${mobile}% 9px minmax(300px, 1fr)`;
+            updateSplitterAria(mobile, true);
+        } else {
+            updateSplitterAria(desktop, false);
         }
     }
 
     function sanitizeSplitPosition() {
-        if (window.innerWidth > 820) dom.workspace.style.gridTemplateRows = '';
-        else restoreSplitPosition();
+        if (window.innerWidth > 820) {
+            dom.workspace.style.gridTemplateRows = '';
+            const stored = readSplitPosition();
+            updateSplitterAria(clamp(Number(stored.desktopPercent || 50), 24, 76), false);
+        } else {
+            restoreSplitPosition();
+        }
     }
 
     function getScrollRatio(element) {
@@ -1019,7 +1347,7 @@
 
     async function copyRichText() {
         if (!dom.markdownInput.value.trim()) {
-            toast('没有可复制的内容', '', 'warning');
+            setStatusMessage('没有可复制的内容。', { tone: 'warning', duration: 2800 });
             return;
         }
         renderPreview({ immediate: true, force: true });
@@ -1043,12 +1371,12 @@
             } else {
                 fallbackCopyRich(html);
             }
-            toast('富文本已复制', '可直接粘贴到 Word、WPS 或邮件编辑器。', 'success');
+            setStatusMessage('富文本已复制，可直接粘贴到 Word、WPS 或邮件编辑器。', { duration: 3500 });
         } catch (error) {
             console.warn('富文本复制失败，降级为纯文本:', error);
             try {
                 await navigator.clipboard.writeText(plain);
-                toast('已复制纯文本', '浏览器未允许写入富文本格式。', 'warning');
+                setStatusMessage('浏览器未允许富文本，已复制纯文本。', { tone: 'warning', duration: 3800 });
             } catch (fallbackError) {
                 console.error(fallbackError);
                 toast('复制失败', '请检查浏览器剪贴板权限。', 'error');
@@ -1074,67 +1402,26 @@
         if (!ok) throw new Error('execCommand(copy) failed');
     }
 
-    function openDiagnostics() {
-        const result = state.renderResult || {
-            mathCount: 0, errors: [], warnings: [], looseDelimiterFixes: 0, segments: [], normalizedMarkdown: dom.markdownInput.value
-        };
-        const errors = result.errors || [];
-        const warnings = result.warnings || [];
-        const segments = result.segments || [];
-        const items = [];
-
-        errors.forEach((error) => {
-            items.push(`
-                <div class="diagnostic-item error">
-                    <strong>公式 ${error.index + 1} 渲染失败</strong>
-                    <div>${window.Md2WordMath.escapeHtml(error.message)}</div>
-                    <code>${window.Md2WordMath.escapeHtml(error.content)}</code>
-                </div>`);
-        });
-        warnings.forEach((warning) => {
-            items.push(`
-                <div class="diagnostic-item">
-                    <strong>发现未闭合边界</strong>
-                    <div>位置 ${warning.index + 1}，边界 ${window.Md2WordMath.escapeHtml(warning.delimiter)}</div>
-                </div>`);
-        });
-        if (!errors.length && !warnings.length && segments.length) {
-            segments.slice(0, 8).forEach((segment) => {
-                items.push(`
-                    <div class="diagnostic-item">
-                        <strong>公式 ${segment.index + 1} · ${segment.display ? '独立公式' : '行内公式'}</strong>
-                        <code>${window.Md2WordMath.escapeHtml(segment.content)}</code>
-                    </div>`);
-            });
-        }
-        if (!items.length) {
-            items.push('<div class="diagnostic-item">当前文档未检测到公式。</div>');
-        }
-
-        dom.diagnosticsContent.innerHTML = `
-            <div class="diagnostics-summary">
-                <div class="diagnostic-stat"><strong>${result.mathCount || 0}</strong><span>识别到的公式</span></div>
-                <div class="diagnostic-stat"><strong>${errors.length}</strong><span>渲染错误</span></div>
-                <div class="diagnostic-stat"><strong>${result.looseDelimiterFixes || 0}</strong><span>临时修复边界</span></div>
-            </div>
-            <div class="diagnostics-list">${items.join('')}</div>`;
-        dom.applyMathNormalization.hidden = !(result.looseDelimiterFixes && result.normalizedMarkdown !== dom.markdownInput.value);
-        showDialog(dom.diagnosticsDialog);
+    function openToolDrawer(panel, title) {
+        state.activeTool = panel;
+        dom.toolDrawer.hidden = false;
+        dom.toolDrawerTitle.textContent = title;
+        dom.tableToolPanel.hidden = panel !== 'table';
+        dom.aiToolPanel.hidden = panel !== 'ai';
+        requestAnimationFrame(() => dom.toolDrawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
     }
 
-    function bindDiagnosticsDialog() {
-        dom.applyMathNormalization.addEventListener('click', () => {
-            if (!state.renderResult || !state.renderResult.normalizedMarkdown) return;
-            dom.markdownInput.value = state.renderResult.normalizedMarkdown;
-            state.dirty = true;
-            onEditorInput();
-            closeDialog(dom.diagnosticsDialog, 'normalized');
-            toast('公式边界已标准化', '已把独立 [ … ] 改写为 \\[ … \\]。', 'success');
-        });
+    function closeToolDrawer() {
+        state.activeTool = '';
+        dom.toolDrawer.hidden = true;
+        dom.tableToolPanel.hidden = true;
+        dom.aiToolPanel.hidden = true;
     }
 
-    function bindTableDialog() {
-        byId('tableInput').addEventListener('input', updateTableOutput);
+    function openTableTool() {
+        updateTableOutput();
+        openToolDrawer('table', '表格转换与插入');
+        byId('tableInput').focus();
     }
 
     function updateTableOutput() {
@@ -1148,19 +1435,12 @@
         if (!text) return '';
         const lines = text.split(/\r?\n/).filter((line) => line.trim());
         if (!lines.length) return '';
-
-        if (lines.length >= 2 && lines.some((line) => line.includes('|')) && /^\s*\|?\s*:?-{3,}/.test(lines[1])) {
-            return lines.join('\n');
-        }
+        if (lines.length >= 2 && lines.some((line) => line.includes('|')) && /^\s*\|?\s*:?-{3,}/.test(lines[1])) return lines.join('\n');
 
         let rows;
-        if (text.includes('\t')) {
-            rows = lines.map((line) => line.split('\t'));
-        } else if (lines.some((line) => line.includes(','))) {
-            rows = lines.map(parseCsvLine);
-        } else {
-            rows = lines.map((line) => line.trim().split(/\s{2,}/));
-        }
+        if (text.includes('\t')) rows = lines.map((line) => line.split('\t'));
+        else if (lines.some((line) => line.includes(','))) rows = lines.map(parseCsvLine);
+        else rows = lines.map((line) => line.trim().split(/\s{2,}/));
 
         const width = Math.max(...rows.map((row) => row.length));
         rows = rows.map((row) => Array.from({ length: width }, (_item, index) => (row[index] || '').trim()));
@@ -1179,18 +1459,12 @@
         for (let i = 0; i < line.length; i += 1) {
             const char = line[i];
             if (char === '"') {
-                if (quoted && line[i + 1] === '"') {
-                    current += '"';
-                    i += 1;
-                } else {
-                    quoted = !quoted;
-                }
+                if (quoted && line[i + 1] === '"') { current += '"'; i += 1; }
+                else quoted = !quoted;
             } else if (char === ',' && !quoted) {
                 cells.push(current);
                 current = '';
-            } else {
-                current += char;
-            }
+            } else current += char;
         }
         cells.push(current);
         return cells;
@@ -1198,12 +1472,12 @@
 
     async function copyTableMarkdown() {
         if (!state.tableMarkdown) {
-            toast('没有可复制的表格', '', 'warning');
+            setStatusMessage('请先粘贴表格数据。', { tone: 'warning', duration: 2800 });
             return;
         }
         try {
             await navigator.clipboard.writeText(state.tableMarkdown);
-            toast('表格 Markdown 已复制', '', 'success');
+            setStatusMessage('表格 Markdown 已复制。', { duration: 2600 });
         } catch (_error) {
             toast('复制失败', '请检查剪贴板权限。', 'error');
         }
@@ -1211,16 +1485,16 @@
 
     function insertTableMarkdown() {
         if (!state.tableMarkdown) {
-            toast('请先粘贴表格数据', '', 'warning');
+            setStatusMessage('请先粘贴表格数据。', { tone: 'warning', duration: 2800 });
             return;
         }
         const start = dom.markdownInput.selectionStart;
         const end = dom.markdownInput.selectionEnd;
-        const insertion = `\n${state.tableMarkdown}\n`;
-        dom.markdownInput.setRangeText(insertion, start, end, 'end');
-        closeDialog(dom.tableDialog, 'inserted');
+        dom.markdownInput.setRangeText(`\n${state.tableMarkdown}\n`, start, end, 'end');
+        closeToolDrawer();
         dom.markdownInput.focus();
         onEditorInput();
+        setStatusMessage('表格已插入到光标位置。', { duration: 2600 });
     }
 
     function loadAIConfig() {
@@ -1239,32 +1513,7 @@
         localStorage.setItem(STORAGE.ai, JSON.stringify(state.aiConfig));
     }
 
-    function bindAIDialog() {
-        byId('aiProvider').addEventListener('change', applyAIPreset);
-        byId('cancelAiButton').addEventListener('click', cancelAIRequest);
-    }
-
-    function openAI() {
-        const input = dom.markdownInput;
-        const selectionStart = input.selectionStart;
-        const selectionEnd = input.selectionEnd;
-        const hasSelection = selectionEnd > selectionStart;
-        const start = hasSelection ? selectionStart : 0;
-        const end = hasSelection ? selectionEnd : input.value.length;
-        const original = input.value.slice(start, end);
-        if (!original.trim()) {
-            toast('没有可修复的内容', '请先输入 Markdown。', 'warning');
-            return;
-        }
-        state.aiTarget = { start, end, original, selection: hasSelection };
-        byId('aiScope').textContent = hasSelection
-            ? `将处理选中的 ${original.length.toLocaleString()} 个字符`
-            : `将处理整篇文档，共 ${original.length.toLocaleString()} 个字符`;
-        populateAIForm();
-        showDialog(dom.aiDialog);
-    }
-
-    function populateAIForm() {
+    function populateAISettings() {
         const config = state.aiConfig || {};
         byId('aiProvider').value = config.provider || 'custom';
         byId('aiEndpoint').value = config.endpoint || '';
@@ -1283,7 +1532,7 @@
         }
     }
 
-    function collectAIConfig() {
+    function collectAIConfigFromSettings() {
         return {
             provider: byId('aiProvider').value,
             endpoint: byId('aiEndpoint').value.trim(),
@@ -1292,6 +1541,18 @@
             mode: byId('aiMode').value,
             extraPrompt: byId('aiExtraPrompt').value.trim()
         };
+    }
+
+    function updateAIToolSummary() {
+        const config = state.aiConfig || {};
+        const ready = Boolean(config.endpoint && config.model && config.key);
+        byId('aiToolConfigSummary').textContent = ready
+            ? `${AI_PROVIDER_LABELS[config.provider] || 'AI'} · ${config.model} · ${modeLabel(config.mode)}`
+            : '尚未配置接口、模型或 API Key';
+    }
+
+    function modeLabel(mode) {
+        return { format: '格式修复', polish: '格式与润色', structure: '结构优化' }[mode] || '格式修复';
     }
 
     function buildAIPrompt(mode, extraPrompt) {
@@ -1310,42 +1571,60 @@
         ].filter(Boolean).join('\n');
     }
 
-    async function runAIRepair() {
-        if (state.aiAbortController) return;
-        const config = collectAIConfig();
-        const preset = AI_PRESETS[config.provider] || AI_PRESETS.custom;
-        if (!config.endpoint || !config.model || !config.key) {
-            toast('AI 配置不完整', '请填写接口地址、模型和 API Key。', 'warning');
+    function getAITarget() {
+        const input = dom.markdownInput;
+        const hasSelection = input.selectionEnd > input.selectionStart;
+        const start = hasSelection ? input.selectionStart : 0;
+        const end = hasSelection ? input.selectionEnd : input.value.length;
+        const original = input.value.slice(start, end);
+        return { start, end, original, selection: hasSelection, forceApply: false };
+    }
+
+    async function runAIDirect() {
+        if (state.aiAbortController) {
+            setStatusMessage('AI 请求正在进行中。', { tone: 'warning', duration: 2600 });
             return;
         }
-        if (!state.aiTarget || !state.aiTarget.original.trim()) {
-            toast('没有处理目标', '请重新打开 AI 修复。', 'warning');
+        const target = getAITarget();
+        if (!target.original.trim()) {
+            setStatusMessage('请先输入或选中需要修复的 Markdown。', { tone: 'warning', duration: 3000 });
+            return;
+        }
+        const config = state.aiConfig || {};
+        if (!config.endpoint || !config.model || !config.key) {
+            openSettings('ai');
+            setStatusMessage('请先在统一设置中完成 AI 接口、模型和 API Key 配置。', { tone: 'warning', duration: 5200 });
             return;
         }
 
-        state.aiConfig = config;
-        persistAIConfig();
+        state.aiTarget = target;
+        byId('aiToolSummary').textContent = target.selection
+            ? `正在处理选中的 ${target.original.length.toLocaleString()} 个字符`
+            : `正在处理整篇文档，共 ${target.original.length.toLocaleString()} 个字符`;
+        byId('aiOriginal').value = target.original;
+        byId('aiResult').value = '';
+        dom.aiResultPanel.hidden = true;
+        dom.aiConflict.hidden = true;
+        dom.applyAiResultButton.textContent = '应用到编辑器';
+        updateAIToolSummary();
+        openToolDrawer('ai', 'AI 直接修复');
         state.aiAbortController = new AbortController();
         setAIProgress(true);
+        const preset = AI_PRESETS[config.provider] || AI_PRESETS.custom;
         const systemPrompt = buildAIPrompt(config.mode, config.extraPrompt);
 
         try {
             let result;
-            if (preset.type === 'gemini') {
-                result = await callGemini(config, systemPrompt, state.aiTarget.original, state.aiAbortController.signal);
-            } else {
-                result = await callOpenAICompatible(config, systemPrompt, state.aiTarget.original, state.aiAbortController.signal);
-            }
+            if (preset.type === 'gemini') result = await callGemini(config, systemPrompt, target.original, state.aiAbortController.signal);
+            else result = await callOpenAICompatible(config, systemPrompt, target.original, state.aiAbortController.signal);
             result = cleanAIResult(result);
             if (!result.trim()) throw new Error('接口返回了空内容');
-            byId('aiOriginal').value = state.aiTarget.original;
             byId('aiResult').value = result;
-            closeDialog(dom.aiDialog, 'complete');
-            showDialog(dom.aiResultDialog);
+            dom.aiResultPanel.hidden = false;
+            setStatusMessage('AI 修复完成，请在工具区检查后应用。', { duration: 4000 });
         } catch (error) {
-            if (error.name === 'AbortError') {
-                toast('AI 请求已取消', '', 'info');
-            } else {
+            if (error.name === 'AbortError') setStatusMessage('AI 请求已取消。', { duration: 2600 });
+            else {
                 console.error('AI 修复失败:', error);
                 toast('AI 修复失败', friendlyAIError(error), 'error', 6500);
             }
@@ -1358,16 +1637,10 @@
     async function callOpenAICompatible(config, systemPrompt, source, signal) {
         const response = await fetch(config.endpoint, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${config.key}`
-            },
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.key}` },
             body: JSON.stringify({
                 model: config.model,
-                messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: source }
-                ],
+                messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: source }],
                 temperature: 0.2,
                 stream: false
             }),
@@ -1383,16 +1656,13 @@
     async function callGemini(config, systemPrompt, source, signal) {
         const endpoint = config.endpoint.replace(/\/$/, '');
         const url = endpoint.includes(':generateContent')
-            ? appendQuery(endpoint, 'key', config.key)
-            : `${endpoint}/models/${encodeURIComponent(config.model)}:generateContent?key=${encodeURIComponent(config.key)}`;
+            ? endpoint
+            : `${endpoint}/models/${encodeURIComponent(config.model)}:generateContent`;
         const response = await fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': config.key },
             body: JSON.stringify({
-                contents: [{
-                    role: 'user',
-                    parts: [{ text: `${systemPrompt}\n\n以下是待处理 Markdown：\n\n${source}` }]
-                }],
+                contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\n以下是待处理 Markdown：\n\n${source}` }] }],
                 generationConfig: { temperature: 0.2 }
             }),
             signal
@@ -1403,24 +1673,13 @@
         return Array.isArray(parts) ? parts.map((part) => part.text || '').join('') : '';
     }
 
-    function appendQuery(url, key, value) {
-        return `${url}${url.includes('?') ? '&' : '?'}${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
-    }
-
     async function parseResponseBody(response) {
         const text = await response.text();
-        try {
-            return JSON.parse(text);
-        } catch (_error) {
-            return { raw: text };
-        }
+        try { return JSON.parse(text); } catch (_error) { return { raw: text }; }
     }
 
     function extractAPIError(data, status) {
-        return (data && data.error && (data.error.message || data.error.msg))
-            || (data && data.message)
-            || (data && data.raw)
-            || `HTTP ${status}`;
+        return (data && data.error && (data.error.message || data.error.msg)) || (data && data.message) || (data && data.raw) || `HTTP ${status}`;
     }
 
     function cleanAIResult(value) {
@@ -1432,18 +1691,15 @@
 
     function friendlyAIError(error) {
         const message = error && error.message ? error.message : String(error);
-        if (/Failed to fetch|NetworkError|Load failed/i.test(message)) {
-            return '浏览器无法访问该接口。常见原因是跨域限制、网络代理或接口地址错误。';
-        }
+        if (/Failed to fetch|NetworkError|Load failed/i.test(message)) return '浏览器无法访问该接口。常见原因是跨域限制、网络代理或接口地址错误。';
         if (/401|unauthorized|invalid.*key/i.test(message)) return 'API Key 无效或没有该模型权限。';
         if (/429|rate.*limit|quota/i.test(message)) return '接口限流或额度不足，请稍后再试。';
         return message.slice(0, 320);
     }
 
     function setAIProgress(active) {
-        byId('aiProgress').hidden = !active;
-        byId('runAiButton').disabled = active;
-        byId('cancelAiButton').hidden = !active;
+        dom.aiProgress.hidden = !active;
+        queryAll('[data-action="run-ai-direct"]').forEach((button) => { button.disabled = active; });
     }
 
     function cancelAIRequest() {
@@ -1455,7 +1711,7 @@
         if (!value) return;
         try {
             await navigator.clipboard.writeText(value);
-            toast('AI 结果已复制', '', 'success');
+            setStatusMessage('AI 修复结果已复制。', { duration: 2600 });
         } catch (_error) {
             toast('复制失败', '请检查剪贴板权限。', 'error');
         }
@@ -1465,19 +1721,26 @@
         const replacement = byId('aiResult').value;
         if (!replacement || !state.aiTarget) return;
         const current = dom.markdownInput.value.slice(state.aiTarget.start, state.aiTarget.end);
-        if (current !== state.aiTarget.original && !window.confirm('编辑器内容在 AI 请求后发生了变化，仍要覆盖原处理范围吗？')) return;
+        if (current !== state.aiTarget.original && !state.aiTarget.forceApply) {
+            state.aiTarget.forceApply = true;
+            dom.aiConflict.hidden = false;
+            dom.applyAiResultButton.textContent = '仍然覆盖原范围';
+            return;
+        }
+        takeDocumentSnapshot('应用 AI 结果前的内容');
         dom.markdownInput.setRangeText(replacement, state.aiTarget.start, state.aiTarget.end, 'end');
-        closeDialog(dom.aiResultDialog, 'applied');
         dom.markdownInput.focus();
         state.dirty = true;
         onEditorInput();
-        toast('AI 结果已应用', '请在右侧预览中确认公式与结构。', 'success');
+        closeToolDrawer();
+        setStatusMessage('AI 结果已应用，请在预览中确认公式与结构。', { undo: true, duration: 9000 });
     }
 
     async function downloadWord() {
+        if (state.exporting) return;
         const markdown = dom.markdownInput.value.trim();
         if (!markdown) {
-            toast('没有可导出的内容', '', 'warning');
+            setStatusMessage('没有可导出的内容。', { tone: 'warning', duration: 2800 });
             return;
         }
         if (!window.docx) {
@@ -1485,11 +1748,11 @@
             return;
         }
 
-        showExportProgress(true, '正在生成 Word', '更新预览与公式…');
+        showExportProgress(true, '正在更新预览与公式…');
         try {
-            renderPreview({ immediate: true, force: true });
+            const renderResult = renderPreview({ immediate: true, force: true });
             await nextFrame();
-            showExportProgress(true, '正在生成 Word', '转换标题、段落、列表与表格…');
+            showExportProgress(true, '正在转换标题、列表、表格与公式…');
             const children = convertPreviewToDocxChildren(dom.preview);
             if (!children.length) throw new Error('没有可写入 Word 的内容');
 
@@ -1498,40 +1761,29 @@
             const line = Math.round(240 * state.settings.wordLineSpacing);
             const fontSize = Math.round(state.settings.wordFontSize * 2);
             const doc = new window.docx.Document({
-                creator: 'Markdown 转 Word · 个人版',
+                creator: 'AI智能Markdown转Word转换器 · 融合体验版 v5',
                 title,
-                description: '由浏览器本地生成',
+                description: '由浏览器本地生成；公式转换为可编辑文本与上下标',
                 styles: {
                     default: {
-                        document: {
-                            run: {
-                                font: state.settings.wordFont,
-                                size: fontSize,
-                                color: '172033'
-                            },
-                            paragraph: {
-                                spacing: { line, after: 120 }
-                            }
-                        }
+                        document: { run: { font: state.settings.wordFont, size: fontSize, color: '172033' }, paragraph: { spacing: { line, after: 120 } } }
                     },
                     paragraphStyles: createWordParagraphStyles(fontSize, line)
                 },
                 sections: [{
-                    properties: {
-                        page: {
-                            margin: { top: margin, right: margin, bottom: margin, left: margin }
-                        }
-                    },
+                    properties: { page: { margin: { top: margin, right: margin, bottom: margin, left: margin } } },
                     children
                 }]
             });
 
-            showExportProgress(true, '正在生成 Word', '打包 DOCX 文件…');
+            showExportProgress(true, '正在打包 DOCX 文件…');
             const blob = await window.docx.Packer.toBlob(doc);
             const fileName = `${sanitizeFileName(title)}-${new Date().toISOString().slice(0, 10)}.docx`;
             downloadBlob(blob, fileName);
+            const mathCount = renderResult ? Number(renderResult.mathCount || 0) : 0;
+            const mathErrors = renderResult && renderResult.errors ? renderResult.errors.length : 0;
             showExportProgress(false);
-            toast('Word 已生成', `${fileName} · 公式已转为可编辑文本与上下标。`, 'success', 5200);
+            setStatusMessage(`Word 已生成：${fileName} · 公式 ${mathCount} 个，预览错误 ${mathErrors} 个。`, { duration: 6500 });
         } catch (error) {
             console.error('Word 导出失败:', error);
             showExportProgress(false);
@@ -1843,22 +2095,45 @@
         return Math.round(Number(cm || 2.54) * 566.929);
     }
 
-    function showExportProgress(visible, title = '', text = '') {
-        dom.exportProgress.hidden = !visible;
-        if (title) dom.exportProgressTitle.textContent = title;
-        if (text) dom.exportProgressText.textContent = text;
+    function showExportProgress(visible, text = '') {
+        state.exporting = visible;
+        dom.downloadWordButton.disabled = visible;
+        dom.downloadWordButton.setAttribute('aria-busy', String(visible));
+        dom.downloadWordButton.textContent = visible ? '⏳ 生成中…' : '📄 下载 Word';
+        if (text) dom.renderStatus.textContent = text;
+        else if (!visible && dom.markdownInput.value.trim()) dom.renderStatus.textContent = '导出完成';
+    }
+
+    function setStatusMessage(message, options = {}) {
+        const { tone = 'info', duration = 3600, undo = false } = options;
+        window.clearTimeout(state.statusTimer);
+        dom.statusMessage.hidden = false;
+        dom.statusMessage.dataset.tone = tone;
+        dom.statusMessageText.textContent = message;
+        dom.undoDocumentButton.hidden = !undo || !state.lastDestructiveSnapshot;
+        if (duration > 0) state.statusTimer = window.setTimeout(clearStatusMessage, duration);
+    }
+
+    function clearStatusMessage() {
+        window.clearTimeout(state.statusTimer);
+        state.statusTimer = null;
+        dom.statusMessage.hidden = true;
+        dom.statusMessageText.textContent = '';
+        dom.undoDocumentButton.hidden = true;
+        dom.statusMessage.dataset.tone = '';
     }
 
     function toast(title, message = '', type = 'info', duration = 3600) {
-        const icons = { success: '✓', error: '!', warning: '!', info: 'i' };
+        if (type !== 'error') {
+            setStatusMessage([title, message].filter(Boolean).join('：'), { tone: type, duration });
+            return;
+        }
+        setStatusMessage([title, message].filter(Boolean).join('：'), { tone: 'error', duration });
         const element = document.createElement('div');
-        element.className = `toast toast-${type}`;
+        element.className = 'toast toast-error';
         element.innerHTML = `
-            <span class="toast-icon" aria-hidden="true">${icons[type] || icons.info}</span>
-            <div class="toast-content">
-                <div class="toast-title"></div>
-                ${message ? '<div class="toast-message"></div>' : ''}
-            </div>
+            <span class="toast-icon" aria-hidden="true">!</span>
+            <div class="toast-content"><div class="toast-title"></div>${message ? '<div class="toast-message"></div>' : ''}</div>
             <button type="button" class="toast-close" aria-label="关闭">×</button>`;
         element.querySelector('.toast-title').textContent = title;
         const messageElement = element.querySelector('.toast-message');
@@ -1875,13 +2150,14 @@
 
     window.addEventListener('DOMContentLoaded', initialize, { once: true });
 
-    // Small, explicit debug surface for local regression checks.
     if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
         window.__MD2WORD__ = {
             renderPreview,
             convertTableInput,
             convertPreviewToDocxChildren,
-            getState: () => ({ ...state })
+            getState: () => ({ ...state }),
+            resetSplitPosition,
+            toggleFormulaInspector
         };
     }
 })();
