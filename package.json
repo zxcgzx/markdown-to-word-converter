@@ -1,14 +1,10 @@
 {
-  "name": "markdown-to-word-converter",
-  "version": "3.0.0",
+  "name": "markdown-to-word-converter-fusion-v5",
+  "version": "5.0.0",
   "private": true,
-  "description": "Pure front-end Markdown to Word converter with protected KaTeX math parsing.",
+  "description": "保留原版玻璃态和密码入口，加入聚焦式常驻操作栏、公式诊断与可编辑 Word 公式导出的纯前端版本",
   "scripts": {
-    "test": "node --test tests/math-engine.test.js",
-    "check": "node --check js/math-engine.js && node --check js/app.js"
-  },
-  "engines": {
-    "node": ">=18"
-  },
-  "license": "MIT"
+    "test": "node --test tests/*.test.js",
+    "check": "node --check js/access-config.js && node --check js/math-engine.js && node --check js/app.js"
+  }
 }

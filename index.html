@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="color-scheme" content="light dark">
-    <meta name="description" content="纯前端 Markdown 转 Word 工具，支持可靠的 KaTeX 公式预览、富文本复制、DOCX 导出和可选 AI 修复。">
-    <title>Markdown 转 Word · 个人版</title>
+    <meta name="description" content="保留原版玻璃态与密码入口的 Markdown 转 Word 工具，提供常驻操作栏、可靠公式预览、可编辑公式导出、AI 修复和表格转换。">
+    <title>🤖 AI智能Markdown转Word转换器 · 融合体验版 v5</title>
 
-    <!-- Runtime dependencies: pinned to match the existing repository generation. -->
     <script src="https://cdn.jsdelivr.net/npm/marked@9.0.0/marked.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" defer></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
@@ -17,13 +16,102 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" defer></script>
 
     <link rel="stylesheet" href="css/app.css">
+    <script src="js/access-config.js" defer></script>
     <script src="js/math-engine.js" defer></script>
     <script src="js/app.js" defer></script>
 </head>
-<body>
-    <noscript>
-        <div class="fatal-banner">此工具需要启用 JavaScript。</div>
-    </noscript>
+<body class="auth-locked">
+    <noscript><div class="fatal-banner">此工具需要启用 JavaScript。</div></noscript>
+
+    <div id="passwordOverlay" class="password-overlay" role="dialog" aria-modal="true" aria-labelledby="passwordTitle" aria-describedby="passwordDesc">
+        <div class="password-modal">
+            <header class="password-header">
+                <div class="password-brand-mark" aria-hidden="true">M→W</div>
+                <div>
+                    <h2 id="passwordTitle">🔐 访问验证</h2>
+                    <p class="subtitle" id="passwordDesc">AI智能 Markdown 转 Word 转换器</p>
+                </div>
+            </header>
+
+            <div class="password-badges" aria-hidden="true">
+                <span class="password-badge">个人内测</span>
+                <span class="password-badge badge-math">公式增强</span>
+                <span class="password-badge badge-ai">体验优化 v5</span>
+            </div>
+
+            <div class="password-brief" role="note">
+                <div class="password-brief-top">
+                    <div class="password-brief-emblem">
+                        <span class="brief-icon">✨</span>
+                        <div>
+                            <div class="brief-heading">原版外观 · 更清晰的工作流</div>
+                            <div class="brief-caption">保留熟悉的密码入口、渐变主题和玻璃态卡片，主操作改为常驻顶部，并强化公式诊断与 Word 导出一致性。</div>
+                        </div>
+                    </div>
+                    <span class="password-brief-pill">融合体验版 v5</span>
+                </div>
+            </div>
+
+            <div class="password-layout">
+                <form class="password-form" id="passwordForm" novalidate>
+                    <div class="password-input-wrapper">
+                        <label for="passwordInput" class="visually-hidden">访问密码</label>
+                        <input type="password" id="passwordInput" class="password-input" placeholder="请输入访问密码" maxlength="64" autocomplete="current-password" aria-describedby="passwordHint passwordError">
+                        <button type="button" class="password-toggle" id="passwordToggle" aria-label="显示密码" title="显示/隐藏密码">👁️</button>
+                    </div>
+                    <button type="submit" class="password-btn">🚀 进入应用</button>
+
+                    <div class="password-share-card">
+                        <div class="password-share-header">📱 已收到分享码？</div>
+                        <p>支持直接粘贴 <code>PWD:密码|级别|日期</code>，也支持只粘贴密码。</p>
+                        <button type="button" class="password-share-btn" id="pasteShareCodeButton">粘贴分享码</button>
+                    </div>
+
+                    <div class="password-tips-card" role="note">
+                        <div class="tips-title"><span>🧭</span>使用提示</div>
+                        <ul class="tips-list">
+                            <li>输入后按 Enter 即可进入。</li>
+                            <li>默认空白启动；本地草稿只在你主动恢复时载入。</li>
+                            <li>三个本地身份均可使用完整公式与导出能力。</li>
+                        </ul>
+                    </div>
+
+                    <div id="passwordError" class="password-error" role="alert" aria-live="polite" hidden>密码错误，请重试</div>
+                    <div class="password-hint" id="passwordHint">💡 访问密码由 <strong>js/access-config.js</strong> 统一配置。</div>
+                </form>
+
+                <aside class="password-insight" aria-label="功能亮点">
+                    <div class="password-insight-header">
+                        <span class="insight-label">进入后即可使用</span>
+                        <h3>熟悉的视觉，聚焦的操作</h3>
+                        <p>文件、编辑、视图和输出明确分组；下载 Word 是唯一主操作，常用工具不再藏在页面底部。</p>
+                    </div>
+                    <div class="password-feature-grid">
+                        <article class="password-feature-card">
+                            <div class="feature-icon">📌</div>
+                            <strong>常驻顶部操作栏</strong>
+                            <p>写到哪里都能立即打开文件、切换视图或导出 Word，无需滚动寻找按钮。</p>
+                        </article>
+                        <article class="password-feature-card">
+                            <div class="feature-icon">🧮</div>
+                            <strong>公式状态一眼可见</strong>
+                            <p>直接显示公式总数、错误数和边界修复数，详情在预览区内展开。</p>
+                        </article>
+                        <article class="password-feature-card">
+                            <div class="feature-icon">↔️</div>
+                            <strong>分栏宽度与滚动同步</strong>
+                            <p>拖动分隔条调整宽度并自动记忆，同步滚动可随时开启或关闭。</p>
+                        </article>
+                        <article class="password-feature-card">
+                            <div class="feature-icon">📄</div>
+                            <strong>预览与 Word 结果一致</strong>
+                            <p>公式在导出阶段单独解析，化学式和变量上下标以可编辑文本写入 Word。</p>
+                        </article>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>
 
     <div id="dependencyBanner" class="dependency-banner" hidden>
         <strong>部分依赖加载失败。</strong>
@@ -31,129 +119,201 @@
         <button type="button" class="text-button" data-action="reload">刷新</button>
     </div>
 
-    <div class="app" id="app">
-        <header class="app-header">
-            <div class="brand" aria-label="应用标题">
-                <div class="brand-mark" aria-hidden="true">M→W</div>
-                <div>
-                    <h1>Markdown 转 Word</h1>
-                    <p>个人前端版 · 公式优先 · 即写即预览</p>
+    <div class="app" id="app" aria-hidden="true">
+        <div class="app-shell">
+            <header class="hero-header">
+                <div class="hero-copy">
+                    <div class="hero-kicker">MARKDOWN · DOCX · KATEX</div>
+                    <h1>🤖 AI智能Markdown转Word转换器</h1>
+                    <p>原版玻璃态交互 · 聚焦式常驻操作栏 · 可靠公式预览与可编辑 Word 导出</p>
+                    <div class="author-info">由 <strong>Boning</strong> 开发 · TJUT · <span>融合体验版 v5</span></div>
                 </div>
-            </div>
-            <div class="header-actions">
-                <button type="button" class="icon-button" id="shortcutButton" title="快捷键（Ctrl+/）" aria-label="查看快捷键">⌨</button>
-                <button type="button" class="icon-button" id="themeButton" title="切换明暗主题" aria-label="切换明暗主题">◐</button>
-                <button type="button" class="icon-button" id="settingsButton" title="偏好设置" aria-label="打开偏好设置">⚙</button>
-            </div>
-        </header>
 
-        <section class="action-bar" aria-label="文档操作">
-            <div class="action-group action-group-files" role="group" aria-label="文件">
-                <button type="button" class="tool-button" data-action="new-document" title="新建（Ctrl+N）">新建</button>
-                <button type="button" class="tool-button" data-action="open-file" title="打开 Markdown（Ctrl+O）">打开</button>
-                <button type="button" class="tool-button" data-action="save-markdown" title="下载 Markdown（Ctrl+S）">保存 .md</button>
-            </div>
-
-            <div class="action-separator" aria-hidden="true"></div>
-
-            <div class="action-group formatting-tools" role="group" aria-label="插入格式">
-                <button type="button" class="format-button" data-command="heading" title="标题">H</button>
-                <button type="button" class="format-button" data-command="bold" title="粗体（Ctrl+B）"><strong>B</strong></button>
-                <button type="button" class="format-button" data-command="italic" title="斜体（Ctrl+I）"><em>I</em></button>
-                <button type="button" class="format-button" data-command="quote" title="引用">❯</button>
-                <button type="button" class="format-button" data-command="unordered-list" title="无序列表">•≡</button>
-                <button type="button" class="format-button" data-command="ordered-list" title="有序列表">1≡</button>
-                <button type="button" class="format-button" data-command="code" title="行内代码">&lt;/&gt;</button>
-                <button type="button" class="format-button" data-command="inline-math" title="行内公式：\(...\)">ƒx</button>
-                <button type="button" class="format-button" data-command="display-math" title="独立公式：\[...\]">Σ</button>
-                <button type="button" class="format-button" data-action="open-table" title="表格转换与插入">▦</button>
-            </div>
-
-            <div class="action-spacer"></div>
-
-            <div class="view-switch" id="viewSwitch" role="group" aria-label="视图模式">
-                <button type="button" data-view="editor">编辑</button>
-                <button type="button" data-view="split" class="active">分栏</button>
-                <button type="button" data-view="preview">预览</button>
-            </div>
-
-            <button type="button" class="tool-button ai-button" data-action="open-ai">AI 修复</button>
-            <button type="button" class="tool-button" data-action="copy-rich" title="复制富文本（Ctrl+Enter）">复制富文本</button>
-            <button type="button" class="primary-button" data-action="download-word" title="导出 DOCX（Ctrl+D）">下载 Word</button>
-        </section>
-
-        <main class="workspace" id="workspace" data-view="split">
-            <section class="workspace-panel editor-panel" id="editorPanel" aria-labelledby="editorTitle">
-                <div class="panel-header">
-                    <div class="panel-heading">
-                        <h2 id="editorTitle">Markdown</h2>
-                        <span class="status-dot" id="saveDot" aria-hidden="true"></span>
-                        <span class="panel-status" id="saveStatus">本地草稿已启用</span>
+                <div class="hero-utilities" aria-label="账户与偏好">
+                    <div class="current-user-chip" id="userStatus">
+                        <span class="user-avatar" id="userIcon">👤</span>
+                        <div>
+                            <strong id="userName">用户</strong>
+                            <span id="userLevel">个人版</span>
+                        </div>
                     </div>
-                    <div class="panel-actions">
-                        <button type="button" class="small-button" data-action="load-formula-example">公式示例</button>
-                        <button type="button" class="small-button" data-action="clear-document">清空</button>
+                    <button type="button" class="hero-utility-button" id="themeButton" title="切换主题" aria-label="切换颜色主题">
+                        <span aria-hidden="true">🎨</span><span id="themeText">暖阳琥珀</span>
+                    </button>
+                    <button type="button" class="hero-utility-button" id="settingsButton" title="打开统一设置">⚙️ 设置</button>
+                    <button type="button" class="hero-utility-button warning-button" data-action="logout" title="退出当前会话">退出</button>
+                </div>
+            </header>
+
+            <section class="quick-toolbar" aria-label="常驻文档操作栏">
+                <div class="toolbar-section toolbar-file" role="group" aria-label="文件">
+                    <span class="toolbar-label">文件</span>
+                    <button type="button" class="tool-button mobile-hide" data-action="new-document" title="新建（Ctrl+N）">📄 新建</button>
+                    <button type="button" class="tool-button mobile-essential mobile-open" data-action="open-file" title="打开 Markdown（Ctrl+O）">📁 打开</button>
+                    <button type="button" class="tool-button mobile-hide" data-action="save-markdown" title="下载 Markdown（Ctrl+S）">💾 保存 .md</button>
+                </div>
+
+                <div class="toolbar-divider mobile-hide" aria-hidden="true"></div>
+
+                <div class="toolbar-section toolbar-edit mobile-hide" role="group" aria-label="编辑">
+                    <span class="toolbar-label">编辑</span>
+                    <div class="formatting-tools" role="group" aria-label="插入格式">
+                        <button type="button" class="format-button" data-command="heading" title="标题">H</button>
+                        <button type="button" class="format-button" data-command="bold" title="粗体（Ctrl+B）"><strong>B</strong></button>
+                        <button type="button" class="format-button" data-command="italic" title="斜体（Ctrl+I）"><em>I</em></button>
+                        <button type="button" class="format-button" data-command="quote" title="引用">❯</button>
+                        <button type="button" class="format-button" data-command="unordered-list" title="无序列表">•≡</button>
+                        <button type="button" class="format-button" data-command="ordered-list" title="有序列表">1≡</button>
+                        <button type="button" class="format-button" data-command="code" title="行内代码">&lt;/&gt;</button>
+                        <button type="button" class="format-button math-format-button" data-command="inline-math" title="行内公式：\(...\)">ƒx</button>
+                        <button type="button" class="format-button math-format-button" data-command="display-math" title="独立公式：\[...\]">Σ</button>
+                    </div>
+                    <button type="button" class="tool-button" data-action="open-table">▦ 表格</button>
+                    <button type="button" class="tool-button ai-direct-button" data-action="run-ai-direct">🤖 AI 修复</button>
+                    <button type="button" class="tool-button" data-action="clear-document">🗑️ 清空</button>
+                </div>
+
+                <div class="toolbar-divider mobile-hide" aria-hidden="true"></div>
+
+                <div class="toolbar-section toolbar-view" role="group" aria-label="视图">
+                    <span class="toolbar-label mobile-hide">视图</span>
+                    <div class="view-switch" id="viewSwitch" role="group" aria-label="视图模式">
+                        <button type="button" data-view="editor">编辑</button>
+                        <button type="button" data-view="split" class="active">分栏</button>
+                        <button type="button" data-view="preview">预览</button>
+                    </div>
+                    <label class="sync-toggle-inline mobile-hide" title="按滚动比例同步编辑器与预览">
+                        <input type="checkbox" id="syncScrollToggle">
+                        <span>同步滚动</span>
+                    </label>
+                </div>
+
+                <div class="toolbar-spacer mobile-hide"></div>
+
+                <div class="toolbar-section toolbar-output" role="group" aria-label="输出">
+                    <span class="toolbar-label mobile-hide">输出</span>
+                    <button type="button" class="tool-button mobile-hide" data-action="copy-rich" title="复制富文本（Ctrl+Enter）">📋 复制富文本</button>
+                    <button type="button" class="primary-button mobile-essential mobile-download" id="downloadWordButton" data-action="download-word" title="导出 DOCX（Ctrl+D）">📄 下载 Word</button>
+                </div>
+            </section>
+
+            <section id="toolDrawer" class="tool-drawer" hidden aria-live="polite">
+                <header class="tool-drawer-header">
+                    <div>
+                        <span class="tool-drawer-eyebrow">当前工具</span>
+                        <h2 id="toolDrawerTitle">工具</h2>
+                    </div>
+                    <button type="button" class="drawer-close" data-action="close-tool-drawer" aria-label="关闭工具区">×</button>
+                </header>
+
+                <div id="tableToolPanel" class="tool-panel" hidden>
+                    <div class="inline-tool-grid table-inline-grid">
+                        <label class="field">
+                            <span>粘贴 TSV、CSV 或已有 Markdown 表格</span>
+                            <textarea id="tableInput" rows="7" placeholder="名称\t数量\t备注\n样品 A\t3\t已完成"></textarea>
+                        </label>
+                        <div class="table-output-wrap">
+                            <span>Markdown 预览</span>
+                            <pre id="tableOutput" class="table-output">等待输入…</pre>
+                        </div>
+                    </div>
+                    <div class="inline-tool-actions">
+                        <button type="button" class="secondary-button" data-action="copy-table">复制 Markdown</button>
+                        <button type="button" class="accent-button" data-action="insert-table">插入到光标</button>
                     </div>
                 </div>
-                <div class="editor-frame" id="editorFrame">
-                    <textarea
-                        id="markdownInput"
-                        aria-label="Markdown 编辑器"
-                        placeholder="在这里粘贴或输入 Markdown。支持 $...$、$$...$$、\(...\)、\[...\] 公式语法。"
-                        spellcheck="false"
-                        autocomplete="off"
-                    ></textarea>
-                    <div class="drop-overlay" id="dropOverlay" aria-hidden="true">
-                        <div class="drop-card">松开即可打开 Markdown 文件</div>
+
+                <div id="aiToolPanel" class="tool-panel" hidden>
+                    <div class="ai-inline-head">
+                        <div>
+                            <strong id="aiToolSummary">将按当前设置处理文档</strong>
+                            <span id="aiToolConfigSummary">尚未配置 AI</span>
+                        </div>
+                        <button type="button" class="secondary-button" data-action="open-settings-ai">配置 AI</button>
+                    </div>
+                    <div class="progress-line" id="aiProgress" hidden>
+                        <span class="spinner" aria-hidden="true"></span>
+                        <span>正在请求并检查返回内容…</span>
+                        <button type="button" class="text-button" data-action="cancel-ai" id="cancelAiButton">取消</button>
+                    </div>
+                    <div id="aiResultPanel" class="ai-inline-result" hidden>
+                        <label class="result-pane">
+                            <span>原文</span>
+                            <textarea id="aiOriginal" readonly></textarea>
+                        </label>
+                        <label class="result-pane">
+                            <span>修复结果</span>
+                            <textarea id="aiResult"></textarea>
+                        </label>
+                        <div id="aiConflict" class="inline-warning" hidden>编辑器内容在请求期间发生了变化。再次点击“仍然覆盖”才会应用到原范围。</div>
+                        <div class="inline-tool-actions">
+                            <button type="button" class="secondary-button" data-action="copy-ai-result">复制结果</button>
+                            <button type="button" class="accent-button" id="applyAiResultButton" data-action="apply-ai-result">应用到编辑器</button>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            <div
-                class="splitter"
-                id="splitter"
-                role="separator"
-                aria-label="调整编辑器与预览宽度"
-                aria-orientation="vertical"
-                tabindex="0"
-            ><span aria-hidden="true"></span></div>
+            <main class="workspace" id="workspace" data-view="split">
+                <section class="workspace-panel editor-panel drag-hint" id="editorPanel" aria-labelledby="editorTitle">
+                    <div class="panel-header">
+                        <div class="panel-heading">
+                            <h2 id="editorTitle">📝 输入 Markdown 内容</h2>
+                            <span class="status-dot" id="saveDot" aria-hidden="true"></span>
+                            <span class="panel-status" id="saveStatus">空白文档 · 本地自动保存已启用</span>
+                        </div>
+                    </div>
+                    <div class="editor-frame" id="editorFrame">
+                        <textarea id="markdownInput" aria-label="Markdown 编辑器" placeholder="在这里粘贴或输入 Markdown。支持 $...$、$$...$$、\(...\)、\[...\] 公式语法。" spellcheck="false" autocomplete="off"></textarea>
+                        <div class="drop-overlay" id="dropOverlay" aria-hidden="true"><div class="drop-card">📁 松开即可打开 Markdown 文件</div></div>
+                    </div>
+                    <div class="input-stats" role="region" aria-label="文档统计">
+                        <div class="stat-item"><strong id="charCount">0</strong><span>字符</span></div>
+                        <div class="stat-item"><strong id="wordCount">0</strong><span>词</span></div>
+                        <div class="stat-item"><strong id="lineCount">1</strong><span>行数</span></div>
+                        <div class="stat-item"><strong id="readTime">0</strong><span>阅读时间(分)</span></div>
+                    </div>
+                </section>
 
-            <section class="workspace-panel preview-panel" id="previewPanel" aria-labelledby="previewTitle">
-                <div class="panel-header">
-                    <div class="panel-heading">
-                        <h2 id="previewTitle">实时预览</h2>
-                        <button type="button" class="math-status" id="mathStatus" title="查看公式诊断">
-                            <span aria-hidden="true">ƒx</span>
-                            <span id="mathStatusText">未检测到公式</span>
-                        </button>
+                <div class="splitter" id="splitter" role="separator" aria-label="调整编辑器与预览宽度；双击恢复均分" aria-orientation="vertical" aria-valuemin="24" aria-valuemax="76" aria-valuenow="50" tabindex="0"><span aria-hidden="true"></span></div>
+
+                <section class="workspace-panel preview-panel" id="previewPanel" aria-labelledby="previewTitle">
+                    <div class="panel-header preview-panel-header">
+                        <div class="panel-heading">
+                            <h2 id="previewTitle">👀 实时预览</h2>
+                            <button type="button" class="math-status" id="mathStatus" aria-expanded="false" aria-controls="formulaInspector" title="展开公式诊断">
+                                <span aria-hidden="true">ƒx</span>
+                                <span id="mathStatusText">公式 0 · 错误 0 · 修复 0</span>
+                            </button>
+                        </div>
+                        <div class="panel-actions preview-actions">
+                            <label class="outline-label" for="outlineSelect">大纲</label>
+                            <select id="outlineSelect" class="outline-select" aria-label="文档大纲"><option value="">无标题</option></select>
+                        </div>
                     </div>
-                    <div class="panel-actions preview-actions">
-                        <label class="outline-label" for="outlineSelect">大纲</label>
-                        <select id="outlineSelect" class="outline-select" aria-label="文档大纲">
-                            <option value="">无标题</option>
-                        </select>
-                        <button type="button" class="small-button" data-action="refresh-preview" title="立即刷新预览">刷新</button>
-                    </div>
+                    <section id="formulaInspector" class="formula-inspector" hidden>
+                        <div id="formulaInspectorContent"></div>
+                        <div class="formula-inspector-actions">
+                            <button type="button" class="secondary-button" id="applyMathNormalization" hidden>写回标准 \[ … \] 边界</button>
+                            <button type="button" class="text-button" data-action="close-formula-inspector">收起</button>
+                        </div>
+                    </section>
+                    <article id="preview" class="preview" tabindex="0" aria-live="polite"></article>
+                </section>
+            </main>
+
+            <footer class="status-bar" aria-label="运行状态">
+                <div class="runtime-status">
+                    <span id="renderStatus">等待输入</span>
                 </div>
-                <article id="preview" class="preview" tabindex="0" aria-live="polite"></article>
-            </section>
-        </main>
-
-        <footer class="status-bar" aria-label="文档状态">
-            <div class="stats" id="stats">
-                <span><strong id="charCount">0</strong> 字符</span>
-                <span><strong id="wordCount">0</strong> 词</span>
-                <span><strong id="lineCount">1</strong> 行</span>
-                <span>约 <strong id="readTime">0</strong> 分钟阅读</span>
-            </div>
-            <div class="runtime-status">
-                <label class="sync-toggle" title="按滚动比例同步编辑器与预览">
-                    <input type="checkbox" id="syncScrollToggle">
-                    <span>同步滚动</span>
-                </label>
-                <span id="renderStatus">等待输入</span>
-            </div>
-        </footer>
+                <button type="button" class="mobile-settings-button" data-action="open-settings">⚙️ 设置与账户</button>
+                <div id="statusMessage" class="status-message" hidden>
+                    <span id="statusMessageText"></span>
+                    <button type="button" class="status-action" id="undoDocumentButton" data-action="undo-document" hidden>撤销</button>
+                    <button type="button" class="status-dismiss" data-action="clear-status" aria-label="关闭状态提示">×</button>
+                </div>
+            </footer>
+        </div>
     </div>
 
     <input type="file" id="fileInput" accept=".md,.markdown,.txt,text/markdown,text/plain" hidden>
@@ -162,237 +322,94 @@
         <form method="dialog" class="dialog-card" id="settingsForm">
             <header class="dialog-header">
                 <div>
-                    <p class="dialog-eyebrow">个人偏好</p>
-                    <h2>设置</h2>
+                    <p class="dialog-eyebrow">低频选项集中管理</p>
+                    <h2>统一设置</h2>
                 </div>
                 <button type="submit" class="dialog-close" value="cancel" aria-label="关闭">×</button>
             </header>
-            <div class="dialog-body settings-grid">
-                <section class="settings-section">
-                    <h3>界面</h3>
-                    <label class="field">
-                        <span>主题</span>
-                        <select name="theme" id="themeSelect">
-                            <option value="system">跟随系统</option>
-                            <option value="light">浅色</option>
-                            <option value="dark">深色</option>
-                        </select>
-                    </label>
-                    <label class="field">
-                        <span>编辑器字号</span>
-                        <input type="number" name="editorFontSize" id="editorFontSize" min="12" max="24" step="1">
-                    </label>
-                    <label class="switch-field">
-                        <input type="checkbox" name="autosave" id="autosaveToggle">
-                        <span><strong>自动保存本地草稿</strong><small>仅保存在当前浏览器</small></span>
-                    </label>
-                    <label class="switch-field">
-                        <input type="checkbox" name="repairLooseMath" id="repairLooseMathToggle">
-                        <span><strong>修复独立 [ … ] 公式边界</strong><small>只处理内部明显含 TeX 语法的方括号块</small></span>
-                    </label>
+
+            <div class="dialog-body settings-sections">
+                <section class="settings-section" id="settingsInterfaceSection">
+                    <h3>界面与草稿</h3>
+                    <div class="form-grid two-columns">
+                        <label class="field">
+                            <span>主题</span>
+                            <select name="theme" id="themeSelect">
+                                <option value="amber">暖阳琥珀</option>
+                                <option value="forest">经典浅林</option>
+                                <option value="noir">现代黑金</option>
+                                <option value="aurora">极光幻彩</option>
+                                <option value="system">跟随系统</option>
+                            </select>
+                        </label>
+                        <label class="field">
+                            <span>编辑器字号</span>
+                            <input type="number" name="editorFontSize" id="editorFontSize" min="12" max="24" step="1">
+                        </label>
+                    </div>
+                    <label class="switch-field"><input type="checkbox" name="autosave" id="autosaveToggle"><span><strong>自动保存本地草稿</strong><small>内容只保存在当前浏览器</small></span></label>
+                    <label class="switch-field"><input type="checkbox" name="restoreDraftOnStart" id="restoreDraftOnStartToggle"><span><strong>启动时自动恢复草稿</strong><small>默认关闭；关闭时始终空白启动，并在空预览中提供恢复按钮</small></span></label>
+                    <label class="switch-field"><input type="checkbox" name="repairLooseMath" id="repairLooseMathToggle"><span><strong>修复独立 [ … ] 公式边界</strong><small>只处理内部明显含 TeX 语法的方括号块</small></span></label>
+                    <label class="switch-field"><input type="checkbox" name="settingsSyncScroll" id="settingsSyncScrollToggle"><span><strong>默认开启同步滚动</strong><small>顶部操作栏可随时临时切换</small></span></label>
                 </section>
 
                 <section class="settings-section">
                     <h3>Word 导出</h3>
-                    <label class="field">
-                        <span>正文字体</span>
-                        <select name="wordFont" id="wordFont">
-                            <option value="宋体">宋体</option>
-                            <option value="微软雅黑">微软雅黑</option>
-                            <option value="Arial">Arial</option>
-                            <option value="Times New Roman">Times New Roman</option>
-                        </select>
-                    </label>
-                    <label class="field">
-                        <span>正文字号（pt）</span>
-                        <input type="number" name="wordFontSize" id="wordFontSize" min="9" max="18" step="0.5">
-                    </label>
-                    <label class="field">
-                        <span>行距</span>
-                        <select name="wordLineSpacing" id="wordLineSpacing">
-                            <option value="1.15">1.15 倍</option>
-                            <option value="1.5">1.5 倍</option>
-                            <option value="2">2 倍</option>
-                        </select>
-                    </label>
-                    <label class="field">
-                        <span>页面边距（厘米）</span>
-                        <input type="number" name="wordMarginCm" id="wordMarginCm" min="1" max="4" step="0.1">
-                    </label>
+                    <div class="form-grid two-columns">
+                        <label class="field"><span>正文字体</span><select name="wordFont" id="wordFont"><option value="宋体">宋体</option><option value="微软雅黑">微软雅黑</option><option value="Arial">Arial</option><option value="Times New Roman">Times New Roman</option></select></label>
+                        <label class="field"><span>正文字号（pt）</span><input type="number" name="wordFontSize" id="wordFontSize" min="9" max="18" step="0.5"></label>
+                        <label class="field"><span>行距</span><select name="wordLineSpacing" id="wordLineSpacing"><option value="1.15">1.15 倍</option><option value="1.5">1.5 倍</option><option value="2">2 倍</option></select></label>
+                        <label class="field"><span>页面边距（厘米）</span><input type="number" name="wordMarginCm" id="wordMarginCm" min="1" max="4" step="0.1"></label>
+                    </div>
+                    <p class="form-note">公式在导出阶段单独解析。化学式、变量上下标和常用符号写为可编辑 Word 文本；复杂矩阵与分式以可读线性形式保留。</p>
+                </section>
+
+                <section class="settings-section" id="settingsAISection">
+                    <h3>AI 修复</h3>
+                    <div class="form-grid two-columns">
+                        <label class="field"><span>服务商预设</span><select id="aiProvider" name="provider"><option value="custom">自定义 OpenAI 兼容接口</option><option value="kimi">Kimi</option><option value="glm">智谱 GLM</option><option value="deepseek">DeepSeek</option><option value="openai">OpenAI</option><option value="gemini">Gemini</option></select></label>
+                        <label class="field"><span>默认修复模式</span><select id="aiMode" name="mode"><option value="format">只修复 Markdown 与公式格式</option><option value="polish">格式修复 + 语言润色</option><option value="structure">结构重组与表达优化</option></select></label>
+                        <label class="field field-wide"><span>接口地址</span><input type="url" id="aiEndpoint" name="endpoint" placeholder="https://.../v1/chat/completions"></label>
+                        <label class="field"><span>模型</span><input type="text" id="aiModel" name="model" placeholder="模型名称"></label>
+                        <label class="field"><span>API Key</span><input type="password" id="aiKey" name="key" autocomplete="off" placeholder="仅存本地"></label>
+                        <label class="field field-wide"><span>附加要求（可选）</span><textarea id="aiExtraPrompt" name="extraPrompt" rows="3" placeholder="例如：保留化学名称，不改写实验参数。"></textarea></label>
+                    </div>
+                    <p class="form-note">保存一次后，顶部“AI 修复”会直接处理当前选区；没有选区时处理全文，不再先打开配置弹窗。</p>
+                </section>
+
+                <section class="settings-section" id="settingsShortcutSection">
+                    <h3>快捷键</h3>
+                    <div class="shortcut-list compact-shortcuts">
+                        <div><kbd>Ctrl / ⌘ + O</kbd><span>打开文件</span></div>
+                        <div><kbd>Ctrl / ⌘ + S</kbd><span>下载 Markdown</span></div>
+                        <div><kbd>Ctrl / ⌘ + D</kbd><span>下载 Word</span></div>
+                        <div><kbd>Ctrl / ⌘ + Enter</kbd><span>复制富文本</span></div>
+                        <div><kbd>Ctrl / ⌘ + B / I</kbd><span>粗体 / 斜体</span></div>
+                        <div><kbd>Ctrl / ⌘ + /</kbd><span>打开本设置页的快捷键区域</span></div>
+                        <div><kbd>Alt + M</kbd><span>插入独立公式</span></div>
+                        <div><kbd>双击分隔条</kbd><span>恢复左右均分</span></div>
+                    </div>
+                </section>
+
+                <section class="settings-section account-settings-section" id="settingsAccountSection">
+                    <h3>账户与会话</h3>
+                    <div class="account-session-row">
+                        <div>
+                            <strong id="settingsCurrentUser">当前本地身份</strong>
+                            <p>访问入口和身份名称由 <code>js/access-config.js</code> 管理。退出后将返回密码页。</p>
+                        </div>
+                        <button type="button" class="secondary-button danger-outline-button" data-action="logout">退出当前会话</button>
+                    </div>
                 </section>
             </div>
+
             <footer class="dialog-footer">
                 <button type="button" class="secondary-button" data-action="reset-settings">恢复默认</button>
-                <button type="submit" class="primary-button" value="save">保存设置</button>
+                <button type="submit" class="accent-button" value="save">保存设置</button>
             </footer>
         </form>
     </dialog>
 
-    <dialog id="aiDialog" class="app-dialog ai-dialog">
-        <form method="dialog" class="dialog-card" id="aiForm">
-            <header class="dialog-header">
-                <div>
-                    <p class="dialog-eyebrow">可选功能 · 配置保存在本地</p>
-                    <h2>AI 修复 Markdown</h2>
-                </div>
-                <button type="submit" class="dialog-close" value="cancel" aria-label="关闭">×</button>
-            </header>
-            <div class="dialog-body">
-                <div class="ai-scope" id="aiScope">将处理整篇文档</div>
-                <div class="form-grid two-columns">
-                    <label class="field">
-                        <span>服务商预设</span>
-                        <select id="aiProvider" name="provider">
-                            <option value="custom">自定义 OpenAI 兼容接口</option>
-                            <option value="kimi">Kimi</option>
-                            <option value="glm">智谱 GLM</option>
-                            <option value="deepseek">DeepSeek</option>
-                            <option value="openai">OpenAI</option>
-                            <option value="gemini">Gemini</option>
-                        </select>
-                    </label>
-                    <label class="field">
-                        <span>修复模式</span>
-                        <select id="aiMode" name="mode">
-                            <option value="format">只修复 Markdown 与公式格式</option>
-                            <option value="polish">格式修复 + 语言润色</option>
-                            <option value="structure">结构重组与表达优化</option>
-                        </select>
-                    </label>
-                    <label class="field field-wide">
-                        <span>接口地址</span>
-                        <input type="url" id="aiEndpoint" name="endpoint" placeholder="https://.../v1/chat/completions">
-                    </label>
-                    <label class="field">
-                        <span>模型</span>
-                        <input type="text" id="aiModel" name="model" placeholder="模型名称">
-                    </label>
-                    <label class="field">
-                        <span>API Key</span>
-                        <input type="password" id="aiKey" name="key" autocomplete="off" placeholder="仅存本地">
-                    </label>
-                    <label class="field field-wide">
-                        <span>附加要求（可选）</span>
-                        <textarea id="aiExtraPrompt" name="extraPrompt" rows="3" placeholder="例如：保留化学名称，不改写实验参数。"></textarea>
-                    </label>
-                </div>
-                <p class="form-note">优先处理编辑器中的选区；没有选区时处理全文。接口需允许浏览器跨域访问。</p>
-                <div class="progress-line" id="aiProgress" hidden>
-                    <span class="spinner" aria-hidden="true"></span>
-                    <span>正在请求并检查返回内容…</span>
-                </div>
-            </div>
-            <footer class="dialog-footer">
-                <button type="button" class="secondary-button" data-action="cancel-ai" hidden id="cancelAiButton">取消请求</button>
-                <button type="button" class="primary-button" data-action="run-ai" id="runAiButton">开始修复</button>
-            </footer>
-        </form>
-    </dialog>
-
-    <dialog id="aiResultDialog" class="app-dialog result-dialog">
-        <form method="dialog" class="dialog-card">
-            <header class="dialog-header">
-                <div>
-                    <p class="dialog-eyebrow">应用前可继续编辑</p>
-                    <h2>AI 修复结果</h2>
-                </div>
-                <button type="submit" class="dialog-close" value="cancel" aria-label="关闭">×</button>
-            </header>
-            <div class="dialog-body result-grid">
-                <label class="result-pane">
-                    <span>原文</span>
-                    <textarea id="aiOriginal" readonly></textarea>
-                </label>
-                <label class="result-pane">
-                    <span>修复结果</span>
-                    <textarea id="aiResult"></textarea>
-                </label>
-            </div>
-            <footer class="dialog-footer">
-                <button type="button" class="secondary-button" data-action="copy-ai-result">复制结果</button>
-                <button type="button" class="primary-button" data-action="apply-ai-result">应用到编辑器</button>
-            </footer>
-        </form>
-    </dialog>
-
-    <dialog id="tableDialog" class="app-dialog table-dialog">
-        <form method="dialog" class="dialog-card">
-            <header class="dialog-header">
-                <div>
-                    <p class="dialog-eyebrow">支持 TSV / CSV / 已有 Markdown 表格</p>
-                    <h2>插入表格</h2>
-                </div>
-                <button type="submit" class="dialog-close" value="cancel" aria-label="关闭">×</button>
-            </header>
-            <div class="dialog-body table-grid">
-                <label class="field">
-                    <span>粘贴表格数据</span>
-                    <textarea id="tableInput" rows="10" placeholder="名称\t数量\t备注\n样品 A\t3\t已完成"></textarea>
-                </label>
-                <div class="table-output-wrap">
-                    <span>Markdown 预览</span>
-                    <pre id="tableOutput" class="table-output">等待输入…</pre>
-                </div>
-            </div>
-            <footer class="dialog-footer">
-                <button type="button" class="secondary-button" data-action="copy-table">复制 Markdown</button>
-                <button type="button" class="primary-button" data-action="insert-table">插入到光标</button>
-            </footer>
-        </form>
-    </dialog>
-
-    <dialog id="diagnosticsDialog" class="app-dialog diagnostics-dialog">
-        <form method="dialog" class="dialog-card">
-            <header class="dialog-header">
-                <div>
-                    <p class="dialog-eyebrow">公式识别与渲染</p>
-                    <h2>公式诊断</h2>
-                </div>
-                <button type="submit" class="dialog-close" value="cancel" aria-label="关闭">×</button>
-            </header>
-            <div class="dialog-body" id="diagnosticsContent"></div>
-            <footer class="dialog-footer">
-                <button type="button" class="secondary-button" id="applyMathNormalization" hidden>把修复后的边界写回源码</button>
-                <button type="submit" class="primary-button">完成</button>
-            </footer>
-        </form>
-    </dialog>
-
-    <dialog id="shortcutDialog" class="app-dialog shortcut-dialog">
-        <form method="dialog" class="dialog-card">
-            <header class="dialog-header">
-                <div>
-                    <p class="dialog-eyebrow">键盘操作</p>
-                    <h2>快捷键</h2>
-                </div>
-                <button type="submit" class="dialog-close" value="cancel" aria-label="关闭">×</button>
-            </header>
-            <div class="dialog-body shortcut-list">
-                <div><kbd>Ctrl / ⌘ + S</kbd><span>下载 Markdown</span></div>
-                <div><kbd>Ctrl / ⌘ + O</kbd><span>打开文件</span></div>
-                <div><kbd>Ctrl / ⌘ + D</kbd><span>下载 Word</span></div>
-                <div><kbd>Ctrl / ⌘ + Enter</kbd><span>复制富文本</span></div>
-                <div><kbd>Ctrl / ⌘ + B</kbd><span>粗体</span></div>
-                <div><kbd>Ctrl / ⌘ + I</kbd><span>斜体</span></div>
-                <div><kbd>Ctrl / ⌘ + /</kbd><span>查看快捷键</span></div>
-                <div><kbd>Alt + M</kbd><span>插入独立公式</span></div>
-            </div>
-            <footer class="dialog-footer">
-                <button type="submit" class="primary-button">知道了</button>
-            </footer>
-        </form>
-    </dialog>
-
-    <div class="export-progress" id="exportProgress" hidden role="status" aria-live="polite">
-        <div class="export-progress-card">
-            <span class="spinner" aria-hidden="true"></span>
-            <div>
-                <strong id="exportProgressTitle">正在生成 Word</strong>
-                <span id="exportProgressText">解析文档结构…</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
+    <div class="toast-region" id="toastRegion" aria-live="assertive" aria-atomic="true"></div>
 </body>
 </html>
