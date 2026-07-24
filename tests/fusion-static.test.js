@@ -35,9 +35,9 @@ function findOpeningTags(source, tagName) {
     return [...source.matchAll(regex)].map((match) => match[0]);
 }
 
-test('package and page identify the complete v5.1 release', () => {
-    assert.equal(pkg.version, '5.1.0');
-    assert.match(html, /融合体验版 v5\.1/);
+test('package and page identify the complete v5.1.1 release', () => {
+    assert.equal(pkg.version, '5.1.1');
+    assert.match(html, /融合体验版 v5\.1\.1/);
     assert.match(html, /js\/preflight\.js/);
     assert.match(pkg.scripts.check, /preflight\.js/);
 });
@@ -177,7 +177,7 @@ test('common tools stay inline while low-frequency options use one categorized s
 test('mobile sticky bar exposes only Open, view switch and Word download', () => {
     assert.match(html, /mobile-essential mobile-open/);
     assert.match(html, /mobile-essential mobile-download/);
-    assert.match(html, /toolbar-edit mobile-hide/);
+    assert.match(html, /toolbar-edit-row mobile-hide/);
     assert.match(css, /@media \(max-width:\s*680px\)[\s\S]*?\.hero-utilities,[\s\S]*?\.mobile-hide\s*\{\s*display:\s*none\s*!important/);
     assert.match(css, /grid-template-columns:\s*auto minmax\(0,\s*1fr\) auto/);
     assert.match(css, /\.status-bar\s*\{[\s\S]*?position:\s*sticky;[\s\S]*?bottom:\s*0/);
@@ -199,7 +199,7 @@ test('DOCX export parses math separately into editable subscript and superscript
     assert.match(appJs, /Md2WordMath\.latexToWordSegments/);
     assert.match(appJs, /subScript:\s*Boolean\(segment\.subScript\)/);
     assert.match(appJs, /superScript:\s*Boolean\(segment\.superScript\)/);
-    assert.match(appJs, /融合体验版 v5\.1/);
+    assert.match(appJs, /融合体验版 v5\.1\.1/);
     assert.doesNotMatch(appJs, /请.{0,8}手动添加公式/);
 });
 

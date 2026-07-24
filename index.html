@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="color-scheme" content="light dark">
     <meta name="description" content="保留原版玻璃态与密码入口的 Markdown 转 Word 工具，提供常驻操作栏、可靠公式预览、可编辑公式导出、AI 修复和表格转换。">
-    <title>🤖 AI智能Markdown转Word转换器 · 融合体验版 v5.1</title>
+    <title>🤖 AI智能Markdown转Word转换器 · 融合体验版 v5.1.1</title>
 
     <script src="https://cdn.jsdelivr.net/npm/marked@9.0.0/marked.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" defer></script>
@@ -37,7 +37,7 @@
             <div class="password-badges" aria-hidden="true">
                 <span class="password-badge">个人内测</span>
                 <span class="password-badge badge-math">公式增强</span>
-                <span class="password-badge badge-ai">体验优化 v5.1</span>
+                <span class="password-badge badge-ai">体验优化 v5.1.1</span>
             </div>
 
             <div class="password-brief" role="note">
@@ -49,7 +49,7 @@
                             <div class="brief-caption">保留熟悉的密码入口、渐变主题和玻璃态卡片，并加入导出前检查、公式一键定位与更清晰的文档保存状态。</div>
                         </div>
                     </div>
-                    <span class="password-brief-pill">融合体验版 v5.1</span>
+                    <span class="password-brief-pill">融合体验版 v5.1.1</span>
                 </div>
             </div>
 
@@ -127,7 +127,7 @@
                     <div class="hero-kicker">MARKDOWN · DOCX · KATEX</div>
                     <h1>🤖 AI智能Markdown转Word转换器</h1>
                     <p>原版玻璃态交互 · 导出前检查 · 公式源码定位 · 可编辑 Word 导出</p>
-                    <div class="author-info">由 <strong>Boning</strong> 开发 · TJUT · <span>融合体验版 v5.1</span></div>
+                    <div class="author-info">由 <strong>Boning</strong> 开发 · TJUT · <span>融合体验版 v5.1.1</span></div>
                 </div>
 
                 <div class="hero-utilities" aria-label="账户与偏好">
@@ -147,81 +147,82 @@
             </header>
 
             <section class="quick-toolbar" aria-label="常驻文档操作栏">
-                <div class="toolbar-section toolbar-file" role="group" aria-label="文件">
-                    <span class="toolbar-label">文件</span>
-                    <button type="button" class="tool-button mobile-hide" data-action="new-document" title="新建（Ctrl+N）">📄 新建</button>
-                    <button type="button" class="tool-button mobile-essential mobile-open" data-action="open-file" title="打开 Markdown（Ctrl+O）">📁 打开</button>
-                    <button type="button" class="tool-button mobile-hide compact-toolbar-hide" data-action="save-markdown" title="下载 Markdown（Ctrl+S）">💾 保存 .md</button>
-                </div>
-
-                <label class="document-name-field mobile-hide" for="documentNameInput" title="用于 Markdown 与 Word 下载文件名">
-                    <span class="document-name-label">文档名</span>
-                    <input type="text" id="documentNameInput" value="未命名" maxlength="80" autocomplete="off" spellcheck="false" aria-describedby="documentNameHint">
-                    <span class="document-name-extension" id="documentNameHint">.md / .docx</span>
-                </label>
-
-                <div class="toolbar-divider mobile-hide" aria-hidden="true"></div>
-
-                <div class="toolbar-section toolbar-edit mobile-hide" role="group" aria-label="编辑">
-                    <span class="toolbar-label">编辑</span>
-                    <div class="formatting-tools" role="group" aria-label="插入格式">
-                        <button type="button" class="format-button" data-command="heading" title="标题">H</button>
-                        <button type="button" class="format-button" data-command="bold" title="粗体（Ctrl+B）"><strong>B</strong></button>
-                        <button type="button" class="format-button" data-command="italic" title="斜体（Ctrl+I）"><em>I</em></button>
-                        <button type="button" class="format-button compact-toolbar-hide" data-command="quote" title="引用">❯</button>
-                        <button type="button" class="format-button compact-toolbar-hide" data-command="unordered-list" title="无序列表">•≡</button>
-                        <button type="button" class="format-button compact-toolbar-hide" data-command="ordered-list" title="有序列表">1≡</button>
-                        <button type="button" class="format-button compact-toolbar-hide" data-command="code" title="行内代码">&lt;/&gt;</button>
-                        <button type="button" class="format-button math-format-button compact-toolbar-hide" data-command="inline-math" title="行内公式：\(...\)">ƒx</button>
-                        <button type="button" class="format-button math-format-button compact-toolbar-hide" data-command="display-math" title="独立公式：\[...\]">Σ</button>
+                <div class="toolbar-main-row">
+                    <div class="toolbar-section toolbar-file" role="group" aria-label="文件">
+                        <span class="toolbar-label">文件</span>
+                        <button type="button" class="tool-button mobile-hide" data-action="new-document" title="新建（Ctrl+N）">📄 新建</button>
+                        <button type="button" class="tool-button mobile-essential mobile-open" data-action="open-file" title="打开 Markdown（Ctrl+O）">📁 打开</button>
+                        <button type="button" class="tool-button mobile-hide compact-toolbar-hide" data-action="save-markdown" title="下载 Markdown（Ctrl+S）">💾 保存 .md</button>
                     </div>
-                    <button type="button" class="tool-button compact-toolbar-hide" data-action="open-table">▦ 表格</button>
-                    <button type="button" class="tool-button ai-direct-button compact-toolbar-hide" data-action="run-ai-direct">🤖 AI 修复</button>
-                    <button type="button" class="tool-button compact-toolbar-hide" data-action="clear-document">🗑️ 清空</button>
-                    <details class="toolbar-more" id="toolbarMoreMenu">
-                        <summary class="tool-button" aria-label="打开更多编辑工具">⋯ 更多</summary>
-                        <div class="toolbar-more-popover" role="menu" aria-label="更多编辑工具">
-                            <button type="button" role="menuitem" data-action="save-markdown">💾 下载 Markdown</button>
-                            <button type="button" role="menuitem" data-command="quote">❯ 引用</button>
-                            <button type="button" role="menuitem" data-command="unordered-list">• 无序列表</button>
-                            <button type="button" role="menuitem" data-command="ordered-list">1. 有序列表</button>
-                            <button type="button" role="menuitem" data-command="code">&lt;/&gt; 代码</button>
-                            <button type="button" role="menuitem" data-command="inline-math">ƒx 行内公式</button>
-                            <button type="button" role="menuitem" data-command="display-math">Σ 独立公式</button>
-                            <button type="button" role="menuitem" data-action="open-table">▦ 表格转换</button>
-                            <button type="button" role="menuitem" data-action="run-ai-direct">🤖 AI 修复</button>
-                            <button type="button" role="menuitem" data-action="clear-document">🗑️ 清空内容</button>
-                            <button type="button" role="menuitem" data-action="open-settings">⚙️ 统一设置</button>
-                        </div>
-                    </details>
-                </div>
 
-                <div class="toolbar-divider mobile-hide" aria-hidden="true"></div>
-
-                <div class="toolbar-section toolbar-view" role="group" aria-label="视图">
-                    <span class="toolbar-label mobile-hide">视图</span>
-                    <div class="view-switch" id="viewSwitch" role="group" aria-label="视图模式">
-                        <button type="button" data-view="editor">编辑</button>
-                        <button type="button" data-view="split" class="active">分栏</button>
-                        <button type="button" data-view="preview">预览</button>
-                    </div>
-                    <label class="sync-toggle-inline mobile-hide compact-toolbar-hide" title="按滚动比例同步编辑器与预览">
-                        <input type="checkbox" id="syncScrollToggle">
-                        <span>同步滚动</span>
+                    <label class="document-name-field mobile-hide" for="documentNameInput" title="用于 Markdown 与 Word 下载文件名">
+                        <span class="document-name-label">文档名</span>
+                        <input type="text" id="documentNameInput" value="未命名" maxlength="80" autocomplete="off" spellcheck="false" aria-describedby="documentNameHint">
+                        <span class="document-name-extension" id="documentNameHint">.md / .docx</span>
                     </label>
+
+                    <div class="toolbar-section toolbar-view" role="group" aria-label="视图">
+                        <span class="toolbar-label mobile-hide">视图</span>
+                        <div class="view-switch" id="viewSwitch" role="group" aria-label="视图模式">
+                            <button type="button" data-view="editor">编辑</button>
+                            <button type="button" data-view="split" class="active">分栏</button>
+                            <button type="button" data-view="preview">预览</button>
+                        </div>
+                        <label class="sync-toggle-inline mobile-hide compact-toolbar-hide" title="按滚动比例同步编辑器与预览">
+                            <input type="checkbox" id="syncScrollToggle">
+                            <span>同步滚动</span>
+                        </label>
+                    </div>
+
+                    <div class="toolbar-spacer mobile-hide" aria-hidden="true"></div>
+
+                    <div class="toolbar-section toolbar-output" role="group" aria-label="输出">
+                        <span class="toolbar-label mobile-hide">输出</span>
+                        <button type="button" class="tool-button mobile-hide compact-toolbar-hide" data-action="copy-rich" title="复制富文本（Ctrl+Enter）">📋 复制富文本</button>
+                        <button type="button" class="primary-button mobile-essential mobile-download" id="downloadWordButton" data-action="download-word" title="导出 DOCX（Ctrl+D）" data-readiness="empty" aria-describedby="exportButtonHint">
+                            <span class="primary-button-icon" id="downloadWordIcon" aria-hidden="true">📄</span>
+                            <span class="primary-button-label" id="downloadWordLabel">下载 Word</span>
+                            <span class="primary-button-badge" id="exportIssueBadge" hidden></span>
+                        </button>
+                        <span class="visually-hidden" id="exportButtonHint">导出前会检查公式、代码围栏、图片与表格兼容性</span>
+                    </div>
                 </div>
 
-                <div class="toolbar-spacer mobile-hide"></div>
-
-                <div class="toolbar-section toolbar-output" role="group" aria-label="输出">
-                    <span class="toolbar-label mobile-hide">输出</span>
-                    <button type="button" class="tool-button mobile-hide compact-toolbar-hide" data-action="copy-rich" title="复制富文本（Ctrl+Enter）">📋 复制富文本</button>
-                    <button type="button" class="primary-button mobile-essential mobile-download" id="downloadWordButton" data-action="download-word" title="导出 DOCX（Ctrl+D）" data-readiness="empty" aria-describedby="exportButtonHint">
-                        <span class="primary-button-icon" id="downloadWordIcon" aria-hidden="true">📄</span>
-                        <span class="primary-button-label" id="downloadWordLabel">下载 Word</span>
-                        <span class="primary-button-badge" id="exportIssueBadge" hidden></span>
-                    </button>
-                    <span class="visually-hidden" id="exportButtonHint">导出前会检查公式、代码围栏、图片与表格兼容性</span>
+                <div class="toolbar-edit-row mobile-hide">
+                    <div class="toolbar-section toolbar-edit" role="group" aria-label="编辑工具">
+                        <span class="toolbar-label">编辑</span>
+                        <div class="formatting-tools" role="group" aria-label="插入格式">
+                            <button type="button" class="format-button" data-command="heading" title="标题">H</button>
+                            <button type="button" class="format-button" data-command="bold" title="粗体（Ctrl+B）"><strong>B</strong></button>
+                            <button type="button" class="format-button" data-command="italic" title="斜体（Ctrl+I）"><em>I</em></button>
+                            <button type="button" class="format-button compact-toolbar-hide" data-command="quote" title="引用">❯</button>
+                            <button type="button" class="format-button compact-toolbar-hide" data-command="unordered-list" title="无序列表">•≡</button>
+                            <button type="button" class="format-button compact-toolbar-hide" data-command="ordered-list" title="有序列表">1≡</button>
+                            <button type="button" class="format-button compact-toolbar-hide" data-command="code" title="行内代码">&lt;/&gt;</button>
+                            <button type="button" class="format-button math-format-button compact-toolbar-hide" data-command="inline-math" title="行内公式：\(...\)">ƒx</button>
+                            <button type="button" class="format-button math-format-button compact-toolbar-hide" data-command="display-math" title="独立公式：\[...\]">Σ</button>
+                        </div>
+                        <span class="toolbar-inline-divider" aria-hidden="true"></span>
+                        <button type="button" class="tool-button compact-toolbar-hide" data-action="open-table">▦ 表格</button>
+                        <button type="button" class="tool-button ai-direct-button compact-toolbar-hide" data-action="run-ai-direct">🤖 AI 修复</button>
+                        <details class="toolbar-more" id="toolbarMoreMenu">
+                            <summary class="tool-button" aria-label="打开更多编辑工具">⋯ 更多</summary>
+                            <div class="toolbar-more-popover" role="menu" aria-label="更多编辑工具">
+                                <button type="button" role="menuitem" data-action="save-markdown">💾 下载 Markdown</button>
+                                <button type="button" role="menuitem" data-command="quote">❯ 引用</button>
+                                <button type="button" role="menuitem" data-command="unordered-list">• 无序列表</button>
+                                <button type="button" role="menuitem" data-command="ordered-list">1. 有序列表</button>
+                                <button type="button" role="menuitem" data-command="code">&lt;/&gt; 代码</button>
+                                <button type="button" role="menuitem" data-command="inline-math">ƒx 行内公式</button>
+                                <button type="button" role="menuitem" data-command="display-math">Σ 独立公式</button>
+                                <button type="button" role="menuitem" data-action="open-table">▦ 表格转换</button>
+                                <button type="button" role="menuitem" data-action="run-ai-direct">🤖 AI 修复</button>
+                                <button type="button" role="menuitem" data-action="clear-document">🗑️ 清空内容</button>
+                                <button type="button" role="menuitem" data-action="open-settings">⚙️ 统一设置</button>
+                            </div>
+                        </details>
+                        <button type="button" class="tool-button toolbar-clear-button compact-toolbar-hide" data-action="clear-document" title="清空当前内容">🗑️ 清空</button>
+                    </div>
                 </div>
             </section>
 
