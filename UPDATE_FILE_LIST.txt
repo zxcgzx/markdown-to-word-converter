@@ -1,0 +1,20 @@
+把本压缩包内容覆盖到仓库根目录。
+
+替换：
+- index.html
+- README.md
+- js/app.js
+- .github/workflows/deploy.yml
+
+新增：
+- css/app.css
+- js/math-engine.js
+- tests/math-engine.test.js
+- package.json
+- docs/V3_UPDATE.md
+
+说明文件与辅助脚本（可保留在本地，不必提交）：
+- UPDATE_NOTES.md
+- UPDATE_FILE_LIST.txt
+- PUSH_UPDATE.sh
+- PUSH_UPDATE.ps1
