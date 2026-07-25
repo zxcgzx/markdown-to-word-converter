@@ -11,7 +11,9 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const appJs = fs.readFileSync(path.join(root, 'js', 'app.js'), 'utf8');
 const mathJs = fs.readFileSync(path.join(root, 'js', 'math-engine.js'), 'utf8');
 const preflightJs = fs.readFileSync(path.join(root, 'js', 'preflight.js'), 'utf8');
-const css = fs.readFileSync(path.join(root, 'css', 'app.css'), 'utf8');
+const appCss = fs.readFileSync(path.join(root, 'css', 'app.css'), 'utf8');
+const toolbarCss = fs.readFileSync(path.join(root, 'css', 'toolbar.css'), 'utf8');
+const css = `${appCss}\n${toolbarCss}`;
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 
 function collectIds(source) {
@@ -35,10 +37,11 @@ function findOpeningTags(source, tagName) {
     return [...source.matchAll(regex)].map((match) => match[0]);
 }
 
-test('package and page identify the complete v5.1.1 release', () => {
-    assert.equal(pkg.version, '5.1.1');
-    assert.match(html, /融合体验版 v5\.1\.1/);
-    assert.match(html, /js\/preflight\.js/);
+test('package and page identify the complete v5.1.2 release', () => {
+    assert.equal(pkg.version, '5.1.2');
+    assert.match(html, /融合体验版 v5\.1\.2/);
+    assert.match(html, /js\/preflight\.js\?v=5\.1\.2/);
+    assert.match(html, /css\/toolbar\.css\?v=5\.1\.2/);
     assert.match(pkg.scripts.check, /preflight\.js/);
 });
 
@@ -70,7 +73,8 @@ test('the sticky top bar is grouped as file, edit, view and output with Word as 
     assert.equal(primaryButtons.length, 1);
     assert.match(primaryButtons[0], /id="downloadWordButton"/);
     assert.match(primaryButtons[0], /data-action="download-word"/);
-    assert.match(css, /\.quick-toolbar\s*\{[^}]*position:\s*sticky/si);
+    assert.match(html, /class="quick-toolbar" data-layout="command-deck"/);
+    assert.match(toolbarCss, /\.quick-toolbar\[data-layout="command-deck"\]\s*\{[\s\S]*?position:\s*sticky;/);
 });
 
 test('document name is editable and Markdown/browser save states are distinct', () => {
@@ -151,11 +155,11 @@ test('export preflight is inline, locatable and controls Word readiness', () => 
 test('narrow desktop tools move into a discoverable More menu', () => {
     assert.match(html, /id="toolbarMoreMenu"/);
     assert.match(html, /class="toolbar-more-popover"/);
-    for (const action of ['save-markdown', 'open-table', 'run-ai-direct', 'clear-document']) {
+    for (const action of ['save-markdown', 'copy-rich', 'open-table', 'run-ai-direct', 'clear-document']) {
         assert.match(html, new RegExp(`toolbar-more-popover[\\s\\S]*data-action="${action}"`));
     }
-    assert.match(css, /@media \(min-width:\s*681px\) and \(max-width:\s*1180px\)[\s\S]*?\.compact-toolbar-hide\s*\{\s*display:\s*none\s*!important/);
-    assert.match(css, /\.toolbar-more-popover\s*\{/);
+    assert.match(toolbarCss, /@media \(max-width:\s*1180px\) and \(min-width:\s*901px\)[\s\S]*?\.toolbar-more\s*\{\s*display:\s*block;/);
+    assert.match(toolbarCss, /\.toolbar-more-popover\s*\{/);
     assert.match(appJs, /function closeToolbarMoreMenu\s*\(/);
 });
 
@@ -199,7 +203,7 @@ test('DOCX export parses math separately into editable subscript and superscript
     assert.match(appJs, /Md2WordMath\.latexToWordSegments/);
     assert.match(appJs, /subScript:\s*Boolean\(segment\.subScript\)/);
     assert.match(appJs, /superScript:\s*Boolean\(segment\.superScript\)/);
-    assert.match(appJs, /融合体验版 v5\.1\.1/);
+    assert.match(html, /融合体验版 v5\.1\.2/);
     assert.doesNotMatch(appJs, /请.{0,8}手动添加公式/);
 });
 

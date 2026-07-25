@@ -2201,7 +2201,7 @@
             const line = Math.round(240 * state.settings.wordLineSpacing);
             const fontSize = Math.round(state.settings.wordFontSize * 2);
             const doc = new window.docx.Document({
-                creator: 'AI智能Markdown转Word转换器 · 融合体验版 v5.1.1',
+                creator: 'AI智能Markdown转Word转换器 · 融合体验版 v5.1.2',
                 title,
                 description: '由浏览器本地生成；公式转换为可编辑文本与上下标',
                 styles: {

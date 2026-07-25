@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="color-scheme" content="light dark">
     <meta name="description" content="保留原版玻璃态与密码入口的 Markdown 转 Word 工具，提供常驻操作栏、可靠公式预览、可编辑公式导出、AI 修复和表格转换。">
-    <title>🤖 AI智能Markdown转Word转换器 · 融合体验版 v5.1.1</title>
+    <title>🤖 AI智能Markdown转Word转换器 · 融合体验版 v5.1.2</title>
 
     <script src="https://cdn.jsdelivr.net/npm/marked@9.0.0/marked.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" defer></script>
@@ -15,11 +15,12 @@
     <script src="https://unpkg.com/docx@7.8.2/build/index.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" defer></script>
 
-    <link rel="stylesheet" href="css/app.css">
-    <script src="js/access-config.js" defer></script>
-    <script src="js/math-engine.js" defer></script>
-    <script src="js/preflight.js" defer></script>
-    <script src="js/app.js" defer></script>
+    <link rel="stylesheet" href="css/app.css?v=5.1.2">
+    <link rel="stylesheet" href="css/toolbar.css?v=5.1.2">
+    <script src="js/access-config.js?v=5.1.2" defer></script>
+    <script src="js/math-engine.js?v=5.1.2" defer></script>
+    <script src="js/preflight.js?v=5.1.2" defer></script>
+    <script src="js/app.js?v=5.1.2" defer></script>
 </head>
 <body class="auth-locked">
     <noscript><div class="fatal-banner">此工具需要启用 JavaScript。</div></noscript>
@@ -37,7 +38,7 @@
             <div class="password-badges" aria-hidden="true">
                 <span class="password-badge">个人内测</span>
                 <span class="password-badge badge-math">公式增强</span>
-                <span class="password-badge badge-ai">体验优化 v5.1.1</span>
+                <span class="password-badge badge-ai">体验优化 v5.1.2</span>
             </div>
 
             <div class="password-brief" role="note">
@@ -49,7 +50,7 @@
                             <div class="brief-caption">保留熟悉的密码入口、渐变主题和玻璃态卡片，并加入导出前检查、公式一键定位与更清晰的文档保存状态。</div>
                         </div>
                     </div>
-                    <span class="password-brief-pill">融合体验版 v5.1.1</span>
+                    <span class="password-brief-pill">融合体验版 v5.1.2</span>
                 </div>
             </div>
 
@@ -127,7 +128,7 @@
                     <div class="hero-kicker">MARKDOWN · DOCX · KATEX</div>
                     <h1>🤖 AI智能Markdown转Word转换器</h1>
                     <p>原版玻璃态交互 · 导出前检查 · 公式源码定位 · 可编辑 Word 导出</p>
-                    <div class="author-info">由 <strong>Boning</strong> 开发 · TJUT · <span>融合体验版 v5.1.1</span></div>
+                    <div class="author-info">由 <strong>Boning</strong> 开发 · TJUT · <span>融合体验版 v5.1.2</span></div>
                 </div>
 
                 <div class="hero-utilities" aria-label="账户与偏好">
@@ -146,7 +147,7 @@
                 </div>
             </header>
 
-            <section class="quick-toolbar" aria-label="常驻文档操作栏">
+            <section class="quick-toolbar" data-layout="command-deck" aria-label="常驻文档操作栏">
                 <div class="toolbar-main-row">
                     <div class="toolbar-section toolbar-file" role="group" aria-label="文件">
                         <span class="toolbar-label">文件</span>
@@ -209,6 +210,7 @@
                             <summary class="tool-button" aria-label="打开更多编辑工具">⋯ 更多</summary>
                             <div class="toolbar-more-popover" role="menu" aria-label="更多编辑工具">
                                 <button type="button" role="menuitem" data-action="save-markdown">💾 下载 Markdown</button>
+                                <button type="button" role="menuitem" data-action="copy-rich">📋 复制富文本</button>
                                 <button type="button" role="menuitem" data-command="quote">❯ 引用</button>
                                 <button type="button" role="menuitem" data-command="unordered-list">• 无序列表</button>
                                 <button type="button" role="menuitem" data-command="ordered-list">1. 有序列表</button>

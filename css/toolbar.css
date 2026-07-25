@@ -1,0 +1,640 @@
+/* ========================================================================== */
+/* Fusion v5.1.2 · Command Deck toolbar                                       */
+/*                                                                            */
+/* This file is intentionally loaded after app.css. It provides a cache-safe  */
+/* structural override for the sticky toolbar and keeps the fallback order     */
+/* usable even when a browser still holds an older app.css in cache.           */
+/* ========================================================================== */
+
+.quick-toolbar[data-layout="command-deck"] {
+    position: sticky;
+    top: 0;
+    z-index: 70;
+    display: block !important;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    padding: 0 !important;
+    overflow: visible !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 86%, transparent);
+    background:
+        linear-gradient(180deg,
+            color-mix(in srgb, var(--surface-raised) 98%, transparent),
+            color-mix(in srgb, var(--surface) 96%, transparent));
+    box-shadow:
+        0 10px 28px rgba(16, 24, 40, 0.08),
+        inset 0 1px 0 color-mix(in srgb, #fff 68%, transparent);
+    backdrop-filter: blur(22px) saturate(1.12);
+    isolation: isolate;
+    scrollbar-width: none;
+}
+
+.quick-toolbar[data-layout="command-deck"]::-webkit-scrollbar {
+    display: none;
+}
+
+.quick-toolbar[data-layout="command-deck"] .toolbar-main-row,
+.quick-toolbar[data-layout="command-deck"] .toolbar-edit-row {
+    box-sizing: border-box;
+    width: 100% !important;
+    min-width: 0;
+}
+
+.quick-toolbar[data-layout="command-deck"] .toolbar-main-row {
+    display: grid !important;
+    grid-template-columns: auto minmax(220px, 1fr) auto auto;
+    grid-template-areas: "file name view output";
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+    background:
+        linear-gradient(90deg,
+            color-mix(in srgb, var(--surface-raised) 98%, transparent),
+            color-mix(in srgb, var(--surface) 92%, transparent));
+}
+
+.quick-toolbar[data-layout="command-deck"] .toolbar-edit-row {
+    display: flex !important;
+    align-items: center;
+    padding: 8px 14px 9px;
+    background:
+        linear-gradient(90deg,
+            color-mix(in srgb, var(--surface-subtle) 88%, var(--surface-raised)),
+            color-mix(in srgb, var(--surface) 92%, var(--surface-raised)));
+}
+
+.quick-toolbar[data-layout="command-deck"] .toolbar-section {
+    min-width: 0;
+    min-height: 0;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.quick-toolbar[data-layout="command-deck"] .toolbar-label {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    clip-path: inset(50%) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+.quick-toolbar[data-layout="command-deck"] .toolbar-file {
+    grid-area: file;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-right: 13px !important;
+    border-right: 1px solid color-mix(in srgb, var(--border) 82%, transparent) !important;
+}
+
+.quick-toolbar[data-layout="command-deck"] .document-name-field {
+    grid-area: name;
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 42px;
+    gap: 8px;
+    padding: 5px 10px 5px 11px;
+    border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+    border-radius: 12px;
+    background:
+        linear-gradient(180deg,
+            color-mix(in srgb, var(--surface) 96%, transparent),
+            color-mix(in srgb, var(--surface-subtle) 82%, transparent));
+    color: var(--text-muted);
+    box-shadow:
+        inset 0 1px 0 color-mix(in srgb, #fff 62%, transparent),
+        0 2px 6px rgba(16, 24, 40, 0.035);
+    transition:
+        border-color var(--transition),
+        background var(--transition),
+        box-shadow var(--transition),
+        transform var(--transition);
+}
+
+.quick-toolbar[data-layout="command-deck"] .document-name-field::before {
+    content: "📄";
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--accent-soft) 72%, var(--surface));
+    color: var(--accent-strong);
+    font-size: 13px;
+}
+
+.quick-toolbar[data-layout="command-deck"] .document-name-field:hover {
+    border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
+    background: var(--surface);
+}
+
+.quick-toolbar[data-layout="command-deck"] .document-name-field:focus-within {
+    border-color: color-mix(in srgb, var(--accent) 56%, var(--border));
+    background: var(--surface);
+    box-shadow:
+        0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent),
+        0 5px 14px rgba(16, 24, 40, 0.07);
+    transform: translateY(-1px);
+}
+
+.quick-toolbar[data-layout="command-deck"] .document-name-label {
+    display: none;
+}
+
+.quick-toolbar[data-layout="command-deck"] .document-name-field input {
+    min-width: 0;
+    width: 100%;
+    height: 30px;
+    padding: 3px 2px;
+    border: 0;
+    border-radius: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 780;
+    letter-spacing: 0.01em;
+}
+
+.quick-toolbar[data-layout="command-deck"] .document-name-field:focus-within input {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.quick-toolbar[data-layout="command-deck"] .document-name-extension {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 3px 7px;
+    border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--surface-subtle) 88%, transparent);
+    color: var(--text-faint);
+    font-size: 9px;
+    font-weight: 780;
+    white-space: nowrap;
+}
+
+.quick-toolbar[data-layout="command-deck"] .toolbar-view {
+    grid-area: view;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 13px !important;
+    border-left: 1px solid color-mix(in srgb, var(--border) 82%, transparent) !important;
+    border-right: 1px solid color-mix(in srgb, var(--border) 82%, transparent) !important;
+}
+
+.quick-toolbar[data-layout="command-deck"] .toolbar-output {
+    grid-area: output;
+    position: static !important;
+    right: auto !important;
+    z-index: auto !important;
+    display: flex;
+    align-items: center;
+    justify-self: end;
+    gap: 7px;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.quick-toolbar[data-layout="command-deck"] .toolbar-spacer {
+    display: none !important;
+}
+
+.quick-toolbar[data-layout="command-deck"] .toolbar-edit {
+    display: flex !important;
+    flex: 1 1 auto;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    gap: 8px;
+}
+
+.quick-toolbar[data-layout="command-deck"] .toolbar-edit::before {
+    content: "编辑";
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    min-height: 27px;
+    padding: 4px 8px;
+    border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--surface) 78%, transparent);
+    color: var(--text-faint);
+    font-size: 9px;
+    font-weight: 850;
+    letter-spacing: 0.1em;
+}
+
+.quick-toolbar[data-layout="command-deck"] .formatting-tools {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 2px;
+    padding: 3px !important;
+    border: 1px solid color-mix(in srgb, var(--border) 90%, transparent) !important;
+    border-radius: 12px !important;
+    background: color-mix(in srgb, var(--surface) 82%, transparent) !important;
+    box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 62%, transparent);
+}
+
+.quick-toolbar[data-layout="command-deck"] .format-button {
+    min-width: 34px;
+    width: 34px;
+    height: 34px;
+    min-height: 34px;
+    padding: 0;
+    border-color: transparent;
+    border-radius: 9px;
+    background: transparent;
+    box-shadow: none;
+}
+
+.quick-toolbar[data-layout="command-deck"] .format-button:hover,
+.quick-toolbar[data-layout="command-deck"] .format-button:focus-visible {
+    border-color: color-mix(in srgb, var(--border-strong) 72%, transparent);
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 2px 8px rgba(16, 24, 40, 0.07);
+}
+
+.quick-toolbar[data-layout="command-deck"] .math-format-button {
+    border-color: color-mix(in srgb, var(--accent) 22%, transparent);
+    background: color-mix(in srgb, var(--accent-soft) 72%, transparent);
+    color: var(--accent-strong);
+}
+
+.quick-toolbar[data-layout="command-deck"] .toolbar-inline-divider {
+    flex: 0 0 auto;
+    width: 1px;
+    height: 28px;
+    margin: 0 1px;
+    background: color-mix(in srgb, var(--border) 88%, transparent);
+}
+
+.quick-toolbar[data-layout="command-deck"] .tool-button,
+.quick-toolbar[data-layout="command-deck"] .primary-button,
+.quick-toolbar[data-layout="command-deck"] .sync-toggle-inline,
+.quick-toolbar[data-layout="command-deck"] .view-switch button,
+.quick-toolbar[data-layout="command-deck"] .toolbar-more > summary {
+    min-height: 38px;
+}
+
+.quick-toolbar[data-layout="command-deck"] .tool-button,
+.quick-toolbar[data-layout="command-deck"] .toolbar-more > summary {
+    border-radius: 10px;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.025);
+}
+
+.quick-toolbar[data-layout="command-deck"] .toolbar-file .tool-button {
+    padding-inline: 11px;
+}
+
+.quick-toolbar[data-layout="command-deck"] .view-switch {
+    display: inline-grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    min-width: 182px;
+    padding: 3px;
+    border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--surface-subtle) 88%, transparent);
+    box-shadow: inset 0 1px 2px rgba(16, 24, 40, 0.035);
+}
+
+.quick-toolbar[data-layout="command-deck"] .view-switch button {
+    min-width: 56px;
+    height: 32px;
+    min-height: 32px;
+    padding: 4px 9px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    box-shadow: none;
+    font-size: 11px;
+}
+
+.quick-toolbar[data-layout="command-deck"] .view-switch button.active {
+    background: var(--surface);
+    color: var(--accent-strong);
+    box-shadow:
+        0 2px 7px rgba(16, 24, 40, 0.09),
+        inset 0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.quick-toolbar[data-layout="command-deck"] .sync-toggle-inline {
+    padding-inline: 9px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--surface) 86%, transparent);
+}
+
+.quick-toolbar[data-layout="command-deck"] .toolbar-output .tool-button {
+    padding-inline: 12px;
+}
+
+.quick-toolbar[data-layout="command-deck"] #downloadWordButton {
+    min-width: 138px;
+    min-height: 42px;
+    padding-inline: 16px;
+    border-radius: 11px;
+    box-shadow:
+        0 8px 20px color-mix(in srgb, var(--accent) 24%, transparent),
+        inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.quick-toolbar[data-layout="command-deck"] .ai-direct-button {
+    border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
+    background:
+        linear-gradient(180deg,
+            color-mix(in srgb, var(--accent-soft) 86%, var(--surface)),
+            color-mix(in srgb, var(--accent-soft) 72%, var(--surface)));
+    color: var(--accent-strong);
+}
+
+.quick-toolbar[data-layout="command-deck"] .toolbar-clear-button {
+    margin-left: auto;
+    border-color: color-mix(in srgb, var(--danger) 20%, var(--border));
+    background: color-mix(in srgb, var(--surface) 86%, transparent);
+    color: color-mix(in srgb, var(--danger) 72%, var(--text-muted));
+}
+
+.quick-toolbar[data-layout="command-deck"] .toolbar-clear-button:hover {
+    border-color: color-mix(in srgb, var(--danger) 45%, var(--border));
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+.quick-toolbar[data-layout="command-deck"] button:focus-visible,
+.quick-toolbar[data-layout="command-deck"] summary:focus-visible,
+.quick-toolbar[data-layout="command-deck"] input:focus-visible {
+    position: relative;
+    z-index: 4;
+    outline: 3px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    outline-offset: 2px;
+}
+
+.quick-toolbar[data-layout="command-deck"] .toolbar-more {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.quick-toolbar[data-layout="command-deck"] .toolbar-more:not([open]) .toolbar-more-popover {
+    display: none !important;
+}
+
+.quick-toolbar[data-layout="command-deck"] .toolbar-more-popover {
+    top: calc(100% + 9px);
+    right: auto;
+    left: 0;
+    max-height: min(340px, calc(100dvh - 126px));
+    overflow-y: auto;
+    border-radius: 13px;
+    background: color-mix(in srgb, var(--surface-raised) 98%, transparent);
+    box-shadow: 0 18px 45px rgba(16, 24, 40, 0.18);
+}
+
+/* Common laptop widths: keep the document lane fluid and move low-frequency
+   actions to More before the row starts feeling cramped. */
+@media (max-width: 1320px) and (min-width: 1181px) {
+    .quick-toolbar[data-layout="command-deck"] .toolbar-main-row {
+        grid-template-columns: auto minmax(180px, 1fr) auto auto;
+        gap: 9px;
+        padding-inline: 11px;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .toolbar-file {
+        padding-right: 10px !important;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .toolbar-file [data-action="save-markdown"],
+    .quick-toolbar[data-layout="command-deck"] .toolbar-output [data-action="copy-rich"] {
+        display: none !important;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .toolbar-more {
+        display: block;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .toolbar-edit::before {
+        display: none;
+    }
+}
+
+/* Medium desktop: one deliberate document row plus one compact format row. */
+@media (max-width: 1180px) and (min-width: 901px) {
+    .quick-toolbar[data-layout="command-deck"] .toolbar-main-row {
+        grid-template-columns: auto minmax(150px, 1fr) auto auto;
+        gap: 8px;
+        padding: 9px 10px;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .toolbar-file {
+        padding-right: 8px !important;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .toolbar-file [data-action="new-document"],
+    .quick-toolbar[data-layout="command-deck"] .toolbar-file [data-action="save-markdown"],
+    .quick-toolbar[data-layout="command-deck"] .toolbar-output [data-action="copy-rich"],
+    .quick-toolbar[data-layout="command-deck"] .sync-toggle-inline {
+        display: none !important;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .toolbar-view {
+        padding-inline: 8px !important;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .document-name-extension {
+        display: none;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .toolbar-edit-row {
+        padding-inline: 10px;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .toolbar-edit::before,
+    .quick-toolbar[data-layout="command-deck"] .toolbar-inline-divider {
+        display: none;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .toolbar-more {
+        display: block;
+    }
+}
+
+/* Tablet / narrow desktop: a balanced 2×2 command grid instead of a tall left
+   stack. The format row remains available underneath through More. */
+@media (max-width: 900px) and (min-width: 681px) {
+    .quick-toolbar[data-layout="command-deck"] .toolbar-main-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "file output"
+            "name view";
+        gap: 8px 10px;
+        padding: 9px 10px 10px;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .toolbar-file {
+        justify-self: start;
+        padding-right: 0 !important;
+        border-right: 0 !important;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .toolbar-file [data-action="new-document"],
+    .quick-toolbar[data-layout="command-deck"] .toolbar-file [data-action="save-markdown"],
+    .quick-toolbar[data-layout="command-deck"] .toolbar-output [data-action="copy-rich"],
+    .quick-toolbar[data-layout="command-deck"] .sync-toggle-inline {
+        display: none !important;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .toolbar-output {
+        justify-self: end;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .toolbar-view {
+        justify-self: end;
+        padding: 0 !important;
+        border: 0 !important;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .document-name-field {
+        min-width: 0 !important;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .document-name-extension {
+        display: none;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .toolbar-edit-row {
+        padding: 8px 10px 9px;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .toolbar-edit::before,
+    .quick-toolbar[data-layout="command-deck"] .toolbar-inline-divider {
+        display: none;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .toolbar-more {
+        display: block;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .toolbar-more-popover {
+        right: auto;
+        left: 0;
+    }
+}
+
+/* Phone: keep exactly Open / View / Word in a single reachable row. */
+@media (max-width: 680px) {
+    .quick-toolbar[data-layout="command-deck"] {
+        display: block !important;
+        box-shadow: 0 8px 22px rgba(16, 24, 40, 0.09);
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .toolbar-main-row {
+        display: grid !important;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        grid-template-areas: "file view output";
+        align-items: center;
+        gap: 6px;
+        padding: 7px;
+        border-bottom: 0;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .toolbar-edit-row,
+    .quick-toolbar[data-layout="command-deck"] .document-name-field,
+    .quick-toolbar[data-layout="command-deck"] .toolbar-file [data-action="new-document"],
+    .quick-toolbar[data-layout="command-deck"] .toolbar-file [data-action="save-markdown"],
+    .quick-toolbar[data-layout="command-deck"] .toolbar-output [data-action="copy-rich"],
+    .quick-toolbar[data-layout="command-deck"] .sync-toggle-inline,
+    .quick-toolbar[data-layout="command-deck"] .toolbar-more {
+        display: none !important;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .toolbar-file,
+    .quick-toolbar[data-layout="command-deck"] .toolbar-view,
+    .quick-toolbar[data-layout="command-deck"] .toolbar-output {
+        min-height: 0;
+        padding: 0 !important;
+        border: 0 !important;
+        background: transparent !important;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .toolbar-file {
+        justify-self: start;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .toolbar-view {
+        width: 100%;
+        justify-self: stretch;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .toolbar-output {
+        justify-self: end;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .view-switch {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .view-switch button {
+        min-width: 0;
+        padding-inline: 4px;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] #downloadWordButton {
+        min-width: 92px;
+        min-height: 40px;
+        padding-inline: 9px;
+    }
+}
+
+@media (max-width: 410px) {
+    .quick-toolbar[data-layout="command-deck"] .toolbar-main-row {
+        gap: 4px;
+        padding: 6px;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .mobile-open {
+        min-width: 42px;
+        padding-inline: 7px;
+        font-size: 0;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .mobile-open::after {
+        content: "📁";
+        font-size: 14px;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] .view-switch button {
+        font-size: 9px;
+    }
+
+    .quick-toolbar[data-layout="command-deck"] #downloadWordButton {
+        min-width: 76px;
+        padding-inline: 7px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .quick-toolbar[data-layout="command-deck"] .document-name-field {
+        transition: none;
+    }
+}
