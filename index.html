@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="color-scheme" content="light dark">
     <meta name="description" content="保留原版玻璃态与密码入口的 Markdown 转 Word 工具，提供常驻操作栏、可靠公式预览、可编辑公式导出、AI 修复和表格转换。">
-    <title>🤖 AI智能Markdown转Word转换器 · 融合体验版 v5.1.2</title>
+    <title>🤖 AI智能Markdown转Word转换器 · 融合体验版 v5.2</title>
 
     <script src="https://cdn.jsdelivr.net/npm/marked@9.0.0/marked.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" defer></script>
@@ -15,104 +15,148 @@
     <script src="https://unpkg.com/docx@7.8.2/build/index.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" defer></script>
 
-    <link rel="stylesheet" href="css/app.css?v=5.1.2">
-    <link rel="stylesheet" href="css/toolbar.css?v=5.1.2">
-    <script src="js/access-config.js?v=5.1.2" defer></script>
-    <script src="js/math-engine.js?v=5.1.2" defer></script>
-    <script src="js/preflight.js?v=5.1.2" defer></script>
-    <script src="js/app.js?v=5.1.2" defer></script>
+    <link rel="stylesheet" href="css/app.css?v=5.2">
+    <link rel="stylesheet" href="css/toolbar.css?v=5.2">
+    <link rel="stylesheet" href="css/experience.css?v=5.2">
+    <script src="js/access-config.js?v=5.2" defer></script>
+    <script src="js/math-engine.js?v=5.2" defer></script>
+    <script src="js/preflight.js?v=5.2" defer></script>
+    <script src="js/app.js?v=5.2" defer></script>
 </head>
 <body class="auth-locked">
     <noscript><div class="fatal-banner">此工具需要启用 JavaScript。</div></noscript>
 
-    <div id="passwordOverlay" class="password-overlay" role="dialog" aria-modal="true" aria-labelledby="passwordTitle" aria-describedby="passwordDesc">
-        <div class="password-modal">
-            <header class="password-header">
-                <div class="password-brand-mark" aria-hidden="true">M→W</div>
-                <div>
-                    <h2 id="passwordTitle">🔐 访问验证</h2>
-                    <p class="subtitle" id="passwordDesc">AI智能 Markdown 转 Word 转换器</p>
+    <div id="passwordOverlay" class="password-overlay auth-stage" role="dialog" aria-modal="true" aria-labelledby="passwordTitle" aria-describedby="passwordDesc">
+        <div class="auth-atmosphere" aria-hidden="true">
+            <span class="auth-orb auth-orb-one"></span>
+            <span class="auth-orb auth-orb-two"></span>
+            <span class="auth-orb auth-orb-three"></span>
+        </div>
+
+        <main class="password-modal auth-shell">
+            <header class="auth-topbar">
+                <div class="auth-product">
+                    <div class="password-brand-mark" aria-hidden="true">M→W</div>
+                    <div class="auth-product-copy">
+                        <strong>Markdown to Word Studio</strong>
+                        <span>公式优先的本地文档工作台</span>
+                    </div>
+                </div>
+                <div class="auth-top-actions">
+                    <button type="button" class="auth-theme-button" id="authThemeButton" aria-label="切换登录页主题" title="切换颜色主题">
+                        <svg class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9c0-.55-.45-1-1-1h-3.2a2.8 2.8 0 0 1-2.8-2.8V4c0-.55-.45-1-1-1h-1Z"/><path d="M7.5 10.5h.01M9.5 7.5h.01M7.5 14.5h.01"/></svg>
+                        <span id="authThemeText">暖阳琥珀</span>
+                    </button>
+                    <span class="auth-version-pill">v5.2</span>
                 </div>
             </header>
 
-            <div class="password-badges" aria-hidden="true">
-                <span class="password-badge">个人内测</span>
-                <span class="password-badge badge-math">公式增强</span>
-                <span class="password-badge badge-ai">体验优化 v5.1.2</span>
-            </div>
+            <div class="password-layout auth-layout">
+                <section class="password-insight auth-story" aria-labelledby="authStoryTitle">
+                    <div class="auth-story-content">
+                        <p class="auth-kicker">MARKDOWN → DOCX STUDIO</p>
+                        <h1 id="authStoryTitle">把复杂 Markdown，<br><span>稳定地交付为 Word</span></h1>
+                        <p class="auth-story-lead">公式、表格与长文结构，在实时预览和最终导出之间保持一致。</p>
 
-            <div class="password-brief" role="note">
-                <div class="password-brief-top">
-                    <div class="password-brief-emblem">
-                        <span class="brief-icon">✨</span>
-                        <div>
-                            <div class="brief-heading">原版外观 · 更完整的导出闭环</div>
-                            <div class="brief-caption">保留熟悉的密码入口、渐变主题和玻璃态卡片，并加入导出前检查、公式一键定位与更清晰的文档保存状态。</div>
+                        <div class="auth-capability-list" aria-label="核心能力">
+                            <article class="auth-capability">
+                                <span class="auth-capability-icon" aria-hidden="true">
+                                    <svg class="auth-icon" viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h3M8 16h8"/></svg>
+                                </span>
+                                <div><strong>公式优先解析</strong><p>先保护公式边界，再进入 Markdown 渲染链路。</p></div>
+                            </article>
+                            <article class="auth-capability">
+                                <span class="auth-capability-icon" aria-hidden="true">
+                                    <svg class="auth-icon" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/><path d="M21 12a9 9 0 1 1-5.3-8.2"/></svg>
+                                </span>
+                                <div><strong>导出前完整检查</strong><p>公式、图片、表格和结构问题都能定位到源码。</p></div>
+                            </article>
+                            <article class="auth-capability">
+                                <span class="auth-capability-icon" aria-hidden="true">
+                                    <svg class="auth-icon" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v5h5M9 13h6M9 17h6"/></svg>
+                                </span>
+                                <div><strong>可编辑 Word 内容</strong><p>化学式、变量与上下标不再退化为占位提示。</p></div>
+                            </article>
+                        </div>
+
+                        <div class="auth-update-note">
+                            <span class="auth-update-dot" aria-hidden="true"></span>
+                            <div><strong>v5.2 品牌入口与高级交互</strong><p>新增本机自动进入、分享码内联导入、命令面板与专注模式。</p></div>
                         </div>
                     </div>
-                    <span class="password-brief-pill">融合体验版 v5.1.2</span>
-                </div>
+
+                    <footer class="auth-story-footer">
+                        <span>Boning · TJUT</span>
+                        <span>文档转换默认在浏览器内完成</span>
+                    </footer>
+                </section>
+
+                <section class="auth-login-panel">
+                    <form class="password-form auth-login-card" id="passwordForm" novalidate>
+                        <div class="auth-login-heading">
+                            <span class="auth-login-eyebrow">PRIVATE WORKSPACE</span>
+                            <h2 id="passwordTitle">欢迎回来</h2>
+                            <p id="passwordDesc">输入访问密码，进入你的 Markdown 工作台。</p>
+                        </div>
+
+                        <label class="auth-field-label" for="passwordInput">访问密码</label>
+                        <div class="password-input-wrapper" id="passwordInputWrapper">
+                            <span class="auth-input-icon" aria-hidden="true">
+                                <svg class="auth-icon" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                            </span>
+                            <input type="password" id="passwordInput" class="password-input" placeholder="请输入访问密码" maxlength="64" autocomplete="current-password" aria-describedby="passwordHint passwordError capsLockHint">
+                            <button type="button" class="password-toggle" id="passwordToggle" aria-label="显示密码" title="显示或隐藏密码">
+                                <svg class="auth-icon auth-eye-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.5"/></svg>
+                                <svg class="auth-icon auth-eye-closed" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18M10.6 6.2A10.5 10.5 0 0 1 12 6c6 0 9.5 6 9.5 6a15 15 0 0 1-2.1 2.8M6.2 6.2C3.9 7.8 2.5 12 2.5 12s3.5 6 9.5 6c1.5 0 2.8-.4 4-1"/></svg>
+                            </button>
+                        </div>
+                        <div class="auth-inline-hint auth-caps-hint" id="capsLockHint" hidden>
+                            <svg class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4-6 6h4v5h4v-5h4zM8 20h8"/></svg>
+                            大写锁定已开启
+                        </div>
+
+                        <div class="auth-option-row">
+                            <label class="auth-remember-option" title="勾选后将在此浏览器中保存自动进入状态">
+                                <input type="checkbox" id="rememberDeviceToggle">
+                                <span class="auth-checkmark" aria-hidden="true"></span>
+                                <span>在这台设备上自动进入</span>
+                            </label>
+                            <button type="button" class="auth-link-button" id="pasteShareCodeButton" aria-expanded="false" aria-controls="shareCodePanel">
+                                <svg class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="5" width="12" height="16" rx="2"/><path d="M9 5V3h6v2M5 17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1"/></svg>
+                                粘贴分享码
+                            </button>
+                        </div>
+
+                        <button type="submit" class="password-btn" id="authSubmitButton" data-state="idle">
+                            <span class="auth-submit-spinner" aria-hidden="true"></span>
+                            <span id="authSubmitLabel" aria-live="polite">进入工作台</span>
+                            <svg class="auth-icon auth-submit-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                            <svg class="auth-icon auth-submit-check" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+                        </button>
+
+                        <div id="passwordError" class="password-error" role="alert" aria-live="polite" hidden>
+                            <svg class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 17h.01"/></svg>
+                            <span id="passwordErrorText">密码错误，请重试</span>
+                        </div>
+
+                        <div class="auth-share-panel" id="shareCodePanel" hidden>
+                            <label for="shareCodeInput">分享码或访问密码</label>
+                            <div class="auth-share-input-row">
+                                <input type="text" id="shareCodeInput" placeholder="PWD:密码|级别|有效期" autocomplete="off" spellcheck="false">
+                                <button type="button" id="importShareCodeButton" class="auth-share-import">导入</button>
+                            </div>
+                            <p id="shareCodeHint">可直接粘贴密码；带日期的分享码会自动检查有效期。</p>
+                        </div>
+
+                        <div class="auth-login-foot" id="passwordHint">
+                            <span><kbd>Enter</kbd> 快速进入</span>
+                            <span class="auth-foot-separator" aria-hidden="true"></span>
+                            <span>本地前端工作台</span>
+                        </div>
+                    </form>
+                </section>
             </div>
-
-            <div class="password-layout">
-                <form class="password-form" id="passwordForm" novalidate>
-                    <div class="password-input-wrapper">
-                        <label for="passwordInput" class="visually-hidden">访问密码</label>
-                        <input type="password" id="passwordInput" class="password-input" placeholder="请输入访问密码" maxlength="64" autocomplete="current-password" aria-describedby="passwordHint passwordError">
-                        <button type="button" class="password-toggle" id="passwordToggle" aria-label="显示密码" title="显示/隐藏密码">👁️</button>
-                    </div>
-                    <button type="submit" class="password-btn">🚀 进入应用</button>
-
-                    <div class="password-share-card">
-                        <div class="password-share-header">📱 已收到分享码？</div>
-                        <p>支持直接粘贴 <code>PWD:密码|级别|日期</code>，也支持只粘贴密码。</p>
-                        <button type="button" class="password-share-btn" id="pasteShareCodeButton">粘贴分享码</button>
-                    </div>
-
-                    <div class="password-tips-card" role="note">
-                        <div class="tips-title"><span>🧭</span>使用提示</div>
-                        <ul class="tips-list">
-                            <li>输入后按 Enter 即可进入。</li>
-                            <li>默认空白启动；本地草稿只在你主动恢复时载入。</li>
-                            <li>三个本地身份均可使用完整公式与导出能力。</li>
-                        </ul>
-                    </div>
-
-                    <div id="passwordError" class="password-error" role="alert" aria-live="polite" hidden>密码错误，请重试</div>
-                    <div class="password-hint" id="passwordHint">💡 访问密码由 <strong>js/access-config.js</strong> 统一配置。</div>
-                </form>
-
-                <aside class="password-insight" aria-label="功能亮点">
-                    <div class="password-insight-header">
-                        <span class="insight-label">进入后即可使用</span>
-                        <h3>熟悉的视觉，聚焦的操作</h3>
-                        <p>文件、编辑、视图和输出明确分组；下载 Word 是唯一主操作，常用工具不再藏在页面底部。</p>
-                    </div>
-                    <div class="password-feature-grid">
-                        <article class="password-feature-card">
-                            <div class="feature-icon">📌</div>
-                            <strong>常驻顶部操作栏</strong>
-                            <p>写到哪里都能立即打开文件、切换视图或导出 Word，无需滚动寻找按钮。</p>
-                        </article>
-                        <article class="password-feature-card">
-                            <div class="feature-icon">🧮</div>
-                            <strong>公式状态一眼可见</strong>
-                            <p>直接显示公式总数、错误数和边界修复数，详情在预览区内展开。</p>
-                        </article>
-                        <article class="password-feature-card">
-                            <div class="feature-icon">↔️</div>
-                            <strong>分栏宽度与滚动同步</strong>
-                            <p>拖动分隔条调整宽度并自动记忆，同步滚动可随时开启或关闭。</p>
-                        </article>
-                        <article class="password-feature-card">
-                            <div class="feature-icon">📄</div>
-                            <strong>预览与 Word 结果一致</strong>
-                            <p>公式在导出阶段单独解析，化学式和变量上下标以可编辑文本写入 Word。</p>
-                        </article>
-                    </div>
-                </aside>
-            </div>
-        </div>
+        </main>
     </div>
 
     <div id="dependencyBanner" class="dependency-banner" hidden>
@@ -128,7 +172,7 @@
                     <div class="hero-kicker">MARKDOWN · DOCX · KATEX</div>
                     <h1>🤖 AI智能Markdown转Word转换器</h1>
                     <p>原版玻璃态交互 · 导出前检查 · 公式源码定位 · 可编辑 Word 导出</p>
-                    <div class="author-info">由 <strong>Boning</strong> 开发 · TJUT · <span>融合体验版 v5.1.2</span></div>
+                    <div class="author-info">由 <strong>Boning</strong> 开发 · TJUT · <span>融合体验版 v5.2</span></div>
                 </div>
 
                 <div class="hero-utilities" aria-label="账户与偏好">
@@ -139,11 +183,17 @@
                             <span id="userLevel">个人版</span>
                         </div>
                     </div>
-                    <button type="button" class="hero-utility-button" id="themeButton" title="切换主题" aria-label="切换颜色主题">
-                        <span aria-hidden="true">🎨</span><span id="themeText">暖阳琥珀</span>
+                    <button type="button" class="hero-utility-button" id="commandButton" data-action="open-command-palette" title="打开命令面板（Ctrl / ⌘ + K）">
+                        <svg class="auth-icon hero-utility-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7a3 3 0 1 1 3-3v16a3 3 0 1 1-3-3h8a3 3 0 1 1-3 3V4a3 3 0 1 1 3 3H8Z"/></svg><span>命令</span><kbd>⌘K</kbd>
                     </button>
-                    <button type="button" class="hero-utility-button" id="settingsButton" title="打开统一设置">⚙️ 设置</button>
-                    <button type="button" class="hero-utility-button warning-button" data-action="logout" title="退出当前会话">退出</button>
+                    <button type="button" class="hero-utility-button" id="focusModeButton" data-action="toggle-focus-mode" aria-pressed="false" title="切换专注模式（Ctrl / ⌘ + Shift + F）">
+                        <svg class="auth-icon hero-utility-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H4a1 1 0 0 0-1 1v4M16 3h4a1 1 0 0 1 1 1v4M21 16v4a1 1 0 0 1-1 1h-4M8 21H4a1 1 0 0 1-1-1v-4"/></svg><span>专注</span>
+                    </button>
+                    <button type="button" class="hero-utility-button" id="themeButton" title="切换主题" aria-label="切换颜色主题">
+                        <svg class="auth-icon hero-utility-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9c0-.55-.45-1-1-1h-3.2a2.8 2.8 0 0 1-2.8-2.8V4c0-.55-.45-1-1-1h-1Z"/><path d="M7.5 10.5h.01M9.5 7.5h.01M7.5 14.5h.01"/></svg><span id="themeText">暖阳琥珀</span>
+                    </button>
+                    <button type="button" class="hero-utility-button" id="settingsButton" title="打开统一设置"><svg class="auth-icon hero-utility-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M6 14v6"/></svg><span>设置</span></button>
+                    <button type="button" class="hero-utility-button warning-button" data-action="logout" title="退出当前会话"><svg class="auth-icon hero-utility-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9"/></svg><span>退出</span></button>
                 </div>
             </header>
 
@@ -179,6 +229,9 @@
 
                     <div class="toolbar-section toolbar-output" role="group" aria-label="输出">
                         <span class="toolbar-label mobile-hide">输出</span>
+                        <button type="button" class="tool-button focus-mode-exit-button" id="focusModeExitButton" data-action="exit-focus-mode" title="退出专注模式">
+                            <span aria-hidden="true">↙</span><span class="focus-exit-label">退出专注</span>
+                        </button>
                         <button type="button" class="tool-button mobile-hide compact-toolbar-hide" data-action="copy-rich" title="复制富文本（Ctrl+Enter）">📋 复制富文本</button>
                         <button type="button" class="primary-button mobile-essential mobile-download" id="downloadWordButton" data-action="download-word" title="导出 DOCX（Ctrl+D）" data-readiness="empty" aria-describedby="exportButtonHint">
                             <span class="primary-button-icon" id="downloadWordIcon" aria-hidden="true">📄</span>
@@ -443,6 +496,8 @@
                         <div><kbd>Ctrl / ⌘ + D</kbd><span>下载 Word</span></div>
                         <div><kbd>Ctrl / ⌘ + Enter</kbd><span>复制富文本</span></div>
                         <div><kbd>Ctrl / ⌘ + B / I</kbd><span>粗体 / 斜体</span></div>
+                        <div><kbd>Ctrl / ⌘ + K</kbd><span>打开全局命令面板</span></div>
+                        <div><kbd>Ctrl / ⌘ + Shift + F</kbd><span>切换专注模式</span></div>
                         <div><kbd>Ctrl / ⌘ + /</kbd><span>打开本设置页的快捷键区域</span></div>
                         <div><kbd>Alt + M</kbd><span>插入独立公式</span></div>
                         <div><kbd>双击分隔条</kbd><span>恢复左右均分</span></div>
@@ -454,9 +509,16 @@
                     <div class="account-session-row">
                         <div>
                             <strong id="settingsCurrentUser">当前本地身份</strong>
-                            <p>访问入口和身份名称由 <code>js/access-config.js</code> 管理。退出后将返回密码页。</p>
+                            <p>访问入口和身份名称由 <code>js/access-config.js</code> 管理。退出后将返回密码页，本机自动进入状态会单独保留。</p>
                         </div>
                         <button type="button" class="secondary-button danger-outline-button" data-action="logout">退出当前会话</button>
+                    </div>
+                    <div class="account-session-row remembered-device-row">
+                        <div>
+                            <strong>本机自动进入</strong>
+                            <p id="settingsRememberedDeviceStatus">当前设备未保存自动进入状态。</p>
+                        </div>
+                        <button type="button" class="secondary-button" id="clearRememberedAccessButton" data-action="clear-remembered-access">清除此设备</button>
                     </div>
                 </section>
                 </div>
@@ -468,6 +530,32 @@
             </footer>
         </form>
     </dialog>
+
+    <div class="command-palette" id="commandPalette" hidden aria-hidden="true">
+        <div class="command-palette-backdrop" data-action="close-command-palette" aria-hidden="true"></div>
+        <section class="command-palette-card" role="dialog" aria-modal="true" aria-labelledby="commandPaletteTitle">
+            <h2 class="visually-hidden" id="commandPaletteTitle">全局命令面板</h2>
+            <div class="command-search-row">
+                <svg class="command-search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+                <input type="search" id="commandPaletteInput" placeholder="搜索操作，例如：导出、公式、主题…" autocomplete="off" spellcheck="false" aria-label="搜索工作台操作" aria-controls="commandPaletteList">
+                <kbd>Esc</kbd>
+            </div>
+            <div class="command-palette-meta">
+                <span>快速操作</span>
+                <span id="commandPaletteCount">0 项</span>
+            </div>
+            <div class="command-palette-list" id="commandPaletteList" role="listbox" aria-label="可用命令"></div>
+            <div class="command-palette-empty" id="commandPaletteEmpty" hidden>
+                <strong>没有匹配的命令</strong>
+                <span>尝试输入“Word”“公式”“设置”或“视图”。</span>
+            </div>
+            <footer class="command-palette-footer">
+                <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+                <span><kbd>Enter</kbd> 执行</span>
+                <span><kbd>Esc</kbd> 关闭</span>
+            </footer>
+        </section>
+    </div>
 
     <div class="toast-region" id="toastRegion" aria-live="assertive" aria-atomic="true"></div>
 </body>

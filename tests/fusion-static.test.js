@@ -13,7 +13,8 @@ const mathJs = fs.readFileSync(path.join(root, 'js', 'math-engine.js'), 'utf8');
 const preflightJs = fs.readFileSync(path.join(root, 'js', 'preflight.js'), 'utf8');
 const appCss = fs.readFileSync(path.join(root, 'css', 'app.css'), 'utf8');
 const toolbarCss = fs.readFileSync(path.join(root, 'css', 'toolbar.css'), 'utf8');
-const css = `${appCss}\n${toolbarCss}`;
+const experienceCss = fs.readFileSync(path.join(root, 'css', 'experience.css'), 'utf8');
+const css = `${appCss}\n${toolbarCss}\n${experienceCss}`;
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 
 function collectIds(source) {
@@ -37,17 +38,19 @@ function findOpeningTags(source, tagName) {
     return [...source.matchAll(regex)].map((match) => match[0]);
 }
 
-test('package and page identify the complete v5.1.2 release', () => {
-    assert.equal(pkg.version, '5.1.2');
-    assert.match(html, /融合体验版 v5\.1\.2/);
-    assert.match(html, /js\/preflight\.js\?v=5\.1\.2/);
-    assert.match(html, /css\/toolbar\.css\?v=5\.1\.2/);
+test('package and page identify the complete v5.2 release', () => {
+    assert.equal(pkg.version, '5.2.0');
+    assert.match(html, /融合体验版 v5\.2/);
+    assert.match(html, /js\/preflight\.js\?v=5\.2/);
+    assert.match(html, /css\/toolbar\.css\?v=5\.2/);
+    assert.match(html, /css\/experience\.css\?v=5\.2/);
     assert.match(pkg.scripts.check, /preflight\.js/);
 });
 
 test('keeps the familiar password gate, user identity and four visual themes', () => {
     for (const id of [
         'passwordOverlay', 'passwordForm', 'passwordInput', 'pasteShareCodeButton',
+        'rememberDeviceToggle', 'shareCodePanel', 'authThemeButton',
         'app', 'userStatus', 'themeButton', 'settingsButton', 'markdownInput', 'preview'
     ]) assert.match(html, new RegExp(`id=["']${id}["']`));
 
@@ -203,8 +206,55 @@ test('DOCX export parses math separately into editable subscript and superscript
     assert.match(appJs, /Md2WordMath\.latexToWordSegments/);
     assert.match(appJs, /subScript:\s*Boolean\(segment\.subScript\)/);
     assert.match(appJs, /superScript:\s*Boolean\(segment\.superScript\)/);
-    assert.match(html, /融合体验版 v5\.1\.2/);
+    assert.match(html, /融合体验版 v5\.2/);
     assert.doesNotMatch(appJs, /请.{0,8}手动添加公式/);
+});
+
+test('v5.2 login is a focused brand-and-auth composition rather than a card wall', () => {
+    for (const id of [
+        'authStoryTitle', 'authThemeButton', 'authThemeText', 'rememberDeviceToggle',
+        'capsLockHint', 'shareCodePanel', 'shareCodeInput', 'importShareCodeButton',
+        'authSubmitButton', 'authSubmitLabel'
+    ]) assert.match(html, new RegExp(`id=["']${id}["']`));
+    for (const copy of ['把复杂 Markdown', '公式优先解析', '导出前完整检查', '可编辑 Word 内容', '欢迎回来']) {
+        assert.ok(html.includes(copy), `missing login copy: ${copy}`);
+    }
+    assert.doesNotMatch(html, /password-share-card|password-tips-card|password-feature-grid/);
+    assert.match(experienceCss, /\.password-layout\.auth-layout\s*\{[\s\S]*?grid-template-columns:/);
+    assert.match(experienceCss, /@media \(max-width:\s*680px\)[\s\S]*?min-height:\s*100dvh/);
+    assert.match(experienceCss, /\.auth-capability-list\s*\{/);
+});
+
+test('remembered access, inline share codes, Caps Lock and login states are implemented', () => {
+    assert.match(appJs, /rememberedAccess:\s*'md2word\.fusion\.remembered\.v5\.2'/);
+    assert.match(appJs, /function readRememberedAccess\s*\(/);
+    assert.match(appJs, /function writeRememberedAccess\s*\(/);
+    assert.match(appJs, /function clearRememberedAccess\s*\(/);
+    assert.match(appJs, /function parseSharedAccess\s*\(/);
+    assert.match(appJs, /该分享码已于 \$\{expires\} 过期/);
+    assert.match(appJs, /function updateCapsLockHint\s*\(/);
+    assert.match(appJs, /getModifierState\('CapsLock'\)/);
+    assert.match(appJs, /setAuthSubmitState\('loading'\)/);
+    assert.match(appJs, /setAuthSubmitState\('success'\)/);
+    assert.match(experienceCss, /\.password-btn\[data-state="loading"\]/);
+    assert.match(experienceCss, /\.password-btn\[data-state="success"\]/);
+});
+
+test('v5.2 provides a keyboard command palette and a reversible focus mode', () => {
+    for (const id of [
+        'commandButton', 'commandPalette', 'commandPaletteInput', 'commandPaletteList',
+        'commandPaletteCount', 'focusModeButton', 'focusModeExitButton'
+    ]) assert.match(html, new RegExp(`id=["']${id}["']`));
+    assert.match(appJs, /function openCommandPalette\s*\(/);
+    assert.match(appJs, /function renderCommandPalette\s*\(/);
+    assert.match(appJs, /function executePaletteCommand\s*\(/);
+    assert.match(appJs, /modifier && key === 'k'/);
+    assert.match(appJs, /modifier && event\.shiftKey && key === 'f'/);
+    assert.match(appJs, /function setFocusMode\s*\(/);
+    assert.match(appJs, /document\.body\.classList\.toggle\('focus-mode'/);
+    assert.match(experienceCss, /\.command-palette-card\s*\{/);
+    assert.match(experienceCss, /body\.focus-mode \.hero-header/);
+    assert.match(experienceCss, /body\.focus-mode \.workspace\s*\{/);
 });
 
 test('HTML IDs are unique and every direct byId reference exists', () => {
@@ -223,13 +273,24 @@ test('HTML IDs are unique and every direct byId reference exists', () => {
     assert.deepEqual(missing, []);
 });
 
-test('access configuration still exposes the three familiar local passwords with a v5.1 session key', () => {
+test('access configuration keeps the three familiar local passwords and adds a v5.2 remembered-device key', () => {
     const source = fs.readFileSync(path.join(root, 'js', 'access-config.js'), 'utf8');
     const sandbox = { window: {} };
     vm.runInNewContext(source, sandbox, { filename: 'access-config.js' });
     const config = sandbox.window.MD2WORD_ACCESS;
     assert.match(config.sessionKey, /v5\.1$/);
+    assert.match(config.rememberedKey, /v5\.2$/);
     assert.equal(config.users.basic123.level, 'basic');
     assert.equal(config.users['517517'].level, 'advanced');
     assert.equal(config.users.lingling.level, 'super_admin');
+});
+
+test('focus mode overrides Command Deck important display rules', () => {
+    assert.match(experienceCss, /body\.focus-mode \.quick-toolbar\[data-layout="command-deck"\] \.toolbar-edit-row,[\s\S]*?\.document-name-field\s*\{[\s\S]*?display:\s*none\s*!important/);
+});
+
+test('the command palette traps keyboard focus while open', () => {
+    assert.match(appJs, /function trapCommandPaletteFocus\s*\(/);
+    assert.match(appJs, /state\.commandPaletteOpen[^\n]*event\.key !== 'Tab'/);
+    assert.match(appJs, /if \(trapCommandPaletteFocus\(event\)\) return/);
 });

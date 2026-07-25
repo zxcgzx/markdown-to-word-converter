@@ -4,6 +4,7 @@
     // 纯前端个人版访问配置。按需直接修改此文件即可。
     window.MD2WORD_ACCESS = Object.freeze({
         sessionKey: 'md2word.fusion.auth.v5.1',
+        rememberedKey: 'md2word.fusion.remembered.v5.2',
         users: Object.freeze({
             basic123: Object.freeze({
                 level: 'basic',

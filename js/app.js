@@ -8,7 +8,8 @@
         ai: 'md2word.personal.ai.v3',
         viewLegacy: 'md2word.personal.view.v5',
         viewDesktop: 'md2word.personal.view.desktop.v5.1',
-        viewMobile: 'md2word.personal.view.mobile.v5.1'
+        viewMobile: 'md2word.personal.view.mobile.v5.1',
+        rememberedAccess: 'md2word.fusion.remembered.v5.2'
     };
 
     const DEFAULT_SETTINGS = Object.freeze({
@@ -50,6 +51,7 @@
     });
     const FALLBACK_ACCESS = Object.freeze({
         sessionKey: 'md2word.fusion.auth.v5.1',
+        rememberedKey: 'md2word.fusion.remembered.v5.2',
         users: Object.freeze({
             basic123: Object.freeze({ level: 'basic', name: '基础用户', icon: '🆓', label: '基础版' }),
             '517517': Object.freeze({ level: 'advanced', name: '高级用户', icon: '⭐', label: '高级版' }),
@@ -105,7 +107,13 @@
         initialized: false,
         exporting: false,
         exportReport: null,
-        viewportMode: ''
+        viewportMode: '',
+        authBusy: false,
+        commandPaletteOpen: false,
+        commandResults: [],
+        commandActiveIndex: 0,
+        commandPreviousFocus: null,
+        focusMode: false
     };
 
     const dom = {};
@@ -116,6 +124,27 @@
 
     function queryAll(selector, root = document) {
         return Array.from(root.querySelectorAll(selector));
+    }
+
+    function getFocusableElements(container) {
+        if (!container) return [];
+        return queryAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], summary, [tabindex]:not([tabindex="-1"])', container)
+            .filter((element) => !element.hidden && element.getAttribute('aria-hidden') !== 'true' && element.getClientRects().length > 0);
+    }
+
+    function trapFocusWithin(event, container) {
+        if (event.key !== 'Tab') return;
+        const focusable = getFocusableElements(container);
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+        }
     }
 
     function clamp(value, min, max) {
@@ -250,9 +279,31 @@
             passwordOverlay: byId('passwordOverlay'),
             passwordForm: byId('passwordForm'),
             passwordInput: byId('passwordInput'),
+            passwordInputWrapper: byId('passwordInputWrapper'),
             passwordToggle: byId('passwordToggle'),
             pasteShareCodeButton: byId('pasteShareCodeButton'),
             passwordError: byId('passwordError'),
+            passwordErrorText: byId('passwordErrorText'),
+            capsLockHint: byId('capsLockHint'),
+            rememberDeviceToggle: byId('rememberDeviceToggle'),
+            shareCodePanel: byId('shareCodePanel'),
+            shareCodeInput: byId('shareCodeInput'),
+            shareCodeHint: byId('shareCodeHint'),
+            importShareCodeButton: byId('importShareCodeButton'),
+            authSubmitButton: byId('authSubmitButton'),
+            authSubmitLabel: byId('authSubmitLabel'),
+            authThemeButton: byId('authThemeButton'),
+            authThemeText: byId('authThemeText'),
+            commandPalette: byId('commandPalette'),
+            commandPaletteInput: byId('commandPaletteInput'),
+            commandPaletteList: byId('commandPaletteList'),
+            commandPaletteCount: byId('commandPaletteCount'),
+            commandPaletteEmpty: byId('commandPaletteEmpty'),
+            commandButton: byId('commandButton'),
+            focusModeButton: byId('focusModeButton'),
+            focusModeExitButton: byId('focusModeExitButton'),
+            settingsRememberedDeviceStatus: byId('settingsRememberedDeviceStatus'),
+            clearRememberedAccessButton: byId('clearRememberedAccessButton'),
             userStatus: byId('userStatus'),
             userIcon: byId('userIcon'),
             userName: byId('userName'),
@@ -286,6 +337,7 @@
         });
         dom.mathStatus.addEventListener('click', () => toggleFormulaInspector());
         byId('themeButton').addEventListener('click', toggleTheme);
+        if (dom.authThemeButton) dom.authThemeButton.addEventListener('click', toggleTheme);
         byId('settingsButton').addEventListener('click', () => openSettings('interface'));
         byId('tableInput').addEventListener('input', updateTableOutput);
         byId('aiProvider').addEventListener('change', applyAIPreset);
@@ -300,6 +352,7 @@
         bindDragAndDrop();
         bindSettingsDialog();
         bindAccessEvents();
+        bindCommandPalette();
         window.addEventListener('resize', debounce(() => {
             sanitizeSplitPosition();
             const nextMode = getViewportMode();
@@ -364,6 +417,11 @@
             'open-settings': () => openSettings('interface'),
             'close-settings': () => closeDialog(dom.settingsDialog, 'cancel'),
             'reset-settings': resetSettings,
+            'open-command-palette': openCommandPalette,
+            'close-command-palette': closeCommandPalette,
+            'toggle-focus-mode': toggleFocusMode,
+            'exit-focus-mode': () => setFocusMode(false),
+            'clear-remembered-access': clearRememberedAccess,
             'close-formula-inspector': () => toggleFormulaInspector(false),
             'undo-document': undoDocumentChange,
             'clear-status': clearStatusMessage,
@@ -398,15 +456,97 @@
     function getAccessConfig() {
         const config = window.MD2WORD_ACCESS;
         if (!config || !config.users || typeof config.users !== 'object') return FALLBACK_ACCESS;
-        return { sessionKey: config.sessionKey || FALLBACK_ACCESS.sessionKey, users: config.users };
+        return {
+            sessionKey: config.sessionKey || FALLBACK_ACCESS.sessionKey,
+            rememberedKey: config.rememberedKey || STORAGE.rememberedAccess,
+            users: config.users
+        };
+    }
+
+    function delay(ms) {
+        return new Promise((resolve) => window.setTimeout(resolve, ms));
+    }
+
+    function readRememberedAccess() {
+        const config = getAccessConfig();
+        const key = config.rememberedKey || STORAGE.rememberedAccess;
+        const raw = localStorageGet(key);
+        const remembered = safeJsonParse(raw, null);
+        if (!remembered || !remembered.password || !config.users[remembered.password]) {
+            if (raw) localStorageRemove(key);
+            return null;
+        }
+        return remembered;
+    }
+
+    function writeRememberedAccess(password) {
+        const config = getAccessConfig();
+        return localStorageSet(config.rememberedKey || STORAGE.rememberedAccess, JSON.stringify({
+            password,
+            rememberedAt: Date.now(),
+            version: 1
+        }));
+    }
+
+    function clearRememberedAccess(options = {}) {
+        const config = getAccessConfig();
+        localStorageRemove(config.rememberedKey || STORAGE.rememberedAccess);
+        if (dom.rememberDeviceToggle) dom.rememberDeviceToggle.checked = false;
+        updateRememberedDeviceStatus();
+        if (!options.silent && !document.body.classList.contains('auth-locked')) {
+            setStatusMessage('已清除本机自动进入状态。当前会话仍可继续使用。', { duration: 3200 });
+        }
+    }
+
+    function updateRememberedDeviceStatus() {
+        const remembered = readRememberedAccess();
+        const config = getAccessConfig();
+        const user = remembered && config.users[remembered.password];
+        if (dom.settingsRememberedDeviceStatus) {
+            dom.settingsRememberedDeviceStatus.textContent = user
+                ? `已为 ${user.name || '当前身份'} 保存自动进入状态。`
+                : '当前设备未保存自动进入状态。';
+        }
+        if (dom.clearRememberedAccessButton) {
+            dom.clearRememberedAccessButton.disabled = !remembered;
+            dom.clearRememberedAccessButton.setAttribute('aria-disabled', String(!remembered));
+        }
+        if (dom.rememberDeviceToggle && document.body.classList.contains('auth-locked')) {
+            dom.rememberDeviceToggle.checked = Boolean(remembered);
+        }
     }
 
     function bindAccessEvents() {
         if (!dom.passwordForm) return;
         dom.passwordForm.addEventListener('submit', verifyAccessPassword);
         dom.passwordToggle.addEventListener('click', toggleAccessPassword);
-        dom.pasteShareCodeButton.addEventListener('click', pasteShareCode);
-        dom.passwordInput.addEventListener('input', () => { dom.passwordError.hidden = true; });
+        dom.pasteShareCodeButton.addEventListener('click', toggleShareCodePanel);
+        dom.importShareCodeButton.addEventListener('click', importShareCode);
+        dom.shareCodeInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                importShareCode();
+            } else if (event.key === 'Escape') {
+                event.preventDefault();
+                toggleShareCodePanel(false);
+                dom.passwordInput.focus();
+            }
+        });
+        dom.passwordInput.addEventListener('input', clearAccessError);
+        dom.passwordInput.addEventListener('keydown', updateCapsLockHint);
+        dom.passwordInput.addEventListener('keyup', updateCapsLockHint);
+        dom.passwordInput.addEventListener('blur', () => {
+            if (dom.capsLockHint) dom.capsLockHint.hidden = true;
+        });
+        dom.passwordOverlay.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && dom.shareCodePanel && !dom.shareCodePanel.hidden) {
+                event.preventDefault();
+                toggleShareCodePanel(false);
+                dom.passwordInput.focus();
+                return;
+            }
+            trapFocusWithin(event, dom.passwordOverlay);
+        });
     }
 
     function initializeAccessGate() {
@@ -422,20 +562,64 @@
         } catch (_error) {
             restored = null;
         }
+
+        if (!restored) {
+            const remembered = readRememberedAccess();
+            if (remembered && config.users[remembered.password]) {
+                restored = { password: remembered.password, ...config.users[remembered.password] };
+                try {
+                    sessionStorage.setItem(config.sessionKey, JSON.stringify({
+                        password: remembered.password,
+                        authenticatedAt: Date.now(),
+                        source: 'remembered-device'
+                    }));
+                } catch (_error) {
+                    // 浏览器禁用会话存储时，本次页面仍可继续使用。
+                }
+            }
+        }
+
+        updateRememberedDeviceStatus();
         if (restored) unlockApp(restored, false);
         else lockApp();
     }
 
+    function setAuthSubmitState(nextState = 'idle') {
+        state.authBusy = nextState === 'loading' || nextState === 'success';
+        if (!dom.authSubmitButton) return;
+        dom.authSubmitButton.dataset.state = nextState;
+        dom.authSubmitButton.disabled = state.authBusy;
+        dom.authSubmitButton.setAttribute('aria-busy', String(nextState === 'loading'));
+        if (dom.authSubmitLabel) {
+            dom.authSubmitLabel.textContent = nextState === 'loading'
+                ? '正在验证…'
+                : nextState === 'success'
+                    ? '验证成功'
+                    : '进入工作台';
+        }
+    }
+
     function lockApp() {
+        closeCommandPalette({ restoreFocus: false });
+        setFocusMode(false, { silent: true });
         document.body.classList.add('auth-locked');
         dom.app.setAttribute('aria-hidden', 'true');
         dom.passwordOverlay.hidden = false;
+        dom.passwordOverlay.removeAttribute('aria-hidden');
         dom.passwordOverlay.classList.remove('is-leaving');
         dom.passwordInput.value = '';
         dom.passwordInput.type = 'password';
-        dom.passwordToggle.textContent = '👁️';
+        dom.passwordToggle.dataset.visible = 'false';
         dom.passwordToggle.setAttribute('aria-label', '显示密码');
-        window.setTimeout(() => dom.passwordInput.focus(), 80);
+        dom.passwordToggle.setAttribute('title', '显示密码');
+        dom.passwordInput.setAttribute('aria-invalid', 'false');
+        if (dom.passwordInputWrapper) dom.passwordInputWrapper.classList.remove('is-invalid');
+        if (dom.capsLockHint) dom.capsLockHint.hidden = true;
+        if (dom.passwordError) dom.passwordError.hidden = true;
+        toggleShareCodePanel(false);
+        setAuthSubmitState('idle');
+        updateRememberedDeviceStatus();
+        window.setTimeout(() => dom.passwordInput.focus(), 100);
     }
 
     function unlockApp(user, animate = true) {
@@ -444,46 +628,118 @@
         dom.app.setAttribute('aria-hidden', 'false');
         document.body.classList.remove('auth-locked');
 
+        const complete = () => {
+            dom.passwordOverlay.hidden = true;
+            dom.passwordOverlay.setAttribute('aria-hidden', 'true');
+            dom.passwordOverlay.classList.remove('is-leaving');
+            setAuthSubmitState('idle');
+            dom.markdownInput.focus();
+        };
+
         if (animate) {
             dom.passwordOverlay.classList.add('is-leaving');
-            window.setTimeout(() => {
-                dom.passwordOverlay.hidden = true;
-                dom.passwordOverlay.classList.remove('is-leaving');
-                dom.markdownInput.focus();
-            }, 360);
+            window.setTimeout(complete, 330);
         } else {
-            dom.passwordOverlay.hidden = true;
+            complete();
         }
+    }
+
+    function parseSharedAccess(value) {
+        const raw = String(value || '').trim();
+        if (!raw) return { ok: false, error: '请输入访问密码。' };
+        const firstLine = raw.split(/\r?\n/).find((line) => line.trim())?.trim() || '';
+        if (!/^PWD:/i.test(firstLine)) return { ok: true, password: firstLine };
+
+        const parts = firstLine.slice(4).split('|').map((part) => part.trim());
+        const password = parts[0] || '';
+        const level = parts[1] || '';
+        const expires = parts[2] || '';
+        if (!password) return { ok: false, error: '分享码中没有访问密码。' };
+        if (parts.length > 3) return { ok: false, error: '分享码格式无法识别，请检查分隔符。' };
+
+        if (expires) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(expires)) {
+                return { ok: false, error: '分享码有效期格式应为 YYYY-MM-DD。' };
+            }
+            const [year, month, day] = expires.split('-').map(Number);
+            const deadline = new Date(year, month - 1, day, 23, 59, 59, 999);
+            const validDate = deadline.getFullYear() === year
+                && deadline.getMonth() === month - 1
+                && deadline.getDate() === day;
+            if (!validDate) return { ok: false, error: '分享码有效期无效。' };
+            if (Date.now() > deadline.getTime()) return { ok: false, error: `该分享码已于 ${expires} 过期。` };
+        }
+        return { ok: true, password, level, expires };
     }
 
     function normalizeSharedPassword(value) {
-        const raw = String(value || '').trim();
-        if (!raw) return '';
-        if (/^PWD:/i.test(raw)) return raw.slice(4).split('|')[0].trim();
-        return raw.split(/\r?\n/)[0].trim();
+        const parsed = parseSharedAccess(value);
+        return parsed.ok ? parsed.password : '';
     }
 
-    function verifyAccessPassword(event) {
+    async function verifyAccessPassword(event) {
         event.preventDefault();
-        const password = normalizeSharedPassword(dom.passwordInput.value);
+        if (state.authBusy) return;
+        clearAccessError();
+        const parsed = parseSharedAccess(dom.passwordInput.value);
+        if (!parsed.ok) {
+            showAccessError(parsed.error);
+            dom.passwordInput.focus();
+            return;
+        }
+
+        setAuthSubmitState('loading');
+        await delay(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 190);
+
         const config = getAccessConfig();
-        const user = config.users[password];
+        const user = config.users[parsed.password];
         if (!user) {
-            showAccessError('密码不正确，请检查后重试。');
+            setAuthSubmitState('idle');
+            showAccessError('密码不正确，请重新检查。');
             dom.passwordInput.select();
             return;
         }
+        if (parsed.level && parsed.level !== user.level && parsed.level !== user.label) {
+            setAuthSubmitState('idle');
+            showAccessError('分享码中的身份信息与访问密码不匹配。');
+            return;
+        }
+
         try {
-            sessionStorage.setItem(config.sessionKey, JSON.stringify({ password, authenticatedAt: Date.now() }));
+            sessionStorage.setItem(config.sessionKey, JSON.stringify({
+                password: parsed.password,
+                authenticatedAt: Date.now(),
+                source: 'password'
+            }));
         } catch (_error) {
             // 浏览器禁用会话存储时，本次页面仍可继续使用。
         }
-        unlockApp({ password, ...user }, true);
+
+        const rememberRequested = Boolean(dom.rememberDeviceToggle && dom.rememberDeviceToggle.checked);
+        const rememberSaved = rememberRequested ? writeRememberedAccess(parsed.password) : true;
+        if (!rememberRequested) clearRememberedAccess({ silent: true });
+        updateRememberedDeviceStatus();
+        setAuthSubmitState('success');
+        await delay(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 230);
+        unlockApp({ password: parsed.password, ...user }, true);
+        if (rememberRequested && !rememberSaved) {
+            window.setTimeout(() => setStatusMessage('浏览器未允许保存自动进入状态，本次会话仍可正常使用。', { tone: 'warning', duration: 5200 }), 360);
+        }
+    }
+
+    function clearAccessError() {
+        if (dom.passwordError) dom.passwordError.hidden = true;
+        if (dom.passwordInputWrapper) dom.passwordInputWrapper.classList.remove('is-invalid');
+        if (dom.passwordInput) dom.passwordInput.setAttribute('aria-invalid', 'false');
     }
 
     function showAccessError(message) {
-        dom.passwordError.textContent = message;
+        setAuthSubmitState('idle');
+        if (dom.passwordErrorText) dom.passwordErrorText.textContent = message;
+        else dom.passwordError.textContent = message;
         dom.passwordError.hidden = false;
+        if (dom.passwordInputWrapper) dom.passwordInputWrapper.classList.add('is-invalid');
+        dom.passwordInput.setAttribute('aria-invalid', 'true');
         dom.passwordError.style.animation = 'none';
         requestAnimationFrame(() => { dom.passwordError.style.animation = ''; });
     }
@@ -491,34 +747,84 @@
     function toggleAccessPassword() {
         const visible = dom.passwordInput.type === 'text';
         dom.passwordInput.type = visible ? 'password' : 'text';
-        dom.passwordToggle.textContent = visible ? '👁️' : '🙈';
+        dom.passwordToggle.dataset.visible = String(!visible);
         dom.passwordToggle.setAttribute('aria-label', visible ? '显示密码' : '隐藏密码');
+        dom.passwordToggle.setAttribute('title', visible ? '显示密码' : '隐藏密码');
         dom.passwordInput.focus();
     }
 
-    async function pasteShareCode() {
-        let value = '';
-        try {
-            if (navigator.clipboard && typeof navigator.clipboard.readText === 'function') value = await navigator.clipboard.readText();
-        } catch (_error) {
-            value = '';
-        }
-        if (!value) value = window.prompt('请粘贴分享码或访问密码：') || '';
-        const password = normalizeSharedPassword(value);
-        if (!password) {
-            showAccessError('没有读取到有效的分享码。');
+    function updateCapsLockHint(event) {
+        if (!dom.capsLockHint || typeof event.getModifierState !== 'function') return;
+        dom.capsLockHint.hidden = !event.getModifierState('CapsLock');
+    }
+
+    function setShareCodeHint(message, stateName = '') {
+        if (!dom.shareCodeHint || !dom.shareCodePanel) return;
+        dom.shareCodeHint.textContent = message;
+        dom.shareCodePanel.dataset.state = stateName;
+    }
+
+    async function toggleShareCodePanel(force) {
+        if (!dom.shareCodePanel) return;
+        const shouldOpen = typeof force === 'boolean' ? force : dom.shareCodePanel.hidden;
+        dom.shareCodePanel.hidden = !shouldOpen;
+        dom.pasteShareCodeButton.setAttribute('aria-expanded', String(shouldOpen));
+        if (!shouldOpen) {
+            dom.shareCodePanel.dataset.state = '';
             return;
         }
-        dom.passwordInput.value = password;
-        dom.passwordInput.focus();
-        dom.passwordInput.select();
-        dom.passwordError.hidden = true;
+
+        setShareCodeHint('可直接粘贴密码；带日期的分享码会自动检查有效期。');
+        let clipboardValue = '';
+        try {
+            if (navigator.clipboard && typeof navigator.clipboard.readText === 'function') {
+                clipboardValue = (await navigator.clipboard.readText()).trim();
+            }
+        } catch (_error) {
+            clipboardValue = '';
+        }
+        if (clipboardValue) dom.shareCodeInput.value = clipboardValue;
+        requestAnimationFrame(() => {
+            dom.shareCodeInput.focus();
+            if (clipboardValue) dom.shareCodeInput.select();
+        });
+    }
+
+    function importShareCode() {
+        const parsed = parseSharedAccess(dom.shareCodeInput.value);
+        if (!parsed.ok) {
+            setShareCodeHint(parsed.error, 'error');
+            dom.shareCodeInput.focus();
+            return;
+        }
+        const config = getAccessConfig();
+        const user = config.users[parsed.password];
+        if (!user) {
+            setShareCodeHint('分享码中的访问密码无效。', 'error');
+            dom.shareCodeInput.select();
+            return;
+        }
+        if (parsed.level && parsed.level !== user.level && parsed.level !== user.label) {
+            setShareCodeHint('分享码中的身份信息与访问密码不匹配。', 'error');
+            return;
+        }
+
+        dom.passwordInput.value = parsed.password;
+        clearAccessError();
+        setShareCodeHint(`已导入 ${user.name || '本地身份'}，可直接进入工作台。`, 'success');
+        window.setTimeout(() => {
+            toggleShareCodePanel(false);
+            dom.passwordInput.focus();
+            dom.passwordInput.select();
+        }, 360);
     }
 
     function logoutAccess() {
         const config = getAccessConfig();
         try { sessionStorage.removeItem(config.sessionKey); } catch (_error) { /* ignore */ }
         state.currentUser = null;
+        closeCommandPalette({ restoreFocus: false });
+        setFocusMode(false, { silent: true });
         closeDialog(dom.settingsDialog, 'logout');
         closeToolDrawer();
         clearStatusMessage();
@@ -533,6 +839,7 @@
         dom.userLevel.textContent = user.label || user.level || '个人版';
         const settingsCurrentUser = byId('settingsCurrentUser');
         if (settingsCurrentUser) settingsCurrentUser.textContent = `${user.icon || '👤'} ${user.name || '用户'} · ${user.label || user.level || '个人版'}`;
+        updateRememberedDeviceStatus();
     }
 
     function loadSettings() {
@@ -570,9 +877,15 @@
             ? (prefersDark ? 'noir' : 'amber')
             : (THEME_ORDER.includes(state.settings.theme) ? state.settings.theme : 'amber');
         document.documentElement.dataset.theme = resolved;
-        if (dom.themeText) dom.themeText.textContent = THEME_LABELS[resolved] || '暖阳琥珀';
+        const label = THEME_LABELS[resolved] || '暖阳琥珀';
+        if (dom.themeText) dom.themeText.textContent = label;
+        if (dom.authThemeText) dom.authThemeText.textContent = label;
         const button = byId('themeButton');
-        if (button) button.title = `当前：${THEME_LABELS[resolved] || resolved}，点击切换下一套主题`;
+        if (button) button.title = `当前：${label}，点击切换下一套主题`;
+        if (dom.authThemeButton) {
+            dom.authThemeButton.title = `当前：${label}，点击切换下一套主题`;
+            dom.authThemeButton.setAttribute('aria-label', `当前主题：${label}。切换下一套主题`);
+        }
     }
 
     function toggleTheme() {
@@ -585,6 +898,7 @@
     }
 
     function openSettings(section = 'interface') {
+        if (state.focusMode) setFocusMode(false, { silent: true });
         populateSettingsForm();
         activateSettingsTab(section);
         showDialog(dom.settingsDialog);
@@ -624,6 +938,7 @@
         byId('wordLineSpacing').value = String(state.settings.wordLineSpacing);
         byId('wordMarginCm').value = state.settings.wordMarginCm;
         populateAISettings();
+        updateRememberedDeviceStatus();
     }
 
     function bindSettingsDialog() {
@@ -1368,15 +1683,349 @@
         }
     }
 
-    function onGlobalKeydown(event) {
-        if (document.body.classList.contains('auth-locked')) return;
-        if (event.key === 'Escape') {
-            closeToolbarMoreMenu();
-            return;
+    function getCommandDefinitions() {
+        return [
+            {
+                id: 'open-file', icon: '↗', label: '打开 Markdown',
+                description: '从本机选择 .md、.markdown 或 .txt 文件', keywords: '文件 打开 导入 open', shortcut: 'Ctrl O',
+                run: openFilePicker
+            },
+            {
+                id: 'new-document', icon: 'N', label: '新建空白文档',
+                description: '清空工作区并保留一次可撤销快照', keywords: '新建 空白 文档 new', shortcut: 'Ctrl N',
+                run: newDocument
+            },
+            {
+                id: 'save-markdown', icon: 'MD', label: '下载 Markdown',
+                description: '使用当前文档名保存 .md 文件', keywords: '保存 下载 markdown md', shortcut: 'Ctrl S',
+                run: saveMarkdownFile
+            },
+            {
+                id: 'download-word', icon: 'W', label: '下载 Word',
+                description: '运行导出检查并生成可编辑 DOCX', keywords: '导出 下载 word docx', shortcut: 'Ctrl D',
+                run: () => downloadWord()
+            },
+            {
+                id: 'copy-rich', icon: '⧉', label: '复制富文本',
+                description: '复制当前预览中的格式化内容', keywords: '复制 富文本 粘贴 clipboard', shortcut: 'Ctrl Enter',
+                run: copyRichText
+            },
+            {
+                id: 'export-check', icon: '✓', label: '运行导出前检查',
+                description: '检查公式、图片、表格和文档结构', keywords: '检查 预检 错误 公式 图片 表格', shortcut: '',
+                run: () => openExportCheck(buildExportReport())
+            },
+            {
+                id: 'view-editor', icon: 'E', label: '切换到编辑视图',
+                description: '只显示 Markdown 编辑器', keywords: '视图 编辑 editor', shortcut: '',
+                run: () => setView('editor')
+            },
+            {
+                id: 'view-split', icon: 'S', label: '切换到分栏视图',
+                description: '并排或上下显示编辑器与预览', keywords: '视图 分栏 split', shortcut: '',
+                run: () => setView('split')
+            },
+            {
+                id: 'view-preview', icon: 'P', label: '切换到预览视图',
+                description: '只显示渲染后的文档', keywords: '视图 预览 preview', shortcut: '',
+                run: () => setView('preview')
+            },
+            {
+                id: 'inline-math', icon: 'ƒx', label: '插入行内公式',
+                description: '在光标处插入 \\(...\\) 公式边界', keywords: '公式 数学 行内 inline math', shortcut: '',
+                run: () => applyEditorCommand('inline-math')
+            },
+            {
+                id: 'display-math', icon: 'Σ', label: '插入独立公式',
+                description: '在光标处插入 \\[...\\] 公式块', keywords: '公式 数学 独立 display math', shortcut: 'Alt M',
+                run: () => applyEditorCommand('display-math')
+            },
+            {
+                id: 'table-tool', icon: '▦', label: '打开表格转换',
+                description: '将 TSV、CSV 转换为 Markdown 表格', keywords: '表格 csv tsv table', shortcut: '',
+                run: openTableTool
+            },
+            {
+                id: 'ai-fix', icon: 'AI', label: '运行 AI 修复',
+                description: '按当前 AI 设置处理选区或全文', keywords: 'ai 修复 格式 优化', shortcut: '',
+                run: runAIDirect
+            },
+            {
+                id: 'toggle-sync', icon: '↕', label: state.settings.syncScroll ? '关闭同步滚动' : '开启同步滚动',
+                description: '按比例同步编辑器与预览滚动位置', keywords: '同步 滚动 sync scroll', shortcut: '',
+                run: toggleSyncScrollFromCommand
+            },
+            {
+                id: 'theme', icon: '◐', label: '切换颜色主题',
+                description: `当前为 ${THEME_LABELS[document.documentElement.dataset.theme] || '暖阳琥珀'}`, keywords: '主题 颜色 theme 深色 黑金 极光', shortcut: '',
+                run: toggleTheme
+            },
+            {
+                id: 'focus', icon: '◫', label: state.focusMode ? '退出专注模式' : '进入专注模式',
+                description: '隐藏非必要区域，聚焦编辑与预览', keywords: '专注 聚焦 focus', shortcut: 'Ctrl Shift F',
+                run: toggleFocusMode
+            },
+            {
+                id: 'settings', icon: '⚙', label: '打开统一设置',
+                description: '调整界面、Word、AI、快捷键和账户', keywords: '设置 偏好 settings', shortcut: 'Ctrl /',
+                run: () => openSettings('interface')
+            },
+            {
+                id: 'formula-example', icon: '∑', label: '加载公式示例',
+                description: '载入化学结构与公式边界示例', keywords: '示例 公式 化学 example', shortcut: '',
+                run: loadFormulaExample
+            },
+            {
+                id: 'clear-document', icon: '×', label: '清空当前文档',
+                description: '清空内容并保留一次撤销机会', keywords: '清空 删除 clear', shortcut: '',
+                run: clearDocument
+            }
+        ];
+    }
+
+    function normalizeCommandQuery(value) {
+        return String(value || '').trim().toLocaleLowerCase('zh-CN').replace(/\s+/g, ' ');
+    }
+
+    function scoreCommandMatch(command, query) {
+        if (!query) return 0;
+        const label = normalizeCommandQuery(command.label);
+        const description = normalizeCommandQuery(command.description);
+        const keywords = normalizeCommandQuery(command.keywords);
+        const shortcut = normalizeCommandQuery(command.shortcut);
+        const terms = query.split(' ').filter(Boolean);
+        const haystack = `${label} ${description} ${keywords} ${shortcut}`;
+        if (!terms.every((term) => haystack.includes(term))) return -1;
+
+        let score = 0;
+        if (label === query) score += 1200;
+        else if (label.startsWith(query)) score += 900;
+        else if (label.includes(query)) score += 700;
+        terms.forEach((term) => {
+            if (label.split(' ').includes(term)) score += 260;
+            else if (label.includes(term)) score += 180;
+            if (keywords.split(' ').includes(term)) score += 150;
+            else if (keywords.includes(term)) score += 90;
+            if (description.includes(term)) score += 35;
+            if (shortcut.includes(term)) score += 20;
+        });
+        return score;
+    }
+
+    function renderCommandPalette(query = '') {
+        if (!dom.commandPaletteList) return;
+        const normalized = normalizeCommandQuery(query);
+        const commands = getCommandDefinitions();
+        state.commandResults = normalized
+            ? commands
+                .map((command, index) => ({ command, index, score: scoreCommandMatch(command, normalized) }))
+                .filter((entry) => entry.score >= 0)
+                .sort((a, b) => b.score - a.score || a.index - b.index)
+                .map((entry) => entry.command)
+            : commands;
+        state.commandActiveIndex = clamp(state.commandActiveIndex, 0, Math.max(0, state.commandResults.length - 1));
+
+        dom.commandPaletteList.innerHTML = state.commandResults.map((command, index) => `
+            <button type="button" class="command-item" id="commandOption-${escapeHtml(command.id)}" role="option"
+                aria-selected="${index === state.commandActiveIndex}" data-palette-command="${escapeHtml(command.id)}">
+                <span class="command-item-icon" aria-hidden="true">${escapeHtml(command.icon)}</span>
+                <span class="command-item-copy">
+                    <span class="command-item-label">${escapeHtml(command.label)}</span>
+                    <span class="command-item-description">${escapeHtml(command.description)}</span>
+                </span>
+                ${command.shortcut ? `<span class="command-item-shortcut">${escapeHtml(command.shortcut)}</span>` : '<span></span>'}
+            </button>`).join('');
+        dom.commandPaletteCount.textContent = `${state.commandResults.length} 项`;
+        dom.commandPaletteEmpty.hidden = state.commandResults.length > 0;
+        dom.commandPaletteList.hidden = state.commandResults.length === 0;
+        updateCommandPaletteActive({ scroll: false });
+    }
+
+    function updateCommandPaletteActive(options = {}) {
+        const items = queryAll('.command-item', dom.commandPaletteList);
+        items.forEach((item, index) => item.setAttribute('aria-selected', String(index === state.commandActiveIndex)));
+        const active = items[state.commandActiveIndex];
+        if (active) {
+            dom.commandPaletteInput.setAttribute('aria-activedescendant', active.id);
+            if (options.scroll !== false) active.scrollIntoView({ block: 'nearest' });
+        } else {
+            dom.commandPaletteInput.removeAttribute('aria-activedescendant');
         }
+    }
+
+    function bindCommandPalette() {
+        if (!dom.commandPalette || !dom.commandPaletteInput || !dom.commandPaletteList) return;
+        dom.commandPalette.addEventListener('keydown', (event) => trapFocusWithin(event, dom.commandPalette));
+        dom.commandPaletteInput.addEventListener('input', () => {
+            state.commandActiveIndex = 0;
+            renderCommandPalette(dom.commandPaletteInput.value);
+        });
+        dom.commandPaletteInput.addEventListener('keydown', (event) => {
+            if (!['ArrowDown', 'ArrowUp', 'Home', 'End', 'Enter', 'Escape'].includes(event.key)) return;
+            event.preventDefault();
+            event.stopPropagation();
+            if (event.key === 'Escape') {
+                closeCommandPalette();
+                return;
+            }
+            if (!state.commandResults.length) return;
+            if (event.key === 'ArrowDown') state.commandActiveIndex = (state.commandActiveIndex + 1) % state.commandResults.length;
+            else if (event.key === 'ArrowUp') state.commandActiveIndex = (state.commandActiveIndex - 1 + state.commandResults.length) % state.commandResults.length;
+            else if (event.key === 'Home') state.commandActiveIndex = 0;
+            else if (event.key === 'End') state.commandActiveIndex = state.commandResults.length - 1;
+            else if (event.key === 'Enter') {
+                executePaletteCommand(state.commandResults[state.commandActiveIndex].id);
+                return;
+            }
+            updateCommandPaletteActive();
+        });
+        dom.commandPaletteList.addEventListener('mousemove', (event) => {
+            const item = event.target.closest('[data-palette-command]');
+            if (!item) return;
+            const index = state.commandResults.findIndex((command) => command.id === item.dataset.paletteCommand);
+            if (index >= 0 && index !== state.commandActiveIndex) {
+                state.commandActiveIndex = index;
+                updateCommandPaletteActive({ scroll: false });
+            }
+        });
+        dom.commandPaletteList.addEventListener('click', (event) => {
+            const item = event.target.closest('[data-palette-command]');
+            if (!item) return;
+            executePaletteCommand(item.dataset.paletteCommand);
+        });
+    }
+
+    function openCommandPalette() {
+        if (document.body.classList.contains('auth-locked') || !dom.commandPalette) return;
+        closeToolbarMoreMenu();
+        state.commandPreviousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        state.commandPaletteOpen = true;
+        state.commandActiveIndex = 0;
+        dom.commandPalette.hidden = false;
+        dom.commandPalette.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('command-palette-open');
+        dom.commandPaletteInput.value = '';
+        renderCommandPalette('');
+        requestAnimationFrame(() => dom.commandPaletteInput.focus({ preventScroll: true }));
+    }
+
+    function closeCommandPalette(options = {}) {
+        if (!dom.commandPalette || dom.commandPalette.hidden) return;
+        const previous = state.commandPreviousFocus;
+        state.commandPaletteOpen = false;
+        state.commandResults = [];
+        dom.commandPalette.hidden = true;
+        dom.commandPalette.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('command-palette-open');
+        dom.commandPaletteInput.value = '';
+        dom.commandPaletteList.innerHTML = '';
+        if (options.restoreFocus !== false && previous && previous.isConnected && typeof previous.focus === 'function') {
+            requestAnimationFrame(() => previous.focus({ preventScroll: true }));
+        }
+        state.commandPreviousFocus = null;
+    }
+
+    function executePaletteCommand(commandId) {
+        const command = getCommandDefinitions().find((item) => item.id === commandId);
+        if (!command) return;
+        closeCommandPalette({ restoreFocus: false });
+        requestAnimationFrame(() => command.run());
+    }
+
+    function trapCommandPaletteFocus(event) {
+        if (!state.commandPaletteOpen || event.key !== 'Tab' || !dom.commandPalette) return false;
+        const focusable = queryAll('input, button, [href], [tabindex]:not([tabindex="-1"])', dom.commandPalette)
+            .filter((element) => !element.disabled && !element.hidden && element.getClientRects().length > 0);
+        if (!focusable.length) return false;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const active = document.activeElement;
+        if (event.shiftKey && (active === first || !dom.commandPalette.contains(active))) {
+            event.preventDefault();
+            last.focus();
+            return true;
+        }
+        if (!event.shiftKey && active === last) {
+            event.preventDefault();
+            first.focus();
+            return true;
+        }
+        return false;
+    }
+
+    function toggleSyncScrollFromCommand() {
+        state.settings.syncScroll = !state.settings.syncScroll;
+        dom.syncScrollToggle.checked = state.settings.syncScroll;
+        if (dom.settingsSyncScrollToggle) dom.settingsSyncScrollToggle.checked = state.settings.syncScroll;
+        persistSettings();
+        setStatusMessage(state.settings.syncScroll ? '已开启编辑与预览同步滚动。' : '已关闭同步滚动。', { duration: 2600 });
+    }
+
+    function setFocusMode(enabled, options = {}) {
+        const next = Boolean(enabled);
+        if (next && document.body.classList.contains('auth-locked')) return;
+        state.focusMode = next;
+        document.body.classList.toggle('focus-mode', next);
+        if (dom.focusModeButton) {
+            dom.focusModeButton.setAttribute('aria-pressed', String(next));
+            dom.focusModeButton.title = next ? '退出专注模式（Ctrl / ⌘ + Shift + F）' : '进入专注模式（Ctrl / ⌘ + Shift + F）';
+        }
+        if (dom.focusModeExitButton) dom.focusModeExitButton.setAttribute('aria-hidden', String(!next));
+        if (next) {
+            closeToolDrawer();
+            closeToolbarMoreMenu();
+            if (dom.settingsDialog && dom.settingsDialog.open) closeDialog(dom.settingsDialog, 'focus');
+        }
+        closeCommandPalette({ restoreFocus: false });
+        requestAnimationFrame(() => {
+            sanitizeSplitPosition();
+            const view = dom.workspace.dataset.view;
+            if (view === 'preview') renderPreview({ immediate: true, force: true });
+            if (next) {
+                const focusTarget = view === 'preview' ? dom.preview : dom.markdownInput;
+                focusTarget.focus({ preventScroll: true });
+            }
+        });
+        if (!options.silent) setStatusMessage(next ? '已进入专注模式。按 Ctrl / ⌘ + Shift + F 退出。' : '已退出专注模式。', { duration: 2600 });
+    }
+
+    function toggleFocusMode() {
+        setFocusMode(!state.focusMode);
+    }
+
+
+    function onGlobalKeydown(event) {
+        if (trapCommandPaletteFocus(event)) return;
         const modifier = event.ctrlKey || event.metaKey;
         const key = event.key.toLowerCase();
-        if (modifier && key === 's') {
+
+        if (modifier && key === 'k') {
+            if (document.body.classList.contains('auth-locked')) return;
+            event.preventDefault();
+            if (state.commandPaletteOpen) closeCommandPalette();
+            else openCommandPalette();
+            return;
+        }
+
+        if (document.body.classList.contains('auth-locked')) return;
+
+        if (event.key === 'Escape') {
+            if (state.commandPaletteOpen) {
+                event.preventDefault();
+                closeCommandPalette();
+            } else if (state.focusMode) {
+                event.preventDefault();
+                setFocusMode(false);
+            } else {
+                closeToolbarMoreMenu();
+            }
+            return;
+        }
+
+        if (modifier && event.shiftKey && key === 'f') {
+            event.preventDefault();
+            toggleFocusMode();
+        } else if (modifier && key === 's') {
             event.preventDefault();
             saveMarkdownFile();
         } else if (modifier && key === 'o') {
@@ -1741,6 +2390,7 @@
     }
 
     function openToolDrawer(panel, title) {
+        if (state.focusMode) setFocusMode(false, { silent: true });
         state.activeTool = panel;
         dom.toolDrawer.hidden = false;
         dom.toolDrawerTitle.textContent = title;
@@ -2201,7 +2851,7 @@
             const line = Math.round(240 * state.settings.wordLineSpacing);
             const fontSize = Math.round(state.settings.wordFontSize * 2);
             const doc = new window.docx.Document({
-                creator: 'AI智能Markdown转Word转换器 · 融合体验版 v5.1.2',
+                creator: 'AI智能Markdown转Word转换器 · 融合体验版 v5.2',
                 title,
                 description: '由浏览器本地生成；公式转换为可编辑文本与上下标',
                 styles: {
@@ -2610,7 +3260,15 @@
             getViewportMode,
             getState: () => ({ ...state }),
             resetSplitPosition,
-            toggleFormulaInspector
+            toggleFormulaInspector,
+            openCommandPalette,
+            closeCommandPalette,
+            renderCommandPalette,
+            setFocusMode,
+            toggleFocusMode,
+            parseSharedAccess,
+            clearRememberedAccess,
+            updateRememberedDeviceStatus
         };
     }
 })();

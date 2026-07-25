@@ -1,8 +1,8 @@
 {
-  "name": "markdown-to-word-converter-fusion-v5-1-2",
-  "version": "5.1.2",
+  "name": "markdown-to-word-converter-fusion-v5-2",
+  "version": "5.2.0",
   "private": true,
-  "description": "保留原版玻璃态与密码入口，加入稳健的 Command Deck 双层常驻工具栏、导出前检查、公式源码定位、独立保存状态、响应式更多菜单和分类设置的纯前端 Markdown 转 Word 工具",
+  "description": "保留原版玻璃态工作台，加入高级双栏品牌登录、设备自动进入、内联分享码、全局命令面板、专注模式、导出前检查和可靠公式导出的纯前端 Markdown 转 Word 工具",
   "scripts": {
     "test": "node --test tests/*.test.js",
     "check": "node --check js/access-config.js && node --check js/math-engine.js && node --check js/preflight.js && node --check js/app.js"

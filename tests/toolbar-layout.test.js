@@ -15,9 +15,10 @@ function positionOf(fragment) {
     return index;
 }
 
-test('v5.1.2 loads a cache-busted dedicated toolbar stylesheet', () => {
-    assert.match(html, /css\/app\.css\?v=5\.1\.2/);
-    assert.match(html, /css\/toolbar\.css\?v=5\.1\.2/);
+test('v5.2 loads cache-busted toolbar and experience stylesheets', () => {
+    assert.match(html, /css\/app\.css\?v=5\.2/);
+    assert.match(html, /css\/toolbar\.css\?v=5\.2/);
+    assert.match(html, /css\/experience\.css\?v=5\.2/);
     assert.match(html, /class="quick-toolbar" data-layout="command-deck"/);
 });
 
