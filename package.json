@@ -1,10 +1,10 @@
 {
-  "name": "markdown-to-word-converter-fusion-v5-2-3",
-  "version": "5.2.3",
+  "name": "markdown-to-word-converter-fusion-v5-3",
+  "version": "5.3.0",
   "private": true,
-  "description": "保留原版玻璃态与全局排版系统，新增高置信度裸行内 TeX 识别、数值百分号修复、可靠公式预览和可编辑 Word 导出的纯前端工具",
+  "description": "保留原版玻璃态、可靠公式与全局排版系统，新增多文档中心、版本历史、智能粘贴、工作区备份、依赖诊断和导出成功回执的纯前端 Markdown 转 Word 工作台",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "check": "node --check js/access-config.js && node --check js/math-engine.js && node --check js/preflight.js && node --check js/app.js"
+    "check": "node --check js/access-config.js && node --check js/math-engine.js && node --check js/preflight.js && node --check js/workflow.js && node --check js/app.js"
   }
 }

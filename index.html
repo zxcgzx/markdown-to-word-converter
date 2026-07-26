@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="color-scheme" content="light dark">
-    <meta name="description" content="保留原版玻璃态与密码入口的 Markdown 转 Word 工具，提供常驻操作栏、可靠公式预览、可编辑公式导出、AI 修复和表格转换。">
-    <title>AI 智能 Markdown 转 Word · 融合体验版 v5.2.3</title>
+    <meta name="description" content="保留原版玻璃态与密码入口的 Markdown 转 Word 工作台，支持多文档中心、版本历史、智能粘贴、可靠公式、导出前检查、本地备份与可编辑 Word 导出。">
+    <title>AI 智能 Markdown 转 Word · 融合体验版 v5.3</title>
 
     <script src="https://cdn.jsdelivr.net/npm/marked@9.0.0/marked.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" defer></script>
@@ -15,18 +15,47 @@
     <script src="https://unpkg.com/docx@7.8.2/build/index.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" defer></script>
 
-    <link rel="stylesheet" href="css/app.css?v=5.2.3">
-    <link rel="stylesheet" href="css/toolbar.css?v=5.2.3">
-    <link rel="stylesheet" href="css/experience.css?v=5.2.3">
-    <link rel="stylesheet" href="css/hero.css?v=5.2.3">
-    <link rel="stylesheet" href="css/typography.css?v=5.2.3">
-    <script src="js/access-config.js?v=5.2.3" defer></script>
-    <script src="js/math-engine.js?v=5.2.3" defer></script>
-    <script src="js/preflight.js?v=5.2.3" defer></script>
-    <script src="js/app.js?v=5.2.3" defer></script>
+    <link rel="stylesheet" href="css/app.css?v=5.3">
+    <link rel="stylesheet" href="css/toolbar.css?v=5.3">
+    <link rel="stylesheet" href="css/experience.css?v=5.3">
+    <link rel="stylesheet" href="css/hero.css?v=5.3">
+    <link rel="stylesheet" href="css/typography.css?v=5.3">
+    <link rel="stylesheet" href="css/workflow.css?v=5.3">
+    <script src="js/access-config.js?v=5.3" defer></script>
+    <script src="js/math-engine.js?v=5.3" defer></script>
+    <script src="js/preflight.js?v=5.3" defer></script>
+    <script src="js/workflow.js?v=5.3" defer></script>
+    <script src="js/app.js?v=5.3" defer></script>
 </head>
 <body class="auth-locked">
     <noscript><div class="fatal-banner">此工具需要启用 JavaScript。</div></noscript>
+
+    <svg class="ui-icon-sprite" aria-hidden="true" focusable="false">
+        <symbol id="icon-document-new" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v5h5M12 11v6M9 14h6"/></symbol>
+        <symbol id="icon-folder-open" viewBox="0 0 24 24"><path d="M3 6h6l2 2h10l-2 11H4z"/><path d="M3 8v11"/></symbol>
+        <symbol id="icon-save" viewBox="0 0 24 24"><path d="M5 3h12l2 2v16H5z"/><path d="M8 3v6h8V3M8 14h8v7"/></symbol>
+        <symbol id="icon-documents" viewBox="0 0 24 24"><path d="M7 4h11v15H7z"/><path d="M4 7v14h11M10 8h5M10 12h5M10 16h3"/></symbol>
+        <symbol id="icon-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="11" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h2"/></symbol>
+        <symbol id="icon-word" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v5h5M8.5 12l1.5 5 2-5 2 5 1.5-5"/></symbol>
+        <symbol id="icon-table" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M8 5v14M15 5v14"/></symbol>
+        <symbol id="icon-ai" viewBox="0 0 24 24"><rect x="5" y="7" width="14" height="11" rx="3"/><path d="M9 11h.01M15 11h.01M9 15h6M12 3v4M8 3h8M3 11h2M19 11h2"/></symbol>
+        <symbol id="icon-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 3h6l1 4H8zM7 7l1 14h8l1-14M10 11v6M14 11v6"/></symbol>
+        <symbol id="icon-edit" viewBox="0 0 24 24"><path d="m4 20 4-1 11-11-3-3L5 16zM14 7l3 3"/></symbol>
+        <symbol id="icon-preview" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.5"/></symbol>
+        <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+        <symbol id="icon-warning" viewBox="0 0 24 24"><path d="M12 3 2.5 20h19zM12 9v5M12 17h.01"/></symbol>
+        <symbol id="icon-error" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></symbol>
+        <symbol id="icon-spinner" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7"/></symbol>
+        <symbol id="icon-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></symbol>
+        <symbol id="icon-backup" viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="M9 4v5h6V4M8 15h8M12 12v6M9 15l3 3 3-3"/></symbol>
+        <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+        <symbol id="icon-chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></symbol>
+        <symbol id="icon-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.86 2.86-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21H9.6v-.1A1.7 1.7 0 0 0 8.2 19.3a1.7 1.7 0 0 0-1.88.34l-.06.06-2.86-2.86.06-.06A1.7 1.7 0 0 0 3.8 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H2V9.6h.1A1.7 1.7 0 0 0 3.7 8.2a1.7 1.7 0 0 0-.34-1.88l-.06-.06L6.16 3.4l.06.06A1.7 1.7 0 0 0 8.1 3.8a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V2h4v.1A1.7 1.7 0 0 0 14.9 3.7a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.86 2.86-.06.06A1.7 1.7 0 0 0 19.3 8.1a1.7 1.7 0 0 0 .6 1 1.7 1.7 0 0 0 1.1.4h.1v4h-.1A1.7 1.7 0 0 0 19.4 15Z"/></symbol>
+        <symbol id="icon-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18h1.2a1.8 1.8 0 0 0 1.2-3.1l-.3-.3a1.8 1.8 0 0 1 1.2-3.1H18a3 3 0 0 0 3-3A8.5 8.5 0 0 0 12 3Z"/><path d="M7.5 10h.01M9.5 6.8h.01M14 6.5h.01M17 9h.01"/></symbol>
+        <symbol id="icon-keyboard" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M18 10h.01M7 14h.01M10 14h7"/></symbol>
+        <symbol id="icon-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></symbol>
+        <symbol id="icon-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></symbol>
+    </svg>
 
     <div id="passwordOverlay" class="password-overlay auth-stage" role="dialog" aria-modal="true" aria-labelledby="passwordTitle" aria-describedby="passwordDesc">
         <div class="auth-atmosphere" aria-hidden="true">
@@ -49,7 +78,7 @@
                         <svg class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9c0-.55-.45-1-1-1h-3.2a2.8 2.8 0 0 1-2.8-2.8V4c0-.55-.45-1-1-1h-1Z"/><path d="M7.5 10.5h.01M9.5 7.5h.01M7.5 14.5h.01"/></svg>
                         <span id="authThemeText">暖阳琥珀</span>
                     </button>
-                    <span class="auth-version-pill">v5.2.3</span>
+                    <span class="auth-version-pill">v5.3</span>
                 </div>
             </header>
 
@@ -83,7 +112,7 @@
 
                         <div class="auth-update-note">
                             <span class="auth-update-dot" aria-hidden="true"></span>
-                            <div><strong>v5.2.3 公式兼容增强</strong><p>高置信度识别 AI 输出中的裸行内 TeX，并修复数值百分号转义。</p></div>
+                            <div><strong>v5.3 可靠工作流</strong><p>多文档中心、自动版本历史、智能粘贴与本地备份，让每次编辑都可找回。</p></div>
                         </div>
                     </div>
 
@@ -192,7 +221,7 @@
 
                     <div class="author-info">
                         <span class="hero-author"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><strong>Boning</strong> · TJUT</span>
-                        <span class="hero-version">Fusion v5.2.3</span>
+                        <span class="hero-version">Fusion v5.3</span>
                     </div>
                 </div>
 
@@ -217,6 +246,9 @@
                         <button type="button" class="hero-utility-button" id="themeButton" title="切换主题" aria-label="切换颜色主题">
                             <svg class="auth-icon hero-utility-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9c0-.55-.45-1-1-1h-3.2a2.8 2.8 0 0 1-2.8-2.8V4c0-.55-.45-1-1-1h-1Z"/><path d="M7.5 10.5h.01M9.5 7.5h.01M7.5 14.5h.01"/></svg><span id="themeText">暖阳琥珀</span>
                         </button>
+                        <button type="button" class="hero-utility-button hero-collapse-button" id="heroCollapseButton" data-action="toggle-hero" aria-pressed="false" title="收起或展开品牌标题区">
+                            <svg class="auth-icon hero-utility-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 14 5-5 5 5"/></svg><span id="heroCollapseLabel">收起</span>
+                        </button>
                         <button type="button" class="hero-utility-button" id="settingsButton" title="打开统一设置"><svg class="auth-icon hero-utility-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M6 14v6"/></svg><span>设置</span></button>
                         <button type="button" class="hero-utility-button warning-button" data-action="logout" title="退出当前会话"><svg class="auth-icon hero-utility-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9"/></svg><span>退出</span></button>
                     </div>
@@ -227,13 +259,15 @@
                 <div class="toolbar-main-row">
                     <div class="toolbar-section toolbar-file" role="group" aria-label="文件">
                         <span class="toolbar-label">文件</span>
-                        <button type="button" class="tool-button mobile-hide" data-action="new-document" title="新建（Ctrl+N）">📄 新建</button>
-                        <button type="button" class="tool-button mobile-essential mobile-open" data-action="open-file" title="打开 Markdown（Ctrl+O）">📁 打开</button>
-                        <button type="button" class="tool-button mobile-hide compact-toolbar-hide" data-action="save-markdown" title="下载 Markdown（Ctrl+S）">💾 保存 .md</button>
+                        <button type="button" class="tool-button mobile-hide" data-action="new-document" title="新建（Ctrl+N）"><svg class="ui-icon" aria-hidden="true"><use href="#icon-document-new"></use></svg>新建</button>
+                        <button type="button" class="tool-button mobile-hide compact-toolbar-hide" data-action="open-document-center" title="打开本地文档中心"><svg class="ui-icon" aria-hidden="true"><use href="#icon-documents"></use></svg>文档</button>
+                        <button type="button" class="tool-button mobile-essential mobile-open" data-action="open-file" title="打开 Markdown（Ctrl+O）"><svg class="ui-icon" aria-hidden="true"><use href="#icon-folder-open"></use></svg>打开</button>
+                        <button type="button" class="tool-button mobile-hide compact-toolbar-hide" data-action="save-markdown" title="下载 Markdown（Ctrl+S）"><svg class="ui-icon" aria-hidden="true"><use href="#icon-save"></use></svg>保存 .md</button>
                     </div>
 
                     <label class="document-name-field mobile-hide" for="documentNameInput" title="用于 Markdown 与 Word 下载文件名">
                         <span class="document-name-label">文档名</span>
+                        <svg class="document-name-icon ui-icon" aria-hidden="true"><use href="#icon-documents"></use></svg>
                         <input type="text" id="documentNameInput" value="未命名" maxlength="80" autocomplete="off" spellcheck="false" aria-describedby="documentNameHint">
                         <span class="document-name-extension" id="documentNameHint">.md / .docx</span>
                     </label>
@@ -258,9 +292,9 @@
                         <button type="button" class="tool-button focus-mode-exit-button" id="focusModeExitButton" data-action="exit-focus-mode" title="退出专注模式">
                             <span aria-hidden="true">↙</span><span class="focus-exit-label">退出专注</span>
                         </button>
-                        <button type="button" class="tool-button mobile-hide compact-toolbar-hide" data-action="copy-rich" title="复制富文本（Ctrl+Enter）">📋 复制富文本</button>
+                        <button type="button" class="tool-button mobile-hide compact-toolbar-hide" data-action="copy-rich" title="复制富文本（Ctrl+Enter）"><svg class="ui-icon" aria-hidden="true"><use href="#icon-copy"></use></svg>复制富文本</button>
                         <button type="button" class="primary-button mobile-essential mobile-download" id="downloadWordButton" data-action="download-word" title="导出 DOCX（Ctrl+D）" data-readiness="empty" aria-describedby="exportButtonHint">
-                            <span class="primary-button-icon" id="downloadWordIcon" aria-hidden="true">📄</span>
+                            <span class="primary-button-icon" id="downloadWordIcon" aria-hidden="true"><svg class="ui-icon"><use href="#icon-word"></use></svg></span>
                             <span class="primary-button-label" id="downloadWordLabel">下载 Word</span>
                             <span class="primary-button-badge" id="exportIssueBadge" hidden></span>
                         </button>
@@ -283,26 +317,27 @@
                             <button type="button" class="format-button math-format-button compact-toolbar-hide" data-command="display-math" title="独立公式：\[...\]">Σ</button>
                         </div>
                         <span class="toolbar-inline-divider" aria-hidden="true"></span>
-                        <button type="button" class="tool-button compact-toolbar-hide" data-action="open-table">▦ 表格</button>
-                        <button type="button" class="tool-button ai-direct-button compact-toolbar-hide" data-action="run-ai-direct">🤖 AI 修复</button>
+                        <button type="button" class="tool-button compact-toolbar-hide" data-action="open-table"><svg class="ui-icon" aria-hidden="true"><use href="#icon-table"></use></svg>表格</button>
+                        <button type="button" class="tool-button ai-direct-button compact-toolbar-hide" data-action="run-ai-direct"><svg class="ui-icon" aria-hidden="true"><use href="#icon-ai"></use></svg>AI 修复</button>
                         <details class="toolbar-more" id="toolbarMoreMenu">
                             <summary class="tool-button" aria-label="打开更多编辑工具">⋯ 更多</summary>
                             <div class="toolbar-more-popover" role="menu" aria-label="更多编辑工具">
-                                <button type="button" role="menuitem" data-action="save-markdown">💾 下载 Markdown</button>
-                                <button type="button" role="menuitem" data-action="copy-rich">📋 复制富文本</button>
+                                <button type="button" role="menuitem" data-action="open-document-center"><svg class="ui-icon" aria-hidden="true"><use href="#icon-documents"></use></svg>文档中心</button>
+                                <button type="button" role="menuitem" data-action="save-markdown"><svg class="ui-icon" aria-hidden="true"><use href="#icon-save"></use></svg>下载 Markdown</button>
+                                <button type="button" role="menuitem" data-action="copy-rich"><svg class="ui-icon" aria-hidden="true"><use href="#icon-copy"></use></svg>复制富文本</button>
                                 <button type="button" role="menuitem" data-command="quote">❯ 引用</button>
                                 <button type="button" role="menuitem" data-command="unordered-list">• 无序列表</button>
                                 <button type="button" role="menuitem" data-command="ordered-list">1. 有序列表</button>
                                 <button type="button" role="menuitem" data-command="code">&lt;/&gt; 代码</button>
                                 <button type="button" role="menuitem" data-command="inline-math">ƒx 行内公式</button>
                                 <button type="button" role="menuitem" data-command="display-math">Σ 独立公式</button>
-                                <button type="button" role="menuitem" data-action="open-table">▦ 表格转换</button>
-                                <button type="button" role="menuitem" data-action="run-ai-direct">🤖 AI 修复</button>
-                                <button type="button" role="menuitem" data-action="clear-document">🗑️ 清空内容</button>
-                                <button type="button" role="menuitem" data-action="open-settings">⚙️ 统一设置</button>
+                                <button type="button" role="menuitem" data-action="open-table"><svg class="ui-icon" aria-hidden="true"><use href="#icon-table"></use></svg>表格转换</button>
+                                <button type="button" role="menuitem" data-action="run-ai-direct"><svg class="ui-icon" aria-hidden="true"><use href="#icon-ai"></use></svg>AI 修复</button>
+                                <button type="button" role="menuitem" data-action="clear-document"><svg class="ui-icon" aria-hidden="true"><use href="#icon-trash"></use></svg>清空内容</button>
+                                <button type="button" role="menuitem" data-action="open-settings"><svg class="ui-icon" aria-hidden="true"><use href="#icon-settings"></use></svg>统一设置</button>
                             </div>
                         </details>
-                        <button type="button" class="tool-button toolbar-clear-button compact-toolbar-hide" data-action="clear-document" title="清空当前内容">🗑️ 清空</button>
+                        <button type="button" class="tool-button toolbar-clear-button compact-toolbar-hide" data-action="clear-document" title="清空当前内容"><svg class="ui-icon" aria-hidden="true"><use href="#icon-trash"></use></svg>清空</button>
                     </div>
                 </div>
             </section>
@@ -363,6 +398,34 @@
                     </div>
                 </div>
 
+                <div id="documentCenterToolPanel" class="tool-panel document-center-panel" hidden>
+                    <div class="document-center-head">
+                        <div>
+                            <strong>本地文档中心</strong>
+                            <span id="documentStoreSummary">正在连接本地存储…</span>
+                        </div>
+                        <label class="document-search-field" for="documentSearchInput">
+                            <svg class="ui-icon" aria-hidden="true"><use href="#icon-search"></use></svg>
+                            <input type="search" id="documentSearchInput" placeholder="搜索文档名或正文" autocomplete="off" spellcheck="false">
+                        </label>
+                    </div>
+                    <div class="document-center-actions">
+                        <button type="button" class="secondary-button" data-action="new-document"><svg class="ui-icon" aria-hidden="true"><use href="#icon-document-new"></use></svg>新建空白</button>
+                        <button type="button" class="secondary-button" data-action="open-file"><svg class="ui-icon" aria-hidden="true"><use href="#icon-folder-open"></use></svg>打开文件</button>
+                        <button type="button" class="secondary-button" data-action="create-version"><svg class="ui-icon" aria-hidden="true"><use href="#icon-history"></use></svg>保存当前版本</button>
+                    </div>
+                    <div id="documentList" class="document-list" aria-live="polite"></div>
+                </div>
+
+                <div id="versionHistoryToolPanel" class="tool-panel version-history-panel" hidden>
+                    <div class="version-history-head">
+                        <button type="button" class="text-button" data-action="open-document-center">← 返回文档中心</button>
+                        <div><strong id="versionHistoryTitle">版本历史</strong><span id="versionHistorySummary">自动保留最近 20 个版本</span></div>
+                        <button type="button" class="secondary-button" data-action="create-version"><svg class="ui-icon" aria-hidden="true"><use href="#icon-history"></use></svg>保存当前版本</button>
+                    </div>
+                    <div id="versionHistoryList" class="version-history-list" aria-live="polite"></div>
+                </div>
+
                 <div id="exportCheckToolPanel" class="tool-panel export-check-panel" hidden>
                     <div class="export-check-head">
                         <div>
@@ -380,11 +443,24 @@
                 </div>
             </section>
 
+            <section id="exportReceipt" class="export-receipt" hidden aria-live="polite">
+                <div class="export-receipt-icon"><svg class="ui-icon" aria-hidden="true"><use href="#icon-check"></use></svg></div>
+                <div class="export-receipt-copy">
+                    <strong id="exportReceiptTitle">Word 已生成</strong>
+                    <span id="exportReceiptDetail">文件已交给浏览器下载。</span>
+                </div>
+                <div class="export-receipt-meta" id="exportReceiptMeta"></div>
+                <div class="export-receipt-actions">
+                    <button type="button" class="text-button" data-action="copy-export-file-name">复制文件名</button>
+                    <button type="button" class="text-button" data-action="dismiss-export-receipt">收起</button>
+                </div>
+            </section>
+
             <main class="workspace" id="workspace" data-view="split">
                 <section class="workspace-panel editor-panel drag-hint" id="editorPanel" aria-labelledby="editorTitle">
                     <div class="panel-header">
                         <div class="panel-heading">
-                            <h2 id="editorTitle">📝 输入 Markdown 内容</h2>
+                            <h2 id="editorTitle"><svg class="panel-title-icon" aria-hidden="true"><use href="#icon-edit"></use></svg>Markdown 编辑器</h2>
                             <span class="status-dot" id="saveDot" aria-hidden="true"></span>
                             <span class="panel-status" id="saveStatus" data-state="idle">浏览器草稿：空白文档</span>
                             <span class="panel-status-separator" aria-hidden="true">·</span>
@@ -393,7 +469,7 @@
                     </div>
                     <div class="editor-frame" id="editorFrame">
                         <textarea id="markdownInput" aria-label="Markdown 编辑器" placeholder="在这里粘贴或输入 Markdown。支持 $...$、$$...$$、\(...\)、\[...\] 公式语法。" spellcheck="false" autocomplete="off"></textarea>
-                        <div class="drop-overlay" id="dropOverlay" aria-hidden="true"><div class="drop-card">📁 松开即可打开 Markdown 文件</div></div>
+                        <div class="drop-overlay" id="dropOverlay" aria-hidden="true"><div class="drop-card"><svg class="ui-icon" aria-hidden="true"><use href="#icon-folder-open"></use></svg>松开即可打开 Markdown 文件</div></div>
                     </div>
                     <div class="input-stats" role="region" aria-label="文档统计">
                         <div class="stat-item"><strong id="charCount">0</strong><span>字符</span></div>
@@ -408,7 +484,7 @@
                 <section class="workspace-panel preview-panel" id="previewPanel" aria-labelledby="previewTitle">
                     <div class="panel-header preview-panel-header">
                         <div class="panel-heading">
-                            <h2 id="previewTitle">👀 实时预览</h2>
+                            <h2 id="previewTitle"><svg class="panel-title-icon" aria-hidden="true"><use href="#icon-preview"></use></svg>实时预览</h2>
                             <button type="button" class="math-status" id="mathStatus" aria-expanded="false" aria-controls="formulaInspector" title="展开公式诊断">
                                 <span aria-hidden="true">ƒx</span>
                                 <span id="mathStatusText">公式 0 · 渲染错误 0 · 自动修复 0</span>
@@ -434,7 +510,7 @@
                 <div class="runtime-status">
                     <span id="renderStatus">等待输入</span>
                 </div>
-                <button type="button" class="mobile-settings-button" data-action="open-settings">⚙️ 设置与账户</button>
+                <button type="button" class="mobile-settings-button" data-action="open-settings"><svg class="ui-icon" aria-hidden="true"><use href="#icon-settings"></use></svg><span>设置与账户</span></button>
                 <div id="statusMessage" class="status-message" hidden>
                     <span id="statusMessageText"></span>
                     <button type="button" class="status-action" id="undoDocumentButton" data-action="undo-document" hidden>撤销</button>
@@ -445,6 +521,7 @@
     </div>
 
     <input type="file" id="fileInput" accept=".md,.markdown,.txt,text/markdown,text/plain" aria-label="选择 Markdown 文件" hidden>
+    <input type="file" id="backupFileInput" accept="application/json,.json" aria-label="选择工作区备份文件" hidden>
 
     <dialog id="settingsDialog" class="app-dialog settings-dialog">
         <form method="dialog" class="dialog-card" id="settingsForm">
@@ -458,11 +535,12 @@
 
             <div class="settings-layout">
                 <nav class="settings-nav" id="settingsNav" role="tablist" aria-label="设置分类">
-                    <button type="button" id="settingsTabInterface" role="tab" aria-selected="true" aria-controls="settingsInterfaceSection" data-settings-tab="interface" class="active">🎨 界面与草稿</button>
-                    <button type="button" id="settingsTabWord" role="tab" aria-selected="false" aria-controls="settingsWordSection" data-settings-tab="word" tabindex="-1">📄 Word 导出</button>
-                    <button type="button" id="settingsTabAI" role="tab" aria-selected="false" aria-controls="settingsAISection" data-settings-tab="ai" tabindex="-1">🤖 AI 修复</button>
-                    <button type="button" id="settingsTabShortcuts" role="tab" aria-selected="false" aria-controls="settingsShortcutSection" data-settings-tab="shortcuts" tabindex="-1">⌨️ 快捷键</button>
-                    <button type="button" id="settingsTabAccount" role="tab" aria-selected="false" aria-controls="settingsAccountSection" data-settings-tab="account" tabindex="-1">👤 账户与会话</button>
+                    <button type="button" id="settingsTabInterface" role="tab" aria-selected="true" aria-controls="settingsInterfaceSection" data-settings-tab="interface" class="active"><svg class="settings-nav-icon ui-icon" aria-hidden="true"><use href="#icon-palette"></use></svg><span>界面与草稿</span></button>
+                    <button type="button" id="settingsTabWord" role="tab" aria-selected="false" aria-controls="settingsWordSection" data-settings-tab="word" tabindex="-1"><svg class="settings-nav-icon ui-icon" aria-hidden="true"><use href="#icon-word"></use></svg><span>Word 导出</span></button>
+                    <button type="button" id="settingsTabAI" role="tab" aria-selected="false" aria-controls="settingsAISection" data-settings-tab="ai" tabindex="-1"><svg class="settings-nav-icon ui-icon" aria-hidden="true"><use href="#icon-ai"></use></svg><span>AI 修复</span></button>
+                    <button type="button" id="settingsTabShortcuts" role="tab" aria-selected="false" aria-controls="settingsShortcutSection" data-settings-tab="shortcuts" tabindex="-1"><svg class="settings-nav-icon ui-icon" aria-hidden="true"><use href="#icon-keyboard"></use></svg><span>快捷键</span></button>
+                    <button type="button" id="settingsTabData" role="tab" aria-selected="false" aria-controls="settingsDataSection" data-settings-tab="data" tabindex="-1"><svg class="settings-nav-icon ui-icon" aria-hidden="true"><use href="#icon-database"></use></svg><span>数据与诊断</span></button>
+                    <button type="button" id="settingsTabAccount" role="tab" aria-selected="false" aria-controls="settingsAccountSection" data-settings-tab="account" tabindex="-1"><svg class="settings-nav-icon ui-icon" aria-hidden="true"><use href="#icon-user"></use></svg><span>账户与会话</span></button>
                 </nav>
 
                 <div class="dialog-body settings-sections" id="settingsPanels">
@@ -509,6 +587,9 @@
                     <label class="switch-field"><input type="checkbox" name="restoreDraftOnStart" id="restoreDraftOnStartToggle"><span><strong>启动时自动恢复草稿</strong><small>默认关闭；关闭时始终空白启动，并在空预览中提供恢复按钮</small></span></label>
                     <label class="switch-field"><input type="checkbox" name="repairLooseMath" id="repairLooseMathToggle"><span><strong>智能修复缺失的公式边界</strong><small>兼容独立 [ … ] 块与高置信度裸行内 TeX；普通括号文本不会转换</small></span></label>
                     <label class="switch-field"><input type="checkbox" name="settingsSyncScroll" id="settingsSyncScrollToggle"><span><strong>默认开启同步滚动</strong><small>顶部操作栏可随时临时切换</small></span></label>
+                    <label class="switch-field"><input type="checkbox" name="smartPaste" id="smartPasteToggle"><span><strong>智能粘贴</strong><small>自动去除 AI 回复外层围栏、转换富文本和剪贴板表格，并保留一键撤销</small></span></label>
+                    <label class="switch-field"><input type="checkbox" name="versionHistory" id="versionHistoryToggle"><span><strong>自动版本历史</strong><small>破坏性操作前立即保存，长期编辑时定期创建可恢复版本</small></span></label>
+                    <label class="field hero-behavior-field"><span>品牌标题区</span><select name="heroBehavior" id="heroBehaviorSelect"><option value="auto">编辑后自动收起</option><option value="expanded">始终展开</option><option value="compact">始终紧凑</option></select></label>
                 </section>
 
                 <section class="settings-section" id="settingsWordSection" role="tabpanel" aria-labelledby="settingsTabWord" data-settings-panel="word" hidden>
@@ -548,6 +629,33 @@
                         <div><kbd>Ctrl / ⌘ + /</kbd><span>打开本设置页的快捷键区域</span></div>
                         <div><kbd>Alt + M</kbd><span>插入独立公式</span></div>
                         <div><kbd>双击分隔条</kbd><span>恢复左右均分</span></div>
+                    </div>
+                </section>
+
+                <section class="settings-section data-settings-section" id="settingsDataSection" role="tabpanel" aria-labelledby="settingsTabData" data-settings-panel="data" hidden>
+                    <h3>数据与诊断</h3>
+                    <div class="data-overview-grid">
+                        <article><span>存储模式</span><strong id="dataStorageMode">正在检测…</strong></article>
+                        <article><span>本地文档</span><strong id="dataDocumentCount">0</strong></article>
+                        <article><span>历史版本</span><strong id="dataVersionCount">0</strong></article>
+                        <article><span>估算占用</span><strong id="dataStorageUsage">—</strong></article>
+                    </div>
+                    <div class="data-action-card">
+                        <div><strong>工作区备份</strong><p>导出文档、版本历史和界面设置。API Key 默认不会写入备份。</p></div>
+                        <label class="backup-secret-option"><input type="checkbox" id="includeApiKeyBackup"><span>在备份中包含 API Key</span></label>
+                        <div class="data-action-buttons">
+                            <button type="button" class="secondary-button" data-action="export-workspace-backup"><svg class="ui-icon" aria-hidden="true"><use href="#icon-backup"></use></svg>导出备份</button>
+                            <select id="backupImportMode" aria-label="备份导入方式"><option value="merge">合并导入</option><option value="replace">替换全部文档</option></select>
+                            <button type="button" class="secondary-button" data-action="import-workspace-backup">导入备份</button>
+                        </div>
+                    </div>
+                    <div class="dependency-diagnostics-card">
+                        <div class="dependency-diagnostics-head"><div><strong>运行依赖</strong><p>用于判断预览、公式和 Word 导出是否已经就绪。</p></div><button type="button" class="secondary-button" data-action="copy-diagnostic-report">复制诊断报告</button></div>
+                        <div id="dependencyStatusList" class="dependency-status-list"></div>
+                    </div>
+                    <div class="data-danger-zone">
+                        <div><strong>清除本地工作区</strong><p>删除所有本地文档、历史版本和当前草稿；账户密码配置文件不会被改动。</p></div>
+                        <button type="button" class="secondary-button danger-outline-button" id="clearWorkspaceDataButton" data-action="clear-workspace-data">清除全部本地数据</button>
                     </div>
                 </section>
 

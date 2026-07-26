@@ -1,5 +1,5 @@
 /* ========================================================================== */
-/* Fusion v5.2 · Command Deck toolbar                                       */
+/* Fusion v5.3 · Command Deck toolbar                                       */
 /*                                                                            */
 /* This file is intentionally loaded after app.css. It provides a cache-safe  */
 /* structural override for the sticky toolbar and keeps the fallback order     */
@@ -124,16 +124,12 @@
         transform var(--transition);
 }
 
-.quick-toolbar[data-layout="command-deck"] .document-name-field::before {
-    content: "📄";
-    display: grid;
-    place-items: center;
-    width: 26px;
-    height: 26px;
-    border-radius: 8px;
-    background: color-mix(in srgb, var(--accent-soft) 72%, var(--surface));
+.quick-toolbar[data-layout="command-deck"] .document-name-icon {
+    display: block;
+    width: 18px;
+    height: 18px;
+    margin: 0 4px 0 2px;
     color: var(--accent-strong);
-    font-size: 13px;
 }
 
 .quick-toolbar[data-layout="command-deck"] .document-name-field:hover {
@@ -616,11 +612,6 @@
         min-width: 42px;
         padding-inline: 7px;
         font-size: 0;
-    }
-
-    .quick-toolbar[data-layout="command-deck"] .mobile-open::after {
-        content: "📁";
-        font-size: 14px;
     }
 
     .quick-toolbar[data-layout="command-deck"] .view-switch button {

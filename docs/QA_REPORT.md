@@ -1,219 +1,172 @@
-# v5.2.3 质量检查报告
+# v5.3 质量检查报告
 
-## 结论
+## 1. 发布范围
 
-v5.2.3 修复了截图中 `(C_\eta=1%C_{\text{curtail}})` 这类缺少标准边界的裸行内 TeX，并补齐数值百分号转义、源码定位、标准语法写回和 Word 可编辑下标链路。
+v5.3 在 v5.2.3 可靠公式、导出前检查与全局排版体系的基础上，新增：
 
-发布前完成了 Node 自动测试、Chromium 集成回归、JavaScript 语法检查、HTML/CSS/资源静态检查、ZIP 完整性检查，以及从全新目录解压后的复测。在这些覆盖范围内，没有发现已知阻断性问题。
+- 多文档中心；
+- 版本历史与破坏性操作保护点；
+- 智能粘贴；
+- 工作区 JSON 备份与导入；
+- 存储和运行依赖诊断；
+- 编辑后自动收起品牌区；
+- 高频操作线性 SVG 图标；
+- Word 导出成功回执；
+- IndexedDB、localStorage 与临时内存三级存储降级。
 
-自动化不能证明前端项目绝对不存在缺陷。真实 CDN、Microsoft Word/WPS、外部图片服务器和真实 AI 接口仍需在部署环境完成一次实际验收。
-
-## 本次专项修复
-
-### 1. 缺少公式边界
-
-原始内容：
-
-```latex
-(C_\eta=1%C_{\text{curtail}})
-```
-
-没有 `$...$` 或 `\(...\)`，旧版会当作普通文字。
-
-修复后仅在括号内部具有高置信度 TeX 结构时自动识别，并在内部规范为：
-
-```latex
-\((C_\eta=1\%C_{\text{curtail}})\)
-```
-
-### 2. 百分号被 TeX 当作注释
-
-仅在公式上下文中，对紧随数字或数字后空白的 `%` / `％` 进行转义。普通正文中的百分号不修改，已经写成 `\%` 的内容不会重复转义。
-
-### 3. 精确源码映射
-
-- 裸公式保留原始括号范围；
-- 多条公式分别定位；
-- 与独立 `[ ... ]` 公式修复同时存在时不发生偏移漂移；
-- 公式诊断可定位原始 Markdown；
-- 写回后使用标准 `\(...\)` 边界与 `\%`。
-
-### 4. Word 可编辑结果
-
-- `_\eta` 转为可编辑 `η` 下标；
-- `_{\text{curtail}}` 转为可编辑 `curtail` 下标；
-- `\%` 转为普通 `%` 字符；
-- 不再插入手工添加公式的占位提示。
-
-### 5. 误识别排除
-
-专项覆盖：
-
-- 普通中文或英文括号说明；
-- Markdown 链接；
-- 普通函数调用 `foo(bar)`；
-- 行内代码；
-- 围栏代码块；
-- 原始 HTML 属性；
-- `<code>`、`<pre>`、`<script>`、`<style>` 与 HTML 注释；
-- 关闭自动修复后的裸 TeX。
-
-## Node 自动测试
+## 2. Node 自动测试
 
 执行：
 
 ```bash
+npm run check
 npm test
 ```
 
 结果：
 
 ```text
-94 passed
-0 failed
+JavaScript 语法检查：5 / 5 通过
+Node 自动测试：119 / 119 通过
+失败：0
+跳过：0
 ```
 
-| 测试文件 | 数量 | 主要覆盖 |
-| --- | ---: | --- |
-| `fusion-static.test.js` | 23 | 版本、登录、工具栏、命令面板、公式修复入口、DOM 引用、文件选择器可访问名称 |
-| `hero-layout.test.js` | 6 | 品牌标题、能力轨道、身份卡、操作坞和响应式 |
-| `math-engine.test.js` | 33 | 公式边界、裸 TeX、百分号、源码映射、KaTeX 回退与 Word 上下标 |
-| `preflight.test.js` | 15 | 公式、围栏、标题、表格、图片、链接和阻断状态 |
-| `toolbar-layout.test.js` | 8 | Command Deck、更多菜单、平板和手机布局 |
-| `typography.test.js` | 9 | 字号等级、字体回退、字重、文档比例、密度和响应式 |
+覆盖内容包括：
 
-## JavaScript 语法检查
+- 公式提取、松散边界修复、裸行内 TeX、百分号规范和源码偏移；
+- KaTeX 错误回退；
+- Word 可编辑上下标与常用符号；
+- 导出前检查；
+- 工具栏、品牌区、全局排版和响应式规则；
+- 文档仓库创建、查询、复制、删除和导入；
+- 版本去重、恢复和非当前文档版本保存；
+- IndexedDB 写入等待事务完成；
+- localStorage 不可用时的内存降级；
+- 智能粘贴的 Markdown 围栏、TSV、富文本与普通文本分支；
+- 工作区备份、诊断报告和静态页面结构。
 
-执行：
+## 3. Chromium 浏览器回归
 
-```bash
-npm run check
-```
+由于执行环境禁止直接导航本地 HTTP 与 file URL，浏览器回归采用与发布文件相同的 HTML、CSS 和 JavaScript 内联加载，并为 Marked、DOMPurify、KaTeX、docx.js 与 FileSaver 提供确定性行为桩。应用本身的事件绑定、状态管理、文档仓库、响应式布局和导出流程仍使用发布代码。
 
 结果：
 
 ```text
-js/access-config.js  passed
-js/math-engine.js    passed
-js/preflight.js      passed
-js/app.js            passed
+主工作流回归：71 / 71 通过
+扩展可靠性回归：17 / 17 通过
+合计：88 / 88 通过
+页面运行错误：0
+控制台错误：0
 ```
 
-合计：
+### 主工作流覆盖
 
-```text
-4 / 4 passed
-```
-
-## Chromium 集成回归
-
-总结果：
-
-```text
-81 / 81 passed
-0 failed
-```
-
-测试使用项目真实 HTML、五个 CSS 文件和四个本地 JavaScript 文件。公式链路使用实际 Marked 与 KaTeX 本地副本；DOMPurify、docx.js 和 FileSaver 使用确定性行为桩，以便在无外网环境中稳定验证应用集成。
-
-### 响应式公式矩阵
+- 错误密码和正确登录；
+- 工作流存储初始化；
+- 第一份文档自动保存与 ID 写回；
+- 文档中心与手动版本；
+- 新建第二份文档并保留第一份；
+- 文档切换；
+- 外层 Markdown 围栏和 TSV 智能粘贴；
+- 撤销入口；
+- 历史版本恢复及恢复前保护点；
+- 查看非当前文档历史时保存版本，不改变当前编辑器；
+- 数据与诊断设置；
+- 默认排除 API Key 的工作区备份；
+- DOCX 下载与成功回执；
+- 合并导入备份；
+- 12 个响应式宽度下无横向溢出、按钮重叠和 Word 主按钮丢失。
 
 测试宽度：
 
 ```text
-1440 · 1180 · 900 · 680 · 390 · 320 px
+1920 · 1440 · 1180 · 1024 · 900 · 820
+680 · 560 · 430 · 390 · 360 · 320 px
 ```
 
-每个宽度检查：
+### 扩展可靠性覆盖
 
-- 密码页无横向溢出；
-- 高级用户登录成功；
-- 围栏代码块仍被 Marked 正确解析；
-- 截图中的裸公式只识别为一个公式；
-- KaTeX 渲染错误为 0；
-- `%` 与 `curtail` 均出现在 MathML 结果中；
-- 公式状态显示自动修复 1；
-- 工作区无横向溢出；
-- 页面错误和控制台错误为 0。
+- 富文本 HTML 转 Markdown；
+- 智能粘贴后的撤销；
+- 品牌区“始终展开”；
+- 宽松密度和现代黑金主题；
+- 清除工作区的两次确认；
+- 清除后文档数、编辑器和诊断同步更新；
+- IndexedDB 与 localStorage 同时不可用时降级到临时内存；
+- 临时内存仍可保存当前文档；
+- 保存状态明确提示“关闭页面后失效”；
+- 临时内存降级不产生误报错误 Toast；
+- 受限存储场景无横向溢出。
 
-### 深度工作流
-
-覆盖：
-
-- 公式诊断显示裸行内公式与百分号修复说明；
-- “定位源码”准确选中原始括号公式；
-- “写回标准公式边界”生成正确的 `\((...)\)` 与 `\%`；
-- 写回后自动修复计数回到 0；
-- 已有 `\(...\)` 边界但缺少 `\%` 时只修复百分号；
-- 普通括号、链接、函数、行内代码和代码块不误转；
-- 原始 HTML 属性保持原样，标签中的可见文本仍可识别公式；
-- `<code>`、`<pre>` 与 HTML 注释中的公式样文本不会被转换；
-- DOCX 集成路径生成正确文件名；
-- Word 文本运行中 `η` 与 `curtail` 为下标，`%` 为普通字符；
-- 中文全角括号、全角百分号与同段多公式正常；
-- 页面错误和控制台错误为 0。
-
-## HTML、CSS 与本地资源
+## 4. HTML、CSS 与资源静态检查
 
 ```text
-HTML IDs: 135, all unique
-Direct DOM references: 111, missing 0
-Local resource references: 9, missing 0
-Unlabelled controls: 0
-Unnamed buttons: 0
-CSS parse errors: 0
-CSS declaration errors: 0
-Temporary release artifacts: 0
-UTF-8 / LF checks: passed
+HTML 解析错误：0
+HTML ID：187 个，全部唯一
+JavaScript 直接 DOM 引用：137 个，缺失 0
+本地 CSS / JavaScript 资源：11 个，缺失 0
+无标签表单控件：0
+无名称按钮：0
+页面按钮：85 个
+设置对话框：1 个
+Word 主按钮：1 个
+旧悬浮缩略图：0 个
 ```
 
-CSS 检查结果：
+CSS 递归解析结果：
 
-| 文件 | 解析到的选择器规则 | 解析错误 | 声明错误 |
-| --- | ---: | ---: | ---: |
-| `app.css` | 793 | 0 | 0 |
-| `toolbar.css` | 82 | 0 | 0 |
-| `experience.css` | 213 | 0 | 0 |
-| `hero.css` | 84 | 0 | 0 |
-| `typography.css` | 153 | 0 | 0 |
+| 文件 | 规则与嵌套规则 | 解析错误 | 声明错误 |
+|---|---:|---:|---:|
+| `app.css` | 838 | 0 | 0 |
+| `toolbar.css` | 87 | 0 | 0 |
+| `experience.css` | 239 | 0 | 0 |
+| `hero.css` | 90 | 0 | 0 |
+| `typography.css` | 162 | 0 | 0 |
+| `workflow.css` | 104 | 0 | 0 |
 
-## 最终复检中发现并修复的问题
+## 5. 关键竞态与容错修复
 
-### 隐藏文件选择器缺少可访问名称
+本次发布前额外修复并回归了以下问题：
 
-静态检查发现隐藏的 `#fileInput` 没有标签或 `aria-label`。虽然该控件只由“打开”按钮触发，不影响鼠标使用，但会降低辅助技术语义完整性。
+1. **版本写入错误文档**：破坏性操作先捕获明确文档记录，再进入串行保存队列；
+2. **恢复版本后的旧记录覆盖**：创建保护点后重新读取最新记录；
+3. **新文档 ID 未写回单草稿**：仓库首次创建后立即更新兼容草稿中的 `documentId`；
+4. **非当前文档历史保存**：版本面板中的“保存当前版本”作用于正在查看的文档，而不是编辑器中的另一份文档；
+5. **IndexedDB 过早报告成功**：写操作等待 `transaction.oncomplete`；
+6. **localStorage 被禁用时误报自动保存失败**：只要 IndexedDB 或内存仓库保存成功，编辑仍可继续；
+7. **自动版本漏保存**：定时器同时考虑 45 秒空闲和五分钟最小版本间隔；
+8. **文件扩展名带空格**：规范化前先去除首尾空格，再移除 `.md`、`.txt` 或 `.docx`；
+9. **无 DOMParser 富文本回退**：移除 `script`、`style`、`noscript` 和 HTML 注释后再提取文本；
+10. **设置与移动端图标混用 Emoji**：高频操作统一到共享 SVG 图标精灵。
 
-修复：
+## 6. ZIP 发布复测
 
-```html
-aria-label="选择 Markdown 文件"
-```
-
-并增加 Node 回归测试防止再次遗漏。
-
-## ZIP 与解压复测
-
-最终发布包执行：
+最终发布包完成了压缩、全新目录解压和解压副本复测：
 
 ```text
-ZIP compressed-data integrity: passed
-Fresh extraction: passed
-Extracted Node tests: 94 / 94 passed
-Extracted JavaScript syntax checks: 4 / 4 passed
-Extracted HTML duplicate IDs: 0
-Extracted missing direct DOM references: 0
-Extracted missing local resources: 0
-Extracted CSS parse/declaration errors: 0
-Extracted Chromium formula smoke: passed
+ZIP 压缩数据完整性：通过
+全新目录解压：通过
+解压副本 JavaScript 语法：5 / 5 通过
+解压副本 Node 自动测试：119 / 119 通过
+解压副本 Chromium 主工作流：71 / 71 通过
+解压副本 Chromium 扩展可靠性：17 / 17 通过
+解压副本页面运行错误：0
+解压副本控制台错误：0
+解压副本 HTML / CSS / 本地资源静态检查：通过
+临时、备份和 node_modules 文件：0
+SHA-256 生成与复核：通过
 ```
 
-## 自动化边界
+发布 ZIP 保留完整顶层目录 `markdown-to-word-converter-fusion-v5.3/`，可整体覆盖仓库根目录。
 
-部署后仍建议人工确认：
+## 7. 仍需真实环境验收的项目
 
-1. GitHub Pages 能真实加载全部 CDN；
-2. KaTeX 与 mhchem 能渲染实际使用的复杂公式；
-3. Microsoft Word 与 WPS 能打开实际生成的 DOCX；
-4. 外部图片服务器的跨域和下载策略；
-5. AI 服务商、模型、API Key、配额和 CORS；
-6. 不同操作系统字体可用性造成的细微字宽差异。
+自动浏览器测试不能替代所有外部环境，部署后仍建议完成：
+
+1. GitHub Pages 中真实加载 Marked、DOMPurify、KaTeX、docx.js 和 FileSaver；
+2. 用实际 Microsoft Word 或 WPS 打开包含中文、表格、化学式和上下标的 DOCX；
+3. 使用自己的 AI 服务商、模型、API Key 和 CORS 环境完成一次真实请求；
+4. 测试自己常用浏览器中的 IndexedDB、下载目录和剪贴板权限。
+
+在上述自动测试和静态检查覆盖范围内，未发现已知阻断性问题。任何前端应用都无法承诺绝对零缺陷；真实外部服务、浏览器策略和 Word/WPS 版本仍可能带来环境差异。

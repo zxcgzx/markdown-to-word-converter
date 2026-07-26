@@ -15,11 +15,12 @@ function positionOf(fragment) {
     return index;
 }
 
-test('v5.2.3 loads cache-busted toolbar, experience and hero stylesheets', () => {
-    assert.match(html, /css\/app\.css\?v=5\.2\.3/);
-    assert.match(html, /css\/toolbar\.css\?v=5\.2\.3/);
-    assert.match(html, /css\/experience\.css\?v=5\.2\.3/);
-    assert.match(html, /css\/hero\.css\?v=5\.2\.3/);
+test('v5.3 loads cache-busted toolbar, experience, hero and workflow stylesheets', () => {
+    assert.match(html, /css\/app\.css\?v=5\.3/);
+    assert.match(html, /css\/toolbar\.css\?v=5\.3/);
+    assert.match(html, /css\/experience\.css\?v=5\.3/);
+    assert.match(html, /css\/hero\.css\?v=5\.3/);
+    assert.match(html, /css\/workflow\.css\?v=5\.3/);
     assert.match(html, /class="quick-toolbar" data-layout="command-deck"/);
 });
 
@@ -53,7 +54,8 @@ test('nested cards are flattened into a single command surface with clear separa
 });
 
 test('document name is visually promoted and editing tools retain practical targets', () => {
-    assert.match(toolbarCss, /\.document-name-field::before\s*\{[\s\S]*?content:\s*"📄"/);
+    assert.match(html, /class="document-name-icon ui-icon"[\s\S]*?<use href="#icon-documents"/);
+    assert.match(toolbarCss, /\.document-name-icon\s*\{[\s\S]*?color:\s*var\(--accent-strong\)/);
     assert.match(toolbarCss, /\.document-name-field\s*\{[\s\S]*?grid-template-columns:\s*auto minmax\(0, 1fr\) auto/);
     assert.match(toolbarCss, /\.format-button\s*\{[\s\S]*?width:\s*34px;[\s\S]*?height:\s*34px;/);
     assert.match(toolbarCss, /#downloadWordButton\s*\{[\s\S]*?min-width:\s*138px;[\s\S]*?min-height:\s*42px;/);
