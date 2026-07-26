@@ -1,24 +1,24 @@
-# v5.2.2 覆盖更新与验收指南
+# v5.2.3 覆盖更新与验收指南
 
 ## 一、更新方式
 
-v5.2.2 新增 `css/typography.css`，并同时修改了 HTML、应用脚本、设置项、测试和文档。请整体覆盖仓库，不要只替换某一个 CSS 文件。
+v5.2.3 修改了公式引擎、应用诊断、页面版本、自动测试和文档。请整体覆盖仓库，不要只替换 `js/math-engine.js`。
 
 解压发布包后，将顶层目录中的全部内容复制到 GitHub 仓库根目录：
 
 ```text
-markdown-to-word-converter-fusion-v5.2.2/
+markdown-to-word-converter-fusion-v5.2.3/
 ```
 
-然后提交：
+提交：
 
 ```bash
 git add .
-git commit -m "Release v5.2.2 global typography system"
+git commit -m "Release v5.2.3 bare inline TeX compatibility"
 git push origin main
 ```
 
-现有 GitHub Pages 工作流仍位于：
+GitHub Pages 工作流仍位于：
 
 ```text
 .github/workflows/deploy.yml
@@ -26,40 +26,40 @@ git push origin main
 
 ## 二、缓存刷新
 
-全部本地 CSS 与 JavaScript 资源已经使用：
+全部本地 CSS 与 JavaScript 资源均使用：
 
 ```text
-?v=5.2.2
+?v=5.2.3
 ```
 
-部署后仍看到旧界面时，先执行一次强制刷新：
+部署后仍看到旧结果时，执行强制刷新：
 
 ```text
 Windows / Linux: Ctrl + F5
 macOS: Command + Shift + R
 ```
 
-## 三、本版新增文件
+## 三、本版主要修改
 
 ```text
-css/typography.css
+index.html
+js/math-engine.js
+js/app.js
+tests/fusion-static.test.js
+tests/math-engine.test.js
+README.md
+CHANGELOG.md
+docs/UPDATE_GUIDE.md
+docs/QA_REPORT.md
+docs/screenshots/formula-*.png
+package.json
 ```
 
-该文件必须在以下样式之后加载：
-
-```text
-app.css
-components/toolbar.css（当前为 toolbar.css）
-experience.css
-hero.css
-typography.css
-```
-
-实际 `index.html` 已按正确顺序配置。
+本版没有增加新的运行时第三方依赖，也没有新增字体 CDN。
 
 ## 四、保留的数据
 
-v5.2.2 沿用现有存储键，不会主动清除：
+v5.2.3 沿用现有存储键，不会主动清除：
 
 - 浏览器草稿；
 - 主题；
@@ -67,25 +67,14 @@ v5.2.2 沿用现有存储键，不会主动清除：
 - 分栏比例；
 - Word 设置；
 - AI 配置；
+- 界面密度；
 - 本机自动进入状态。
 
-设置对象新增 `uiDensity`。旧数据没有该字段时会自动使用：
-
-```text
-standard
-```
-
-可选值：
-
-```text
-compact
-standard
-spacious
-```
+覆盖更新后，当前会话通常仍可沿用；浏览器策略或域名变化时可能需要重新输入一次密码。
 
 ## 五、密码配置
 
-默认密码仍为：
+默认密码：
 
 | 密码 | 身份 |
 | --- | --- |
@@ -99,116 +88,89 @@ spacious
 js/access-config.js
 ```
 
-密码入口是纯前端个人使用门槛，不是服务器安全认证。
+## 六、公式专项验收
 
-## 六、发布后建议验收
+### 1. 截图中的原始写法
 
-### 1. 登录页
+粘贴：
 
-- 1440、1024、820、390 像素下主标题不越界；
-- 标题保持两条受控语义行，手机端可自然重排；
-- 密码、分享码、主题切换和自动进入选项可用；
-- 错误密码显示清晰错误态；
-- 登录成功可进入工作区。
-
-### 2. 字体等级
-
-确认以下层级清楚：
-
-```text
-登录主标题 > 工作区产品标题 > 分区标题 > 面板标题
-> 普通正文 > 按钮标签 > 状态与辅助信息
+```markdown
+并报告 6 次外层迭代、57.58 秒，且明确采用 (C_\eta=1%C_{\text{curtail}})。
 ```
 
-不要出现多个区域同时使用接近主标题的视觉重量。
+期望：
 
-### 3. Markdown 预览
+- 预览显示排版后的行内公式；
+- 不再直接显示 `C_\eta` 和 `\text{curtail}` 源码；
+- 公式状态显示 `公式 1 · 渲染错误 0 · 自动修复 1`；
+- 公式诊断显示“自动识别裸行内公式”；
+- 诊断说明同时修正 1 个未转义百分号；
+- “定位源码”准确选中原始括号公式；
+- “写回标准公式边界”后源码变为：
+
+```latex
+\((C_\eta=1\%C_{\text{curtail}})\)
+```
+
+### 2. 误识别排除
 
 粘贴：
 
 ````markdown
-# 一级标题
+这是普通说明（无需转换），还有 foo(bar)。
 
-正文包含中文、English 和数字 2026。
+[链接](https://example.com)
 
-## 二级标题
+`(C_\eta=1%C_{\text{curtail}})`
 
-### 三级标题
-
-> 引用内容
-
-- 列表项目
-
-```js
-const typography = "stable";
+```text
+(C_\eta=1%C_{\text{curtail}})
 ```
 ````
 
-确认：
+期望：
 
-- H1 > H2 > H3 > 正文 > 代码辅助文字；
-- 正文行距适合长文阅读；
-- 代码使用等宽字体；
-- 工具栏字号不会影响预览字号。
+- 普通括号不转换；
+- Markdown 链接仍是链接；
+- 函数调用不转换；
+- 行内代码和围栏代码保持源码；
+- 原始 HTML 属性、`<code>`、`<pre>`、`<script>`、`<style>` 与注释中的公式样文本保持原样；
+- 公式状态显示自动修复 0。
 
-### 4. 界面密度
+### 3. 中文全角形式
 
-打开：
+```markdown
+采用（C_\eta=1％C_{\text{curtail}}）。
+```
+
+期望同样渲染，并可写回标准半角 TeX 语法。
+
+### 4. Word 结果
+
+下载 Word 后确认：
+
+- `η` 是可编辑下标；
+- `curtail` 是可编辑下标；
+- `%` 正常显示；
+- 不出现“请手动添加公式”的占位提示。
+
+## 七、自动修复开关
+
+位置：
 
 ```text
-设置 → 界面与草稿 → 界面密度
+设置 → 界面与草稿 → 智能修复缺失的公式边界
 ```
 
-依次选择紧凑、标准、宽松，确认：
+开启时兼容：
 
-- 按钮和面板间距逐级增加；
-- 字号本身不改变；
-- Word 主按钮、工具栏与设置窗口无裁切；
-- 手机端仍能正常点击。
+- 独立 `[ ... ]` 公式块；
+- 括号中的高置信度裸行内 TeX；
+- 公式上下文中可确认的数值百分号。
 
-### 5. 浏览器缩放
+关闭时，缺失标准边界的内容保持普通文字。标准 `$...$`、`$$...$$`、`\(...\)` 和 `\[...\]` 仍会正常识别。
 
-在桌面浏览器分别检查：
-
-```text
-100%
-125%
-150%
-200%
-```
-
-确认没有横向页面滚动条、标题裁切或按钮重叠。
-
-### 6. 公式与 Word
-
-使用：
-
-```latex
-\[
-\text{玻片–O–Si–(CH}_2)_3\text{–S–S–(CH}_2)_2
-\]
-```
-
-确认：
-
-- 网页预览中公式正常；
-- 公式状态显示数量和错误；
-- 错误公式可定位源码；
-- Word/WPS 中常见上下标为可编辑文字；
-- 不再出现“请手动添加公式”的占位提示。
-
-### 7. 真实外部依赖
-
-自动测试使用确定性行为桩。部署后应实际确认：
-
-- Marked；
-- DOMPurify；
-- KaTeX 与 mhchem；
-- docx.js；
-- FileSaver；
-- 真实 AI 接口（使用时）。
-
-## 七、本地自动测试
+## 八、自动测试
 
 ```bash
 npm test
@@ -218,7 +180,7 @@ npm run check
 期望：
 
 ```text
-75 tests passed
+94 tests passed
 0 tests failed
 ```
 
@@ -227,3 +189,12 @@ npm run check
 ```text
 docs/QA_REPORT.md
 ```
+
+## 九、真实环境建议
+
+自动测试无法代替以下实际验收：
+
+1. GitHub Pages 能加载 Marked、DOMPurify、KaTeX、mhchem、docx.js 和 FileSaver；
+2. Microsoft Word 或 WPS 能打开实际生成的 DOCX；
+3. 使用自己的模型、API Key 和接口完成一次真实 AI 请求；
+4. 外部图片地址符合目标网站的跨域与下载策略。

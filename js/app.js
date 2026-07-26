@@ -75,6 +75,7 @@
 - 行内：\`$x_1$\` 或 \`\\(x_1\\)\`
 - 独立：\`$$...$$\` 或 \`\\[...\\]\`
 - 从 AI 文本中复制来的独立 \`[ ... ]\` 块，在内部明显含 TeX 时也会自动修复。
+- 高置信度裸行内 TeX，例如 \`(C_\eta=1%C_{\text{curtail}})\`，会自动识别，并把数值百分号修正为 \`\%\`。
 
 > 公式会在 Markdown 解析前被保护，因此反斜杠不会再被 Marked 当成普通转义吃掉。`;
 
@@ -1129,7 +1130,11 @@
                 mathCount: 0,
                 errors: [],
                 warnings: [],
+                repairs: [],
                 looseDelimiterFixes: 0,
+                bareInlineFixes: 0,
+                percentFixes: 0,
+                automaticFixes: 0,
                 normalizedMarkdown: text,
                 segments: []
             };
@@ -1161,7 +1166,10 @@
                 marked: window.marked,
                 katex: window.katex,
                 sanitize
-            }, { repairLooseDelimiters: state.settings.repairLooseMath });
+            }, {
+                repairLooseDelimiters: state.settings.repairLooseMath,
+                repairBareInline: state.settings.repairLooseMath
+            });
 
             if (generation !== state.renderGeneration) return state.renderResult;
             dom.preview.innerHTML = result.html;
@@ -1198,12 +1206,17 @@
     }
 
     function updateMathStatus() {
-        const result = state.renderResult || { mathCount: 0, errors: [], warnings: [], looseDelimiterFixes: 0 };
+        const result = state.renderResult || {
+            mathCount: 0, errors: [], warnings: [], looseDelimiterFixes: 0,
+            bareInlineFixes: 0, automaticFixes: 0
+        };
         const count = Number(result.mathCount || 0);
         const errors = Array.isArray(result.errors) ? result.errors.length : 0;
-        const fixes = Number(result.looseDelimiterFixes || 0);
+        const fixes = Number(result.automaticFixes != null
+            ? result.automaticFixes
+            : Number(result.looseDelimiterFixes || 0) + Number(result.bareInlineFixes || 0));
         dom.mathStatus.classList.remove('ok', 'warning', 'error');
-        dom.mathStatusText.textContent = `公式 ${count} · 渲染错误 ${errors} · 边界修复 ${fixes}`;
+        dom.mathStatusText.textContent = `公式 ${count} · 渲染错误 ${errors} · 自动修复 ${fixes}`;
         if (errors) dom.mathStatus.classList.add('error');
         else if ((result.warnings && result.warnings.length) || fixes) dom.mathStatus.classList.add('warning');
         else if (count) dom.mathStatus.classList.add('ok');
@@ -1282,10 +1295,12 @@
 
     function renderFormulaInspector() {
         const result = state.renderResult || {
-            mathCount: 0, errors: [], warnings: [], looseDelimiterFixes: 0, segments: [], normalizedMarkdown: dom.markdownInput.value
+            mathCount: 0, errors: [], warnings: [], repairs: [], looseDelimiterFixes: 0,
+            bareInlineFixes: 0, automaticFixes: 0, segments: [], normalizedMarkdown: dom.markdownInput.value
         };
         const errors = result.errors || [];
         const warnings = result.warnings || [];
+        const repairs = result.repairs || [];
         const segments = result.segments || [];
         const items = [];
 
@@ -1301,7 +1316,18 @@
             const locate = Number.isFinite(start) ? `<button type="button" class="diagnostic-locate" data-action="locate-source" data-source-start="${start}" data-source-end="${end}">定位源码</button>` : '';
             items.push(`<div class="diagnostic-item warning"><div class="diagnostic-copy"><strong>发现未闭合边界</strong><div>边界 ${escapeHtml(warning.delimiter || '未知')}，请补齐结束标记。</div></div><div class="diagnostic-actions">${locate}</div></div>`);
         });
-        if (!errors.length && !warnings.length && segments.length) {
+        repairs.forEach((repair, repairIndex) => {
+            const range = resolveSourceRange(repair);
+            const locate = range ? `<button type="button" class="diagnostic-locate" data-action="locate-source" data-source-start="${range.start}" data-source-end="${range.end}">定位源码</button>` : '';
+            const count = Number(repair.percentFixes || 0);
+            if (repair.type === 'bare-inline') {
+                const percentNote = count ? `，同时修正 ${count} 个未转义百分号` : '';
+                items.push(`<div class="diagnostic-item warning"><div class="diagnostic-copy"><strong>自动识别裸行内公式 ${repairIndex + 1}</strong><div>检测到未添加标准边界的 TeX 片段${percentNote}。预览与 Word 已按公式处理，可写回标准语法。</div><code>${escapeHtml(repair.raw || '')}</code></div><div class="diagnostic-actions">${locate}</div></div>`);
+            } else if (repair.type === 'percent-escape') {
+                items.push(`<div class="diagnostic-item warning"><div class="diagnostic-copy"><strong>自动修正公式百分号</strong><div>TeX 中 % 表示注释；检测到数值百分号后已临时转义为 <code>\\%</code>，可写回标准语法。</div><code>${escapeHtml(repair.raw || '')}</code></div><div class="diagnostic-actions">${locate}</div></div>`);
+            }
+        });
+        if (!errors.length && !warnings.length && !repairs.length && segments.length) {
             segments.slice(0, 8).forEach((segment) => {
                 const range = resolveSourceRange(segment);
                 const locate = range ? `<button type="button" class="diagnostic-locate" data-action="locate-source" data-source-start="${range.start}" data-source-end="${range.end}">定位</button>` : '';
@@ -1315,20 +1341,20 @@
             <div class="diagnostics-summary">
                 <div class="diagnostic-stat"><strong>${result.mathCount || 0}</strong><span>识别公式</span></div>
                 <div class="diagnostic-stat"><strong>${errors.length}</strong><span>渲染错误</span></div>
-                <div class="diagnostic-stat"><strong>${result.looseDelimiterFixes || 0}</strong><span>边界修复</span></div>
+                <div class="diagnostic-stat"><strong>${result.automaticFixes || 0}</strong><span>自动修复</span></div>
             </div>
             <div class="diagnostics-list">${items.join('')}</div>`;
-        dom.applyMathNormalization.hidden = !(result.looseDelimiterFixes && result.normalizedMarkdown !== dom.markdownInput.value);
+        dom.applyMathNormalization.hidden = !(result.automaticFixes && result.normalizedMarkdown !== dom.markdownInput.value);
     }
 
     function applyMathNormalization() {
         if (!state.renderResult || !state.renderResult.normalizedMarkdown) return;
-        takeDocumentSnapshot('公式边界标准化');
+        takeDocumentSnapshot('公式语法标准化');
         dom.markdownInput.value = state.renderResult.normalizedMarkdown;
         state.dirty = true;
         onEditorInput();
         toggleFormulaInspector(false);
-        setStatusMessage('已把松散 [ … ] 公式边界写回为标准 \\[ … \\]。', { undo: true, duration: 9000 });
+        setStatusMessage('已将自动识别的公式写回标准边界，并修正可确认的百分号转义。', { undo: true, duration: 9000 });
     }
 
     function buildOutline() {
@@ -2859,7 +2885,7 @@
             const line = Math.round(240 * state.settings.wordLineSpacing);
             const fontSize = Math.round(state.settings.wordFontSize * 2);
             const doc = new window.docx.Document({
-                creator: 'AI 智能 Markdown 转 Word · 融合体验版 v5.2.2',
+                creator: 'AI 智能 Markdown 转 Word · 融合体验版 v5.2.3',
                 title,
                 description: '由浏览器本地生成；公式转换为可编辑文本与上下标',
                 styles: {

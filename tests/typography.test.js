@@ -17,12 +17,12 @@ function position(fragment) {
     return index;
 }
 
-test('v5.2.2 loads the global typography stylesheet last', () => {
-    assert.equal(pkg.version, '5.2.2');
-    assert.match(html, /融合体验版 v5\.2\.2/);
-    assert.match(html, /css\/typography\.css\?v=5\.2\.2/);
-    assert.ok(position('css/hero.css?v=5.2.2') < position('css/typography.css?v=5.2.2'));
-    assert.ok(position('css/typography.css?v=5.2.2') < position('js/access-config.js?v=5.2.2'));
+test('v5.2.3 loads the global typography stylesheet last', () => {
+    assert.equal(pkg.version, '5.2.3');
+    assert.match(html, /融合体验版 v5\.2\.3/);
+    assert.match(html, /css\/typography\.css\?v=5\.2\.3/);
+    assert.ok(position('css/hero.css?v=5.2.3') < position('css/typography.css?v=5.2.3'));
+    assert.ok(position('css/typography.css?v=5.2.3') < position('js/access-config.js?v=5.2.3'));
 });
 
 test('the system exposes eight semantic UI levels and an independent document scale', () => {

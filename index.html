@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="color-scheme" content="light dark">
     <meta name="description" content="保留原版玻璃态与密码入口的 Markdown 转 Word 工具，提供常驻操作栏、可靠公式预览、可编辑公式导出、AI 修复和表格转换。">
-    <title>AI 智能 Markdown 转 Word · 融合体验版 v5.2.2</title>
+    <title>AI 智能 Markdown 转 Word · 融合体验版 v5.2.3</title>
 
     <script src="https://cdn.jsdelivr.net/npm/marked@9.0.0/marked.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" defer></script>
@@ -15,15 +15,15 @@
     <script src="https://unpkg.com/docx@7.8.2/build/index.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" defer></script>
 
-    <link rel="stylesheet" href="css/app.css?v=5.2.2">
-    <link rel="stylesheet" href="css/toolbar.css?v=5.2.2">
-    <link rel="stylesheet" href="css/experience.css?v=5.2.2">
-    <link rel="stylesheet" href="css/hero.css?v=5.2.2">
-    <link rel="stylesheet" href="css/typography.css?v=5.2.2">
-    <script src="js/access-config.js?v=5.2.2" defer></script>
-    <script src="js/math-engine.js?v=5.2.2" defer></script>
-    <script src="js/preflight.js?v=5.2.2" defer></script>
-    <script src="js/app.js?v=5.2.2" defer></script>
+    <link rel="stylesheet" href="css/app.css?v=5.2.3">
+    <link rel="stylesheet" href="css/toolbar.css?v=5.2.3">
+    <link rel="stylesheet" href="css/experience.css?v=5.2.3">
+    <link rel="stylesheet" href="css/hero.css?v=5.2.3">
+    <link rel="stylesheet" href="css/typography.css?v=5.2.3">
+    <script src="js/access-config.js?v=5.2.3" defer></script>
+    <script src="js/math-engine.js?v=5.2.3" defer></script>
+    <script src="js/preflight.js?v=5.2.3" defer></script>
+    <script src="js/app.js?v=5.2.3" defer></script>
 </head>
 <body class="auth-locked">
     <noscript><div class="fatal-banner">此工具需要启用 JavaScript。</div></noscript>
@@ -49,7 +49,7 @@
                         <svg class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9c0-.55-.45-1-1-1h-3.2a2.8 2.8 0 0 1-2.8-2.8V4c0-.55-.45-1-1-1h-1Z"/><path d="M7.5 10.5h.01M9.5 7.5h.01M7.5 14.5h.01"/></svg>
                         <span id="authThemeText">暖阳琥珀</span>
                     </button>
-                    <span class="auth-version-pill">v5.2.2</span>
+                    <span class="auth-version-pill">v5.2.3</span>
                 </div>
             </header>
 
@@ -83,7 +83,7 @@
 
                         <div class="auth-update-note">
                             <span class="auth-update-dot" aria-hidden="true"></span>
-                            <div><strong>v5.2.2 全局字体与视觉节奏</strong><p>统一登录、工作区、编辑器、预览与设置的字号层级、行高、字重和密度。</p></div>
+                            <div><strong>v5.2.3 公式兼容增强</strong><p>高置信度识别 AI 输出中的裸行内 TeX，并修复数值百分号转义。</p></div>
                         </div>
                     </div>
 
@@ -192,7 +192,7 @@
 
                     <div class="author-info">
                         <span class="hero-author"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><strong>Boning</strong> · TJUT</span>
-                        <span class="hero-version">Fusion v5.2.2</span>
+                        <span class="hero-version">Fusion v5.2.3</span>
                     </div>
                 </div>
 
@@ -411,7 +411,7 @@
                             <h2 id="previewTitle">👀 实时预览</h2>
                             <button type="button" class="math-status" id="mathStatus" aria-expanded="false" aria-controls="formulaInspector" title="展开公式诊断">
                                 <span aria-hidden="true">ƒx</span>
-                                <span id="mathStatusText">公式 0 · 渲染错误 0 · 边界修复 0</span>
+                                <span id="mathStatusText">公式 0 · 渲染错误 0 · 自动修复 0</span>
                             </button>
                         </div>
                         <div class="panel-actions preview-actions">
@@ -422,7 +422,7 @@
                     <section id="formulaInspector" class="formula-inspector" hidden>
                         <div id="formulaInspectorContent"></div>
                         <div class="formula-inspector-actions">
-                            <button type="button" class="secondary-button" id="applyMathNormalization" hidden>写回标准 \[ … \] 边界</button>
+                            <button type="button" class="secondary-button" id="applyMathNormalization" hidden>写回标准公式边界</button>
                             <button type="button" class="text-button" data-action="close-formula-inspector">收起</button>
                         </div>
                     </section>
@@ -444,7 +444,7 @@
         </div>
     </div>
 
-    <input type="file" id="fileInput" accept=".md,.markdown,.txt,text/markdown,text/plain" hidden>
+    <input type="file" id="fileInput" accept=".md,.markdown,.txt,text/markdown,text/plain" aria-label="选择 Markdown 文件" hidden>
 
     <dialog id="settingsDialog" class="app-dialog settings-dialog">
         <form method="dialog" class="dialog-card" id="settingsForm">
@@ -507,7 +507,7 @@
                     </div>
                     <label class="switch-field"><input type="checkbox" name="autosave" id="autosaveToggle"><span><strong>自动保存本地草稿</strong><small>内容只保存在当前浏览器</small></span></label>
                     <label class="switch-field"><input type="checkbox" name="restoreDraftOnStart" id="restoreDraftOnStartToggle"><span><strong>启动时自动恢复草稿</strong><small>默认关闭；关闭时始终空白启动，并在空预览中提供恢复按钮</small></span></label>
-                    <label class="switch-field"><input type="checkbox" name="repairLooseMath" id="repairLooseMathToggle"><span><strong>修复独立 [ … ] 公式边界</strong><small>只处理内部明显含 TeX 语法的方括号块</small></span></label>
+                    <label class="switch-field"><input type="checkbox" name="repairLooseMath" id="repairLooseMathToggle"><span><strong>智能修复缺失的公式边界</strong><small>兼容独立 [ … ] 块与高置信度裸行内 TeX；普通括号文本不会转换</small></span></label>
                     <label class="switch-field"><input type="checkbox" name="settingsSyncScroll" id="settingsSyncScrollToggle"><span><strong>默认开启同步滚动</strong><small>顶部操作栏可随时临时切换</small></span></label>
                 </section>
 

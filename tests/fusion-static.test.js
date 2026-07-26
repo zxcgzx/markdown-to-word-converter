@@ -40,13 +40,13 @@ function findOpeningTags(source, tagName) {
     return [...source.matchAll(regex)].map((match) => match[0]);
 }
 
-test('package and page identify the complete v5.2.2 release', () => {
-    assert.equal(pkg.version, '5.2.2');
-    assert.match(html, /融合体验版 v5\.2\.2/);
-    assert.match(html, /js\/preflight\.js\?v=5\.2\.2/);
-    assert.match(html, /css\/toolbar\.css\?v=5\.2\.2/);
-    assert.match(html, /css\/experience\.css\?v=5\.2\.2/);
-    assert.match(html, /css\/hero\.css\?v=5\.2\.2/);
+test('package and page identify the complete v5.2.3 release', () => {
+    assert.equal(pkg.version, '5.2.3');
+    assert.match(html, /融合体验版 v5\.2\.3/);
+    assert.match(html, /js\/preflight\.js\?v=5\.2\.3/);
+    assert.match(html, /css\/toolbar\.css\?v=5\.2\.3/);
+    assert.match(html, /css\/experience\.css\?v=5\.2\.3/);
+    assert.match(html, /css\/hero\.css\?v=5\.2\.3/);
     assert.match(pkg.scripts.check, /preflight\.js/);
 });
 
@@ -129,7 +129,7 @@ test('formula status reports clearer labels and every error can locate source', 
     for (const id of ['mathStatus', 'mathStatusText', 'formulaInspector', 'formulaInspectorContent', 'applyMathNormalization']) {
         assert.match(html, new RegExp(`id=["']${id}["']`));
     }
-    assert.match(appJs, /`公式 \$\{count\} · 渲染错误 \$\{errors\} · 边界修复 \$\{fixes\}`/);
+    assert.match(appJs, /`公式 \$\{count\} · 渲染错误 \$\{errors\} · 自动修复 \$\{fixes\}`/);
     assert.match(appJs, /function locateSourceRange\s*\(/);
     assert.match(appJs, /data-action="locate-source"/);
     assert.match(appJs, /setSelectionRange\(safeStart, safeEnd\)/);
@@ -209,11 +209,11 @@ test('DOCX export parses math separately into editable subscript and superscript
     assert.match(appJs, /Md2WordMath\.latexToWordSegments/);
     assert.match(appJs, /subScript:\s*Boolean\(segment\.subScript\)/);
     assert.match(appJs, /superScript:\s*Boolean\(segment\.superScript\)/);
-    assert.match(html, /融合体验版 v5\.2\.2/);
+    assert.match(html, /融合体验版 v5\.2\.3/);
     assert.doesNotMatch(appJs, /请.{0,8}手动添加公式/);
 });
 
-test('v5.2.2 login is a focused brand-and-auth composition rather than a card wall', () => {
+test('v5.2.3 login is a focused brand-and-auth composition rather than a card wall', () => {
     for (const id of [
         'authStoryTitle', 'authThemeButton', 'authThemeText', 'rememberDeviceToggle',
         'capsLockHint', 'shareCodePanel', 'shareCodeInput', 'importShareCodeButton',
@@ -243,7 +243,7 @@ test('remembered access, inline share codes, Caps Lock and login states are impl
     assert.match(experienceCss, /\.password-btn\[data-state="success"\]/);
 });
 
-test('v5.2.2 provides a keyboard command palette and a reversible focus mode', () => {
+test('v5.2.3 provides a keyboard command palette and a reversible focus mode', () => {
     for (const id of [
         'commandButton', 'commandPalette', 'commandPaletteInput', 'commandPaletteList',
         'commandPaletteCount', 'focusModeButton', 'focusModeExitButton'
@@ -296,4 +296,19 @@ test('the command palette traps keyboard focus while open', () => {
     assert.match(appJs, /function trapCommandPaletteFocus\s*\(/);
     assert.match(appJs, /state\.commandPaletteOpen[^\n]*event\.key !== 'Tab'/);
     assert.match(appJs, /if \(trapCommandPaletteFocus\(event\)\) return/);
+});
+
+
+test('v5.2.3 adds conservative bare-inline TeX recovery and visible repair controls', () => {
+    assert.match(mathJs, /function isProbablyBareInlineLatex/);
+    assert.match(mathJs, /repairBareInline/);
+    assert.match(mathJs, /escapeLikelyPercentSigns/);
+    assert.match(appJs, /自动识别裸行内公式/);
+    assert.match(appJs, /自动修正公式百分号/);
+    assert.match(html, /智能修复缺失的公式边界/);
+    assert.match(html, /写回标准公式边界/);
+});
+
+test('hidden Markdown file picker keeps an accessible name', () => {
+    assert.match(html, /<input\b[^>]*id="fileInput"[^>]*aria-label="选择 Markdown 文件"[^>]*hidden>/);
 });

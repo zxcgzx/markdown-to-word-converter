@@ -96,6 +96,67 @@
         return { end: text.length, raw: text.slice(start) };
     }
 
+    function consumeHtmlTag(text, start) {
+        if (text[start] !== '<' || isEscaped(text, start)) return null;
+
+        if (text.startsWith('<!--', start)) {
+            const close = text.indexOf('-->', start + 4);
+            const end = close === -1 ? text.length : close + 3;
+            return { end, raw: text.slice(start, end), tagName: '', closing: false, selfClosing: false, comment: true };
+        }
+
+        if (text.startsWith('<![CDATA[', start)) {
+            const close = text.indexOf(']]>', start + 9);
+            const end = close === -1 ? text.length : close + 3;
+            return { end, raw: text.slice(start, end), tagName: '', closing: false, selfClosing: false, comment: true };
+        }
+
+        const declaration = text.startsWith('<!', start) || text.startsWith('<?', start);
+        const prefix = declaration
+            ? text.slice(start).match(/^<(?:!|\?)[A-Za-z][A-Za-z0-9:-]*/)
+            : text.slice(start).match(/^<\/?[A-Za-z][A-Za-z0-9:-]*/);
+        if (!prefix) return null;
+
+        const prefixText = prefix[0];
+        const afterPrefix = text[start + prefixText.length] || '';
+        if (afterPrefix && !/[\s/>?]/.test(afterPrefix)) return null;
+
+        let quote = '';
+        let cursor = start + prefixText.length;
+        while (cursor < text.length) {
+            const char = text[cursor];
+            if (quote) {
+                if (char === quote && !isEscaped(text, cursor)) quote = '';
+            } else if (char === '"' || char === "'") {
+                quote = char;
+            } else if (char === '>') {
+                const end = cursor + 1;
+                const nameMatch = prefixText.match(/^<\/?([A-Za-z][A-Za-z0-9:-]*)/);
+                return {
+                    end,
+                    raw: text.slice(start, end),
+                    tagName: nameMatch ? nameMatch[1].toLowerCase() : '',
+                    closing: /^<\//.test(prefixText),
+                    selfClosing: /\/\s*>$/.test(text.slice(start, end)),
+                    comment: false
+                };
+            }
+            cursor += 1;
+        }
+        return { end: text.length, raw: text.slice(start), tagName: '', closing: false, selfClosing: false, comment: false };
+    }
+
+    function consumeRawHtmlElement(text, start, openingTag) {
+        if (!openingTag || openingTag.closing || openingTag.selfClosing) return null;
+        if (!['code', 'pre', 'script', 'style'].includes(openingTag.tagName)) return null;
+        const escapedName = openingTag.tagName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const closingPattern = new RegExp(`<\\/${escapedName}\\s*>`, 'ig');
+        closingPattern.lastIndex = openingTag.end;
+        const match = closingPattern.exec(text);
+        const end = match ? closingPattern.lastIndex : text.length;
+        return { end, raw: text.slice(start, end) };
+    }
+
     function findClosing(text, start, closing, options = {}) {
         const { singleLine = false, rejectDoubleDollar = false } = options;
         let cursor = start;
@@ -150,6 +211,110 @@
         if (/\\begin\{[^}]+\}/.test(text) || /&|\\\\/.test(text)) score += 1;
         if (/\{[^}\n]+\}/.test(text)) score += 1;
         return score >= 3;
+    }
+
+
+    function hasBalancedBraces(value) {
+        const text = String(value || '');
+        let depth = 0;
+        for (let i = 0; i < text.length; i += 1) {
+            if (text[i] === '{' && !isEscaped(text, i)) depth += 1;
+            else if (text[i] === '}' && !isEscaped(text, i)) {
+                depth -= 1;
+                if (depth < 0) return false;
+            }
+        }
+        return depth === 0;
+    }
+
+    /**
+     * Conservatively recognises AI output that contains real TeX inside plain
+     * parentheses instead of standard inline delimiters. Ordinary prose such
+     * as “（这是说明）” is intentionally excluded.
+     */
+    function isProbablyBareInlineLatex(body) {
+        const text = String(body || '').trim();
+        if (!text || text.length > 360 || /[\r\n]/.test(text)) return false;
+        if (/https?:\/\/|www\.|mailto:/i.test(text)) return false;
+        if (!hasBalancedBraces(text)) return false;
+
+        const hasCommand = /\\[A-Za-z]+/.test(text);
+        const hasStructuredScript = /(?:^|[^\\])[_^](?:\{[^}\n]+\}|\\[A-Za-z]+|[A-Za-z0-9])/.test(text);
+        const hasRelation = /(?:=|\\leq?\b|\\geq?\b|\\neq\b|[<>±×÷+−])/u.test(text);
+        const hasGroup = /\{[^}\n]+\}/.test(text);
+        const hasStrongCommand = /\\(?:text|mathrm|mathbf|mathit|operatorname|frac|sqrt|sum|prod|int|eta|alpha|beta|gamma|delta|theta|lambda|mu|sigma|phi|omega)\b/.test(text);
+
+        if (!hasCommand && !hasStructuredScript) return false;
+        if (hasStrongCommand && (hasStructuredScript || hasRelation || hasGroup)) return true;
+        if (hasStructuredScript && (hasCommand || hasRelation || hasGroup)) return true;
+        return isProbablyLatex(text) && hasRelation;
+    }
+
+    function findBalancedParenthetical(text, start, opening, closing, maxLength = 480) {
+        if (text[start] !== opening) return -1;
+        let depth = 0;
+        let braceDepth = 0;
+        const limit = Math.min(text.length, start + Math.max(8, maxLength));
+        for (let i = start; i < limit; i += 1) {
+            const char = text[i];
+            if (char === '\n' || char === '\r' || char === '`') return -1;
+            if (char === '{' && !isEscaped(text, i)) {
+                braceDepth += 1;
+                continue;
+            }
+            if (char === '}' && !isEscaped(text, i)) {
+                braceDepth = Math.max(0, braceDepth - 1);
+                continue;
+            }
+            if (braceDepth > 0) continue;
+            if (char === opening) depth += 1;
+            else if (char === closing) {
+                depth -= 1;
+                if (depth === 0) return i;
+                if (depth < 0) return -1;
+            }
+        }
+        return -1;
+    }
+
+    function canOpenBareParenthetical(text, index) {
+        if (index < 0 || index >= text.length || isEscaped(text, index)) return false;
+        const previous = text[index - 1] || '';
+        if (!previous) return true;
+        return previous !== ']' && previous !== '`' && !/[A-Za-z0-9_\\}\]）)]/.test(previous);
+    }
+
+    /** Escape only percentage signs that visibly follow a number. */
+    function escapeLikelyPercentSigns(value) {
+        const text = String(value || '');
+        let output = '';
+        let fixes = 0;
+        for (let i = 0; i < text.length; i += 1) {
+            const char = text[i];
+            if ((char === '%' || char === '％') && (char === '％' || !isEscaped(text, i))) {
+                let previousIndex = i - 1;
+                while (previousIndex >= 0 && /\s/.test(text[previousIndex])) previousIndex -= 1;
+                if (previousIndex >= 0 && /\d/.test(text[previousIndex])) {
+                    output += '\\%';
+                    fixes += 1;
+                    continue;
+                }
+            }
+            output += char;
+        }
+        return { text: output, fixes };
+    }
+
+    function applyTextRepairs(source, repairs) {
+        let output = String(source || '');
+        const ordered = (Array.isArray(repairs) ? repairs : [])
+            .filter((repair) => repair && Number.isFinite(repair.normalizedStart) && Number.isFinite(repair.normalizedEnd))
+            .slice()
+            .sort((a, b) => b.normalizedStart - a.normalizedStart);
+        for (const repair of ordered) {
+            output = `${output.slice(0, repair.normalizedStart)}${repair.replacement}${output.slice(repair.normalizedEnd)}`;
+        }
+        return output;
     }
 
     function createSourceLineRecords(text) {
@@ -286,28 +451,34 @@
         const nonce = options.nonce || simpleHash(`${text.length}:${text.slice(0, 64)}:${text.slice(-64)}`);
         const segments = [];
         const warnings = [];
+        const repairs = [];
+        let bareInlineFixes = 0;
+        let percentFixes = 0;
         let output = '';
         let cursor = 0;
 
-        function addSegment(normalizedStart, normalizedEnd, content, display, delimiter) {
+        function addSegment(normalizedStart, normalizedEnd, content, display, delimiter, metadata = {}) {
             const index = segments.length;
             const token = `MD2WMATH${nonce}${display ? 'D' : 'I'}${index}END`;
             const start = toSourceOffset(normalizedStart);
             const end = toSourceOffset(normalizedEnd);
             const raw = sourceText.slice(start, end);
             segments.push({
-                index,
-                token,
-                raw,
-                content,
-                display,
-                delimiter,
-                start,
-                end,
-                normalizedStart,
-                normalizedEnd
+                index, token, raw, content, display, delimiter, start, end,
+                normalizedStart, normalizedEnd, ...metadata
             });
             output += token;
+        }
+
+        function addPercentRepair(normalizedStart, normalizedEnd, replacement, fixes) {
+            if (!fixes) return;
+            const start = toSourceOffset(normalizedStart);
+            const end = toSourceOffset(normalizedEnd);
+            repairs.push({
+                type: 'percent-escape', start, end, normalizedStart, normalizedEnd,
+                raw: sourceText.slice(start, end), replacement, percentFixes: fixes
+            });
+            percentFixes += fixes;
         }
 
         while (cursor < text.length) {
@@ -316,6 +487,17 @@
                 output += fence.raw;
                 cursor = fence.end;
                 continue;
+            }
+
+            if (text[cursor] === '<') {
+                const htmlTag = consumeHtmlTag(text, cursor);
+                if (htmlTag) {
+                    const rawElement = consumeRawHtmlElement(text, cursor, htmlTag);
+                    const consumed = rawElement || htmlTag;
+                    output += consumed.raw;
+                    cursor = consumed.end;
+                    continue;
+                }
             }
 
             if (text[cursor] === '`') {
@@ -333,7 +515,14 @@
             if (text.startsWith('$$', cursor) && !isEscaped(text, cursor)) {
                 const close = findClosing(text, cursor + 2, '$$');
                 if (close !== -1) {
-                    addSegment(cursor, close + 2, text.slice(cursor + 2, close).trim(), true, '$$');
+                    const rawContent = text.slice(cursor + 2, close);
+                    const percentResult = escapeLikelyPercentSigns(rawContent);
+                    addPercentRepair(cursor, close + 2, `$$${percentResult.text}$$`, percentResult.fixes);
+                    addSegment(cursor, close + 2, percentResult.text.trim(), true, '$$', {
+                        autoRepaired: Boolean(percentResult.fixes),
+                        repairType: percentResult.fixes ? 'percent-escape' : '',
+                        percentFixes: percentResult.fixes
+                    });
                     cursor = close + 2;
                     continue;
                 }
@@ -343,7 +532,14 @@
             if (text.startsWith('\\[', cursor) && !isEscaped(text, cursor)) {
                 const close = findClosing(text, cursor + 2, '\\]');
                 if (close !== -1) {
-                    addSegment(cursor, close + 2, text.slice(cursor + 2, close).trim(), true, '\\[');
+                    const rawContent = text.slice(cursor + 2, close);
+                    const percentResult = escapeLikelyPercentSigns(rawContent);
+                    addPercentRepair(cursor, close + 2, `\\[${percentResult.text}\\]`, percentResult.fixes);
+                    addSegment(cursor, close + 2, percentResult.text.trim(), true, '\\[', {
+                        autoRepaired: Boolean(percentResult.fixes),
+                        repairType: percentResult.fixes ? 'percent-escape' : '',
+                        percentFixes: percentResult.fixes
+                    });
                     cursor = close + 2;
                     continue;
                 }
@@ -353,19 +549,63 @@
             if (text.startsWith('\\(', cursor) && !isEscaped(text, cursor)) {
                 const close = findClosing(text, cursor + 2, '\\)', { singleLine: false });
                 if (close !== -1) {
-                    addSegment(cursor, close + 2, text.slice(cursor + 2, close).trim(), false, '\\(');
+                    const rawContent = text.slice(cursor + 2, close);
+                    const percentResult = escapeLikelyPercentSigns(rawContent);
+                    addPercentRepair(cursor, close + 2, `\\(${percentResult.text}\\)`, percentResult.fixes);
+                    addSegment(cursor, close + 2, percentResult.text.trim(), false, '\\(', {
+                        autoRepaired: Boolean(percentResult.fixes),
+                        repairType: percentResult.fixes ? 'percent-escape' : '',
+                        percentFixes: percentResult.fixes
+                    });
                     cursor = close + 2;
                     continue;
                 }
                 warnings.push({ type: 'unclosed', delimiter: '\\(', index: toSourceOffset(cursor), normalizedIndex: cursor });
             }
 
+            if (options.repairBareInline !== false
+                && (text[cursor] === '(' || text[cursor] === '（')
+                && canOpenBareParenthetical(text, cursor)) {
+                const opening = text[cursor];
+                const closing = opening === '（' ? '）' : ')';
+                const close = findBalancedParenthetical(text, cursor, opening, closing);
+                const next = close === -1 ? '' : (text[close + 1] || '');
+                if (close !== -1 && !(next && /[A-Za-z0-9_]/.test(next))) {
+                    const body = text.slice(cursor + 1, close).trim();
+                    if (isProbablyBareInlineLatex(body)) {
+                        const percentResult = escapeLikelyPercentSigns(body);
+                        const content = `(${percentResult.text})`;
+                        const start = toSourceOffset(cursor);
+                        const end = toSourceOffset(close + 1);
+                        repairs.push({
+                            type: 'bare-inline', start, end, normalizedStart: cursor,
+                            normalizedEnd: close + 1, raw: sourceText.slice(start, end),
+                            replacement: `\\(${content}\\)`, percentFixes: percentResult.fixes
+                        });
+                        bareInlineFixes += 1;
+                        percentFixes += percentResult.fixes;
+                        addSegment(cursor, close + 1, content, false, 'bare-parentheses', {
+                            autoRepaired: true, repairType: 'bare-inline', percentFixes: percentResult.fixes
+                        });
+                        cursor = close + 1;
+                        continue;
+                    }
+                }
+            }
+
             if (text[cursor] === '$' && isPlausibleInlineDollarOpen(text, cursor)) {
                 const close = findInlineDollarClose(text, cursor + 1);
                 if (close !== -1) {
-                    const content = text.slice(cursor + 1, close).trim();
+                    const rawContent = text.slice(cursor + 1, close);
+                    const percentResult = escapeLikelyPercentSigns(rawContent);
+                    const content = percentResult.text.trim();
                     if (content) {
-                        addSegment(cursor, close + 1, content, false, '$');
+                        addPercentRepair(cursor, close + 1, `$${percentResult.text}$`, percentResult.fixes);
+                        addSegment(cursor, close + 1, content, false, '$', {
+                            autoRepaired: Boolean(percentResult.fixes),
+                            repairType: percentResult.fixes ? 'percent-escape' : '',
+                            percentFixes: percentResult.fixes
+                        });
                         cursor = close + 1;
                         continue;
                     }
@@ -376,14 +616,12 @@
             cursor += 1;
         }
 
+        const normalizedMarkdown = applyTextRepairs(text, repairs);
+        const automaticFixes = Number(normalized.fixes || 0) + repairs.length;
         return {
-            protectedMarkdown: output,
-            normalizedMarkdown: text,
-            sourceMarkdown: sourceText,
-            sourceMap,
-            segments,
-            warnings,
-            looseDelimiterFixes: normalized.fixes
+            protectedMarkdown: output, normalizedMarkdown, sourceMarkdown: sourceText,
+            sourceMap, segments, warnings, repairs,
+            looseDelimiterFixes: normalized.fixes, bareInlineFixes, percentFixes, automaticFixes
         };
     }
 
@@ -461,7 +699,11 @@
             mathCount: extracted.segments.length,
             errors,
             warnings: extracted.warnings,
+            repairs: extracted.repairs,
             looseDelimiterFixes: extracted.looseDelimiterFixes,
+            bareInlineFixes: extracted.bareInlineFixes,
+            percentFixes: extracted.percentFixes,
+            automaticFixes: extracted.automaticFixes,
             normalizedMarkdown: extracted.normalizedMarkdown,
             segments: extracted.segments
         };
@@ -557,6 +799,21 @@
                         const group = readGroup(text, next);
                         parse(group.value, scriptStyle);
                         cursor = group.end;
+                    } else if (text[next] === '\\') {
+                        const commandMatch = text.slice(next + 1).match(/^[A-Za-z]+/);
+                        if (commandMatch) {
+                            const command = commandMatch[0];
+                            const symbol = Object.prototype.hasOwnProperty.call(GREEK_SYMBOLS, command)
+                                ? GREEK_SYMBOLS[command]
+                                : Object.prototype.hasOwnProperty.call(SYMBOLS, command)
+                                    ? SYMBOLS[command]
+                                    : command;
+                            push(symbol, scriptStyle);
+                            cursor = next + command.length + 1;
+                        } else {
+                            push(text[next + 1] || '', scriptStyle);
+                            cursor = Math.min(next + 2, text.length);
+                        }
                     } else {
                         push(text[next] || '', scriptStyle);
                         cursor = Math.min(next + 1, text.length);
@@ -660,6 +917,8 @@
         escapeHtml,
         simpleHash,
         isProbablyLatex,
+        isProbablyBareInlineLatex,
+        escapeLikelyPercentSigns,
         normalizeLooseDisplayMath,
         normalizedOffsetToSource,
         extractMathSegments,
