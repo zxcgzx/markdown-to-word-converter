@@ -15,7 +15,8 @@ const appCss = fs.readFileSync(path.join(root, 'css', 'app.css'), 'utf8');
 const toolbarCss = fs.readFileSync(path.join(root, 'css', 'toolbar.css'), 'utf8');
 const experienceCss = fs.readFileSync(path.join(root, 'css', 'experience.css'), 'utf8');
 const heroCss = fs.readFileSync(path.join(root, 'css', 'hero.css'), 'utf8');
-const css = `${appCss}\n${toolbarCss}\n${experienceCss}\n${heroCss}`;
+const typographyCss = fs.readFileSync(path.join(root, 'css', 'typography.css'), 'utf8');
+const css = `${appCss}\n${toolbarCss}\n${experienceCss}\n${heroCss}\n${typographyCss}`;
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 
 function collectIds(source) {
@@ -39,13 +40,13 @@ function findOpeningTags(source, tagName) {
     return [...source.matchAll(regex)].map((match) => match[0]);
 }
 
-test('package and page identify the complete v5.2.1 release', () => {
-    assert.equal(pkg.version, '5.2.1');
-    assert.match(html, /融合体验版 v5\.2\.1/);
-    assert.match(html, /js\/preflight\.js\?v=5\.2\.1/);
-    assert.match(html, /css\/toolbar\.css\?v=5\.2\.1/);
-    assert.match(html, /css\/experience\.css\?v=5\.2\.1/);
-    assert.match(html, /css\/hero\.css\?v=5\.2\.1/);
+test('package and page identify the complete v5.2.2 release', () => {
+    assert.equal(pkg.version, '5.2.2');
+    assert.match(html, /融合体验版 v5\.2\.2/);
+    assert.match(html, /js\/preflight\.js\?v=5\.2\.2/);
+    assert.match(html, /css\/toolbar\.css\?v=5\.2\.2/);
+    assert.match(html, /css\/experience\.css\?v=5\.2\.2/);
+    assert.match(html, /css\/hero\.css\?v=5\.2\.2/);
     assert.match(pkg.scripts.check, /preflight\.js/);
 });
 
@@ -208,11 +209,11 @@ test('DOCX export parses math separately into editable subscript and superscript
     assert.match(appJs, /Md2WordMath\.latexToWordSegments/);
     assert.match(appJs, /subScript:\s*Boolean\(segment\.subScript\)/);
     assert.match(appJs, /superScript:\s*Boolean\(segment\.superScript\)/);
-    assert.match(html, /融合体验版 v5\.2\.1/);
+    assert.match(html, /融合体验版 v5\.2\.2/);
     assert.doesNotMatch(appJs, /请.{0,8}手动添加公式/);
 });
 
-test('v5.2.1 login is a focused brand-and-auth composition rather than a card wall', () => {
+test('v5.2.2 login is a focused brand-and-auth composition rather than a card wall', () => {
     for (const id of [
         'authStoryTitle', 'authThemeButton', 'authThemeText', 'rememberDeviceToggle',
         'capsLockHint', 'shareCodePanel', 'shareCodeInput', 'importShareCodeButton',
@@ -242,7 +243,7 @@ test('remembered access, inline share codes, Caps Lock and login states are impl
     assert.match(experienceCss, /\.password-btn\[data-state="success"\]/);
 });
 
-test('v5.2.1 provides a keyboard command palette and a reversible focus mode', () => {
+test('v5.2.2 provides a keyboard command palette and a reversible focus mode', () => {
     for (const id of [
         'commandButton', 'commandPalette', 'commandPaletteInput', 'commandPaletteList',
         'commandPaletteCount', 'focusModeButton', 'focusModeExitButton'

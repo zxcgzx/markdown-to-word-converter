@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="color-scheme" content="light dark">
     <meta name="description" content="保留原版玻璃态与密码入口的 Markdown 转 Word 工具，提供常驻操作栏、可靠公式预览、可编辑公式导出、AI 修复和表格转换。">
-    <title>AI 智能 Markdown 转 Word · 融合体验版 v5.2.1</title>
+    <title>AI 智能 Markdown 转 Word · 融合体验版 v5.2.2</title>
 
     <script src="https://cdn.jsdelivr.net/npm/marked@9.0.0/marked.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" defer></script>
@@ -15,14 +15,15 @@
     <script src="https://unpkg.com/docx@7.8.2/build/index.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" defer></script>
 
-    <link rel="stylesheet" href="css/app.css?v=5.2.1">
-    <link rel="stylesheet" href="css/toolbar.css?v=5.2.1">
-    <link rel="stylesheet" href="css/experience.css?v=5.2.1">
-    <link rel="stylesheet" href="css/hero.css?v=5.2.1">
-    <script src="js/access-config.js?v=5.2.1" defer></script>
-    <script src="js/math-engine.js?v=5.2.1" defer></script>
-    <script src="js/preflight.js?v=5.2.1" defer></script>
-    <script src="js/app.js?v=5.2.1" defer></script>
+    <link rel="stylesheet" href="css/app.css?v=5.2.2">
+    <link rel="stylesheet" href="css/toolbar.css?v=5.2.2">
+    <link rel="stylesheet" href="css/experience.css?v=5.2.2">
+    <link rel="stylesheet" href="css/hero.css?v=5.2.2">
+    <link rel="stylesheet" href="css/typography.css?v=5.2.2">
+    <script src="js/access-config.js?v=5.2.2" defer></script>
+    <script src="js/math-engine.js?v=5.2.2" defer></script>
+    <script src="js/preflight.js?v=5.2.2" defer></script>
+    <script src="js/app.js?v=5.2.2" defer></script>
 </head>
 <body class="auth-locked">
     <noscript><div class="fatal-banner">此工具需要启用 JavaScript。</div></noscript>
@@ -48,7 +49,7 @@
                         <svg class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9c0-.55-.45-1-1-1h-3.2a2.8 2.8 0 0 1-2.8-2.8V4c0-.55-.45-1-1-1h-1Z"/><path d="M7.5 10.5h.01M9.5 7.5h.01M7.5 14.5h.01"/></svg>
                         <span id="authThemeText">暖阳琥珀</span>
                     </button>
-                    <span class="auth-version-pill">v5.2.1</span>
+                    <span class="auth-version-pill">v5.2.2</span>
                 </div>
             </header>
 
@@ -56,7 +57,7 @@
                 <section class="password-insight auth-story" aria-labelledby="authStoryTitle">
                     <div class="auth-story-content">
                         <p class="auth-kicker">MARKDOWN → DOCX STUDIO</p>
-                        <h1 id="authStoryTitle">把复杂 Markdown，<br><span>稳定地交付为 Word</span></h1>
+                        <h1 id="authStoryTitle"><span class="auth-title-line">把复杂 Markdown，</span><span class="auth-title-line">稳定地交付为 Word</span></h1>
                         <p class="auth-story-lead">公式、表格与长文结构，在实时预览和最终导出之间保持一致。</p>
 
                         <div class="auth-capability-list" aria-label="核心能力">
@@ -82,7 +83,7 @@
 
                         <div class="auth-update-note">
                             <span class="auth-update-dot" aria-hidden="true"></span>
-                            <div><strong>v5.2.1 品牌视觉精修</strong><p>重塑工作区标题层级、身份卡片与快捷操作坞，信息更清晰、更克制。</p></div>
+                            <div><strong>v5.2.2 全局字体与视觉节奏</strong><p>统一登录、工作区、编辑器、预览与设置的字号层级、行高、字重和密度。</p></div>
                         </div>
                     </div>
 
@@ -191,7 +192,7 @@
 
                     <div class="author-info">
                         <span class="hero-author"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><strong>Boning</strong> · TJUT</span>
-                        <span class="hero-version">Fusion v5.2.1</span>
+                        <span class="hero-version">Fusion v5.2.2</span>
                     </div>
                 </div>
 
@@ -479,9 +480,30 @@
                             </select>
                         </label>
                         <label class="field">
-                            <span>编辑器字号</span>
+                            <span>编辑器字号（px）</span>
                             <input type="number" name="editorFontSize" id="editorFontSize" min="12" max="24" step="1">
                         </label>
+                        <fieldset class="density-field field-wide" aria-describedby="densityNote">
+                            <legend>界面密度</legend>
+                            <div class="density-options" role="radiogroup" aria-label="界面密度">
+                                <label class="density-option">
+                                    <input type="radio" name="uiDensity" value="compact">
+                                    <strong>紧凑</strong>
+                                    <small>更高信息密度，适合大屏与熟练操作</small>
+                                </label>
+                                <label class="density-option">
+                                    <input type="radio" name="uiDensity" value="standard" checked>
+                                    <strong>标准</strong>
+                                    <small>平衡阅读、点击范围与工作区空间</small>
+                                </label>
+                                <label class="density-option">
+                                    <input type="radio" name="uiDensity" value="spacious">
+                                    <strong>宽松</strong>
+                                    <small>更舒展的按钮、面板与设置间距</small>
+                                </label>
+                            </div>
+                            <p class="density-note" id="densityNote">密度只调整间距和控件尺寸，不改变全局字体等级与文档字号。</p>
+                        </fieldset>
                     </div>
                     <label class="switch-field"><input type="checkbox" name="autosave" id="autosaveToggle"><span><strong>自动保存本地草稿</strong><small>内容只保存在当前浏览器</small></span></label>
                     <label class="switch-field"><input type="checkbox" name="restoreDraftOnStart" id="restoreDraftOnStartToggle"><span><strong>启动时自动恢复草稿</strong><small>默认关闭；关闭时始终空白启动，并在空预览中提供恢复按钮</small></span></label>

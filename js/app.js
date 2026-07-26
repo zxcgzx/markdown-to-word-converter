@@ -15,6 +15,7 @@
     const DEFAULT_SETTINGS = Object.freeze({
         theme: 'amber',
         editorFontSize: 15,
+        uiDensity: 'standard',
         autosave: true,
         restoreDraftOnStart: false,
         repairLooseMath: true,
@@ -851,6 +852,7 @@
             ...stored,
             theme: allowedThemes.has(legacyTheme) ? legacyTheme : DEFAULT_SETTINGS.theme,
             editorFontSize: clamp(Number(stored.editorFontSize ?? DEFAULT_SETTINGS.editorFontSize), 12, 24),
+            uiDensity: ['compact', 'standard', 'spacious'].includes(stored.uiDensity) ? stored.uiDensity : DEFAULT_SETTINGS.uiDensity,
             restoreDraftOnStart: Boolean(stored.restoreDraftOnStart),
             wordFontSize: clamp(Number(stored.wordFontSize ?? DEFAULT_SETTINGS.wordFontSize), 9, 18),
             wordLineSpacing: clamp(Number(stored.wordLineSpacing ?? DEFAULT_SETTINGS.wordLineSpacing), 1, 2.5),
@@ -865,6 +867,9 @@
     function applySettings() {
         applyTheme();
         document.documentElement.style.setProperty('--editor-font-size', `${state.settings.editorFontSize}px`);
+        document.documentElement.dataset.density = ['compact', 'standard', 'spacious'].includes(state.settings.uiDensity)
+            ? state.settings.uiDensity
+            : DEFAULT_SETTINGS.uiDensity;
         dom.syncScrollToggle.checked = Boolean(state.settings.syncScroll);
         if (dom.settingsSyncScrollToggle) dom.settingsSyncScrollToggle.checked = Boolean(state.settings.syncScroll);
     }
@@ -929,6 +934,8 @@
     function populateSettingsForm() {
         byId('themeSelect').value = state.settings.theme;
         byId('editorFontSize').value = state.settings.editorFontSize;
+        const densityInput = dom.settingsForm.querySelector(`input[name="uiDensity"][value="${state.settings.uiDensity}"]`);
+        if (densityInput) densityInput.checked = true;
         byId('autosaveToggle').checked = Boolean(state.settings.autosave);
         byId('restoreDraftOnStartToggle').checked = Boolean(state.settings.restoreDraftOnStart);
         byId('repairLooseMathToggle').checked = Boolean(state.settings.repairLooseMath);
@@ -952,6 +959,7 @@
                 ...state.settings,
                 theme: byId('themeSelect').value,
                 editorFontSize: clamp(Number(byId('editorFontSize').value), 12, 24),
+                uiDensity: dom.settingsForm.querySelector('input[name="uiDensity"]:checked')?.value || DEFAULT_SETTINGS.uiDensity,
                 autosave: byId('autosaveToggle').checked,
                 restoreDraftOnStart: byId('restoreDraftOnStartToggle').checked,
                 repairLooseMath: byId('repairLooseMathToggle').checked,
@@ -2851,7 +2859,7 @@
             const line = Math.round(240 * state.settings.wordLineSpacing);
             const fontSize = Math.round(state.settings.wordFontSize * 2);
             const doc = new window.docx.Document({
-                creator: 'AI 智能 Markdown 转 Word · 融合体验版 v5.2.1',
+                creator: 'AI 智能 Markdown 转 Word · 融合体验版 v5.2.2',
                 title,
                 description: '由浏览器本地生成；公式转换为可编辑文本与上下标',
                 styles: {

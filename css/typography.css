@@ -1,0 +1,1224 @@
+/* ========================================================================== */
+/* Fusion v5.2.2 · Global Typography System                                  */
+/* A single semantic type scale for auth, workspace, editor, preview and UI. */
+/* Loaded last so the effective typography no longer depends on scattered    */
+/* historical font-size and font-weight declarations.                        */
+/* ========================================================================== */
+
+:root {
+    /* Font families: local system fonts only, with deliberate CJK fallbacks. */
+    --font-ui:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI Variable Text",
+        "Segoe UI",
+        "PingFang SC",
+        "Hiragino Sans GB",
+        "HarmonyOS Sans SC",
+        "Microsoft YaHei UI",
+        "Microsoft YaHei",
+        sans-serif;
+    --font-display:
+        "Segoe UI Variable Display",
+        "SF Pro Display",
+        system-ui,
+        -apple-system,
+        "PingFang SC",
+        "HarmonyOS Sans SC",
+        "Microsoft YaHei UI",
+        sans-serif;
+    --font-document:
+        "Source Han Sans SC",
+        "Noto Sans CJK SC",
+        "PingFang SC",
+        "Hiragino Sans GB",
+        "Microsoft YaHei UI",
+        system-ui,
+        sans-serif;
+    --font-mono:
+        "SFMono-Regular",
+        "Cascadia Code",
+        "Cascadia Mono",
+        "JetBrains Mono",
+        Consolas,
+        "Liberation Mono",
+        "Microsoft YaHei",
+        monospace;
+
+    /* Eight semantic UI levels. */
+    --type-display: clamp(2.55rem, 2.15rem + 1.7vw, 3.45rem);
+    --type-page-title: clamp(2.2rem, 1.95rem + 1vw, 3rem);
+    --type-section-title: 1.5rem;
+    --type-card-title: 1.125rem;
+    --type-body-large: 1rem;
+    --type-body: 0.875rem;
+    --type-label: 0.8125rem;
+    --type-caption: 0.75rem;
+
+    /* Independent document scale. */
+    --doc-h1: 2rem;
+    --doc-h2: 1.5rem;
+    --doc-h3: 1.25rem;
+    --doc-h4: 1.0625rem;
+    --doc-h5: 0.9375rem;
+    --doc-h6: 0.875rem;
+    --doc-body: 1rem;
+    --doc-small: 0.875rem;
+    --doc-code: 0.875rem;
+
+    /* A restricted, predictable weight system. */
+    --weight-regular: 400;
+    --weight-medium: 500;
+    --weight-semibold: 600;
+    --weight-bold: 700;
+
+    /* Rhythm and tracking. */
+    --leading-display: 1.06;
+    --leading-title: 1.2;
+    --leading-heading: 1.4;
+    --leading-body: 1.66;
+    --leading-document: 1.78;
+    --leading-compact: 1.45;
+    --tracking-tight: -0.028em;
+    --tracking-normal: 0;
+    --tracking-label: 0.018em;
+    --tracking-eyebrow: 0.14em;
+
+    /* Density changes spacing and target size, never the semantic font scale. */
+    --ui-control-height: 38px;
+    --ui-control-height-large: 42px;
+    --ui-compact-control: 34px;
+    --ui-panel-padding: 16px;
+    --ui-section-gap: 16px;
+    --ui-toolbar-gap: 8px;
+    --ui-row-padding: 8px;
+    --ui-panel-header-height: 48px;
+    --ui-dialog-padding: 20px;
+
+    /* Semantic text aliases keep hierarchy consistent across all themes. */
+    --type-strong: var(--text);
+    --type-primary: color-mix(in srgb, var(--text) 94%, transparent);
+    --type-secondary: color-mix(in srgb, var(--text) 70%, var(--surface));
+    --type-tertiary: color-mix(in srgb, var(--text) 54%, var(--surface));
+}
+
+:root[data-density="compact"] {
+    --ui-control-height: 34px;
+    --ui-control-height-large: 38px;
+    --ui-compact-control: 32px;
+    --ui-panel-padding: 12px;
+    --ui-section-gap: 12px;
+    --ui-toolbar-gap: 6px;
+    --ui-row-padding: 6px;
+    --ui-panel-header-height: 44px;
+    --ui-dialog-padding: 16px;
+}
+
+:root[data-density="standard"],
+:root:not([data-density]) {
+    --ui-control-height: 38px;
+    --ui-control-height-large: 42px;
+    --ui-compact-control: 34px;
+    --ui-panel-padding: 16px;
+    --ui-section-gap: 16px;
+    --ui-toolbar-gap: 8px;
+    --ui-row-padding: 8px;
+    --ui-panel-header-height: 48px;
+    --ui-dialog-padding: 20px;
+}
+
+:root[data-density="spacious"] {
+    --ui-control-height: 42px;
+    --ui-control-height-large: 46px;
+    --ui-compact-control: 38px;
+    --ui-panel-padding: 20px;
+    --ui-section-gap: 20px;
+    --ui-toolbar-gap: 10px;
+    --ui-row-padding: 10px;
+    --ui-panel-header-height: 54px;
+    --ui-dialog-padding: 24px;
+}
+
+html {
+    font-family: var(--font-ui);
+    font-size: 16px;
+    line-height: var(--leading-body);
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+    font-kerning: normal;
+    font-synthesis: none;
+    font-optical-sizing: auto;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+    font-family: var(--font-ui);
+}
+
+body {
+    color: var(--type-primary);
+    font-size: var(--type-body);
+    font-weight: var(--weight-regular);
+    line-height: var(--leading-body);
+    letter-spacing: var(--tracking-normal);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+select,
+textarea {
+    font-size: var(--type-body);
+    font-weight: var(--weight-regular);
+    line-height: var(--leading-compact);
+    letter-spacing: var(--tracking-normal);
+}
+
+button,
+summary,
+[role="button"] {
+    font-weight: var(--weight-semibold);
+}
+
+strong,
+b {
+    font-weight: var(--weight-semibold);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: var(--type-strong);
+    font-family: var(--font-display);
+    font-weight: var(--weight-bold);
+    text-wrap: balance;
+}
+
+p,
+li,
+blockquote,
+.form-note,
+.field small,
+.switch-field small {
+    text-wrap: pretty;
+}
+
+kbd,
+code,
+pre,
+.command-item-shortcut,
+.command-palette kbd,
+.hero-utility-button kbd {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+}
+
+#charCount,
+#wordCount,
+#lineCount,
+#readTime,
+#mathStatusText,
+#exportIssueBadge,
+#commandPaletteCount,
+.document-name-extension,
+.panel-status,
+.runtime-status,
+.export-issue-location,
+.export-readiness-chip {
+    font-variant-numeric: tabular-nums;
+}
+
+::selection {
+    background: color-mix(in srgb, var(--accent) 25%, transparent);
+    color: var(--type-strong);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Authentication                                                             */
+/* -------------------------------------------------------------------------- */
+
+.auth-product-copy strong {
+    font-size: var(--type-body);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-compact);
+    letter-spacing: var(--tracking-tight);
+}
+
+.auth-product-copy span,
+.auth-version-pill,
+.auth-theme-button,
+.auth-login-foot,
+.auth-share-panel small {
+    font-size: var(--type-caption);
+    font-weight: var(--weight-medium);
+    line-height: var(--leading-compact);
+}
+
+.password-brand-mark {
+    font-family: var(--font-display);
+    font-size: var(--type-label);
+    font-weight: var(--weight-bold);
+    letter-spacing: -0.055em;
+}
+
+.auth-kicker,
+.auth-login-eyebrow,
+.dialog-eyebrow,
+.tool-drawer-eyebrow,
+.user-chip-eyebrow,
+.toolbar-label {
+    font-size: var(--type-caption);
+    font-weight: var(--weight-bold);
+    line-height: 1.35;
+    letter-spacing: var(--tracking-eyebrow);
+    text-transform: uppercase;
+}
+
+.auth-story h1 {
+    max-width: 15ch;
+    margin-block: 0;
+    font-size: var(--type-display);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-display);
+    letter-spacing: var(--tracking-tight);
+}
+
+.auth-story-lead {
+    max-width: 36rem;
+    font-size: var(--type-body-large);
+    font-weight: var(--weight-regular);
+    line-height: 1.72;
+    letter-spacing: 0.006em;
+}
+
+.auth-capability strong {
+    font-size: var(--type-body-large);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-heading);
+}
+
+.auth-capability p,
+.auth-update-note p,
+.auth-story-footer,
+.auth-share-panel label,
+.auth-share-panel input {
+    font-size: var(--type-label);
+    font-weight: var(--weight-regular);
+    line-height: var(--leading-body);
+}
+
+.auth-update-note strong {
+    font-size: var(--type-label);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-heading);
+}
+
+.auth-login-heading h2 {
+    margin-block: 0;
+    font-size: var(--type-section-title);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-title);
+    letter-spacing: var(--tracking-tight);
+}
+
+.auth-login-heading p {
+    font-size: var(--type-body);
+    font-weight: var(--weight-regular);
+    line-height: var(--leading-body);
+}
+
+.auth-field-label,
+.auth-remember-option,
+.auth-link-button,
+.auth-inline-hint,
+.password-error {
+    font-size: var(--type-label);
+    font-weight: var(--weight-medium);
+    line-height: var(--leading-compact);
+}
+
+.password-input,
+.auth-share-input-row input {
+    font-size: var(--type-body-large);
+    font-weight: var(--weight-medium);
+    letter-spacing: 0.01em;
+}
+
+.password-input::placeholder,
+.auth-share-input-row input::placeholder {
+    color: var(--type-tertiary);
+    font-weight: var(--weight-regular);
+}
+
+.password-btn {
+    min-height: var(--ui-control-height-large);
+    font-size: var(--type-body);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-label);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Premium workspace hero                                                     */
+/* -------------------------------------------------------------------------- */
+
+.hero-brand-emblem {
+    font-family: var(--font-display);
+    font-size: var(--type-card-title);
+    font-weight: var(--weight-bold);
+    letter-spacing: -0.055em;
+}
+
+.hero-brand-emblem i {
+    font-size: var(--type-label);
+    font-weight: var(--weight-semibold);
+}
+
+.hero-header-premium .hero-kicker {
+    font-family: var(--font-ui);
+    font-size: var(--type-caption);
+    font-weight: var(--weight-bold);
+    line-height: 1.35;
+    letter-spacing: var(--tracking-eyebrow);
+}
+
+.hero-title-main {
+    font-family: var(--font-display);
+    font-size: var(--type-page-title);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-display);
+    letter-spacing: var(--tracking-tight);
+}
+
+.hero-title-badge {
+    font-family: var(--font-ui);
+    font-size: var(--type-caption);
+    font-weight: var(--weight-semibold);
+    line-height: 1.4;
+    letter-spacing: var(--tracking-label);
+}
+
+.hero-header-premium .hero-subtitle,
+.hero-header-premium .hero-copy > p {
+    max-width: 46rem;
+    font-family: var(--font-ui);
+    font-size: var(--type-body-large);
+    font-weight: var(--weight-regular);
+    line-height: 1.72;
+    letter-spacing: 0.006em;
+}
+
+.hero-capability-rail > span {
+    font-family: var(--font-ui);
+    font-size: var(--type-label);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-compact);
+    letter-spacing: var(--tracking-label);
+}
+
+.hero-header-premium .author-info,
+.hero-author,
+.hero-version {
+    font-family: var(--font-ui);
+    font-size: var(--type-caption);
+    font-weight: var(--weight-medium);
+    line-height: var(--leading-compact);
+    letter-spacing: var(--tracking-label);
+}
+
+.user-chip-eyebrow {
+    font-size: 0.6875rem;
+}
+
+.user-chip-copy strong {
+    font-size: var(--type-body);
+    font-weight: var(--weight-bold);
+    line-height: 1.35;
+}
+
+.user-chip-copy > span:last-child {
+    font-size: var(--type-caption);
+    font-weight: var(--weight-medium);
+    line-height: 1.35;
+}
+
+.hero-utility-button {
+    min-height: var(--ui-control-height);
+    font-size: var(--type-label);
+    font-weight: var(--weight-semibold);
+    line-height: 1.35;
+    letter-spacing: var(--tracking-label);
+}
+
+.hero-utility-button kbd {
+    font-size: 0.6875rem;
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Command Deck                                                               */
+/* -------------------------------------------------------------------------- */
+
+.quick-toolbar[data-layout="command-deck"] {
+    font-family: var(--font-ui);
+}
+
+.quick-toolbar[data-layout="command-deck"] .toolbar-main-row,
+.quick-toolbar[data-layout="command-deck"] .toolbar-edit-row {
+    gap: var(--ui-toolbar-gap);
+    padding-block: var(--ui-row-padding);
+}
+
+.quick-toolbar[data-layout="command-deck"] .tool-button,
+.quick-toolbar[data-layout="command-deck"] .primary-button,
+.quick-toolbar[data-layout="command-deck"] .sync-toggle-inline,
+.quick-toolbar[data-layout="command-deck"] .view-switch button,
+.quick-toolbar[data-layout="command-deck"] .toolbar-more > summary {
+    min-height: var(--ui-control-height);
+    font-size: var(--type-label);
+    font-weight: var(--weight-semibold);
+    line-height: 1.35;
+    letter-spacing: var(--tracking-label);
+}
+
+.quick-toolbar[data-layout="command-deck"] .format-button {
+    width: var(--ui-compact-control);
+    height: var(--ui-compact-control);
+    min-height: var(--ui-compact-control);
+    font-size: var(--type-body);
+    font-weight: var(--weight-semibold);
+    line-height: 1;
+}
+
+.quick-toolbar[data-layout="command-deck"] .format-button strong,
+.quick-toolbar[data-layout="command-deck"] .format-button em {
+    font-weight: var(--weight-bold);
+}
+
+.quick-toolbar[data-layout="command-deck"] .document-name-field input {
+    font-size: var(--type-body);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-compact);
+    letter-spacing: 0;
+}
+
+.quick-toolbar[data-layout="command-deck"] .document-name-extension {
+    font-size: var(--type-caption);
+    font-weight: var(--weight-semibold);
+    line-height: 1.25;
+}
+
+.quick-toolbar[data-layout="command-deck"] #downloadWordButton {
+    min-height: var(--ui-control-height-large);
+    font-size: var(--type-body);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-label);
+}
+
+.quick-toolbar[data-layout="command-deck"] .primary-button-badge {
+    font-size: 0.6875rem;
+    font-weight: var(--weight-bold);
+}
+
+.toolbar-more-popover button {
+    min-height: var(--ui-control-height);
+    font-size: var(--type-label);
+    font-weight: var(--weight-semibold);
+    line-height: 1.45;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Workspace chrome and editor                                                */
+/* -------------------------------------------------------------------------- */
+
+.panel-header {
+    min-height: var(--ui-panel-header-height);
+    padding: calc(var(--ui-row-padding) * 0.9) var(--ui-panel-padding);
+}
+
+.panel-heading h2 {
+    font-family: var(--font-ui);
+    font-size: var(--type-body-large);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-heading);
+    letter-spacing: var(--tracking-tight);
+}
+
+.panel-status,
+.outline-label,
+.file-save-status,
+.status-bar,
+.runtime-status,
+.mobile-settings-button {
+    font-size: var(--type-caption);
+    font-weight: var(--weight-medium);
+    line-height: var(--leading-compact);
+}
+
+.math-status,
+.outline-select {
+    min-height: var(--ui-compact-control);
+    font-size: var(--type-caption);
+    font-weight: var(--weight-medium);
+    line-height: 1.35;
+}
+
+.outline-label {
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-label);
+}
+
+#markdownInput {
+    padding: var(--ui-panel-padding) calc(var(--ui-panel-padding) + 2px) 72px;
+    font-family: var(--font-mono);
+    font-size: var(--editor-font-size);
+    font-weight: var(--weight-regular);
+    line-height: 1.72;
+    letter-spacing: 0;
+    font-variant-ligatures: none;
+}
+
+#markdownInput::placeholder {
+    color: var(--type-tertiary);
+    font-family: var(--font-ui);
+    font-size: max(0.875rem, calc(var(--editor-font-size) - 1px));
+    font-weight: var(--weight-regular);
+    line-height: 1.7;
+}
+
+.drop-card {
+    font-size: var(--type-body);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-compact);
+}
+
+.input-stats {
+    font-family: var(--font-ui);
+}
+
+.stat-item strong {
+    font-size: var(--type-body);
+    font-weight: var(--weight-bold);
+    line-height: 1.25;
+}
+
+.stat-item span {
+    font-size: var(--type-caption);
+    font-weight: var(--weight-medium);
+    line-height: 1.35;
+    letter-spacing: var(--tracking-label);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Markdown document preview                                                  */
+/* -------------------------------------------------------------------------- */
+
+.preview {
+    font-family: var(--font-document);
+    font-size: var(--doc-body);
+    font-weight: var(--weight-regular);
+    line-height: var(--leading-document);
+    letter-spacing: 0.006em;
+    text-wrap: pretty;
+}
+
+.preview h1,
+.preview h2,
+.preview h3,
+.preview h4,
+.preview h5,
+.preview h6 {
+    font-family: var(--font-display);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-heading);
+    letter-spacing: var(--tracking-tight);
+    text-wrap: balance;
+}
+
+.preview h1 {
+    margin-top: 1.85em;
+    font-size: var(--doc-h1);
+}
+
+.preview h2 {
+    margin-top: 1.7em;
+    font-size: var(--doc-h2);
+}
+
+.preview h3 {
+    margin-top: 1.55em;
+    font-size: var(--doc-h3);
+}
+
+.preview h4 {
+    margin-top: 1.45em;
+    font-size: var(--doc-h4);
+}
+
+.preview h5 {
+    margin-top: 1.35em;
+    font-size: var(--doc-h5);
+}
+
+.preview h6 {
+    margin-top: 1.3em;
+    font-size: var(--doc-h6);
+    letter-spacing: var(--tracking-label);
+}
+
+.preview p,
+.preview li,
+.preview blockquote {
+    max-width: 78ch;
+}
+
+.preview p {
+    margin-block: 0.82em;
+}
+
+.preview li + li {
+    margin-top: 0.32em;
+}
+
+.preview blockquote {
+    font-size: var(--doc-body);
+    font-weight: var(--weight-regular);
+    line-height: var(--leading-document);
+}
+
+.preview strong,
+.preview b,
+.preview th {
+    font-weight: var(--weight-semibold);
+}
+
+.preview code {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    font-weight: var(--weight-regular);
+    letter-spacing: 0;
+}
+
+.preview pre,
+.preview pre code {
+    font-family: var(--font-mono);
+    font-size: var(--doc-code);
+    font-weight: var(--weight-regular);
+    line-height: 1.68;
+    letter-spacing: 0;
+}
+
+.preview table,
+.preview th,
+.preview td {
+    font-size: var(--doc-small);
+    line-height: 1.62;
+}
+
+.preview figcaption,
+.preview .caption {
+    font-size: var(--type-caption);
+    font-weight: var(--weight-regular);
+    line-height: 1.6;
+}
+
+.preview-empty-card {
+    max-width: 34rem;
+}
+
+.preview-empty h3 {
+    font-size: var(--type-card-title);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-heading);
+    letter-spacing: var(--tracking-tight);
+}
+
+.preview-empty p {
+    font-size: var(--type-body);
+    font-weight: var(--weight-regular);
+    line-height: var(--leading-body);
+}
+
+.math-error,
+.math-error code {
+    font-size: var(--type-label);
+    font-weight: var(--weight-medium);
+    line-height: 1.6;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Inline tools, diagnostics and export checks                                */
+/* -------------------------------------------------------------------------- */
+
+.tool-drawer-header h2,
+.settings-section h3,
+.export-check-head strong {
+    font-family: var(--font-display);
+    font-size: var(--type-card-title);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-heading);
+    letter-spacing: var(--tracking-tight);
+}
+
+.tool-drawer-header p,
+.tool-drawer-header span,
+.ai-inline-head span,
+.export-check-head span:not(.export-readiness-chip),
+.export-check-item p,
+.export-issue-location,
+.form-note {
+    font-size: var(--type-caption);
+    font-weight: var(--weight-regular);
+    line-height: 1.62;
+}
+
+.ai-inline-head strong,
+.result-pane > span,
+.table-output-wrap > span,
+.export-check-title-row strong,
+.diagnostic-copy strong,
+.diagnostic-stat strong {
+    font-size: var(--type-label);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-heading);
+}
+
+.tool-panel .field > span,
+.inline-tool-actions button,
+.diagnostic-locate,
+.export-readiness-chip {
+    font-size: var(--type-label);
+    font-weight: var(--weight-semibold);
+    line-height: 1.4;
+}
+
+.table-output,
+.result-pane textarea,
+.tool-panel textarea {
+    font-family: var(--font-mono);
+    font-size: var(--type-body);
+    font-weight: var(--weight-regular);
+    line-height: 1.68;
+}
+
+.diagnostics-summary,
+.diagnostics-list,
+.export-check-list {
+    font-size: var(--type-label);
+    line-height: 1.6;
+}
+
+.diagnostic-copy code {
+    font-family: var(--font-mono);
+    font-size: var(--type-caption);
+    line-height: 1.6;
+}
+
+.export-check-empty,
+.inline-warning,
+.progress-line {
+    font-size: var(--type-label);
+    font-weight: var(--weight-medium);
+    line-height: 1.6;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Dialogs and settings                                                       */
+/* -------------------------------------------------------------------------- */
+
+.dialog-header,
+.dialog-footer {
+    padding-inline: var(--ui-dialog-padding);
+}
+
+.dialog-header h2 {
+    font-family: var(--font-display);
+    font-size: var(--type-section-title);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-title);
+    letter-spacing: var(--tracking-tight);
+}
+
+.dialog-eyebrow {
+    color: var(--type-tertiary);
+}
+
+.dialog-close {
+    font-size: var(--type-card-title);
+    font-weight: var(--weight-regular);
+    line-height: 1;
+}
+
+.settings-nav button {
+    min-height: var(--ui-control-height);
+    font-size: var(--type-label);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-compact);
+    letter-spacing: var(--tracking-label);
+}
+
+.settings-sections {
+    padding: var(--ui-dialog-padding);
+}
+
+.settings-section h3 {
+    margin-bottom: var(--ui-section-gap);
+}
+
+.field > span,
+.auth-share-panel label,
+.density-field legend {
+    font-size: var(--type-label);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-compact);
+    letter-spacing: var(--tracking-label);
+}
+
+.field input,
+.field select,
+.field textarea {
+    min-height: var(--ui-control-height);
+    font-size: var(--type-body);
+    font-weight: var(--weight-regular);
+    line-height: var(--leading-compact);
+}
+
+.switch-field strong,
+.account-session-row strong {
+    font-size: var(--type-body);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-heading);
+}
+
+.switch-field small,
+.account-session-row p,
+.form-note {
+    font-size: var(--type-caption);
+    font-weight: var(--weight-regular);
+    line-height: 1.62;
+}
+
+.secondary-button,
+.accent-button,
+.text-button,
+.status-action,
+.mobile-settings-button {
+    min-height: var(--ui-control-height);
+    font-size: var(--type-label);
+    font-weight: var(--weight-semibold);
+    line-height: 1.35;
+    letter-spacing: var(--tracking-label);
+}
+
+.shortcut-list > div {
+    font-size: var(--type-label);
+    font-weight: var(--weight-regular);
+    line-height: var(--leading-compact);
+}
+
+.shortcut-list kbd {
+    font-size: var(--type-caption);
+    font-weight: var(--weight-semibold);
+}
+
+/* Density picker. */
+.density-field {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.density-field legend {
+    margin-bottom: 8px;
+}
+
+.density-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.density-option {
+    position: relative;
+    display: grid;
+    min-width: 0;
+    min-height: 72px;
+    gap: 3px;
+    padding: 11px 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: border-color var(--transition), background var(--transition), color var(--transition), box-shadow var(--transition), transform var(--transition);
+}
+
+.density-option:hover {
+    border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
+    color: var(--text);
+    transform: translateY(-1px);
+}
+
+.density-option:has(input:focus-visible) {
+    outline: 3px solid color-mix(in srgb, var(--accent) 24%, transparent);
+    outline-offset: 2px;
+}
+
+.density-option:has(input:checked) {
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.density-option input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.density-option strong {
+    font-size: var(--type-label);
+    font-weight: var(--weight-semibold);
+    line-height: 1.35;
+}
+
+.density-option small {
+    color: var(--text-muted);
+    font-size: var(--type-caption);
+    font-weight: var(--weight-regular);
+    line-height: 1.45;
+}
+
+.density-option:has(input:checked) small {
+    color: color-mix(in srgb, var(--accent-strong) 78%, var(--text-muted));
+}
+
+.density-note {
+    margin: 8px 0 0;
+    color: var(--text-muted);
+    font-size: var(--type-caption);
+    line-height: 1.55;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Command palette, status and toast                                          */
+/* -------------------------------------------------------------------------- */
+
+.command-search-row input {
+    font-size: var(--type-body-large);
+    font-weight: var(--weight-medium);
+    line-height: var(--leading-compact);
+}
+
+.command-palette-meta,
+.command-palette-footer,
+.command-item-shortcut {
+    font-size: var(--type-caption);
+    font-weight: var(--weight-medium);
+    line-height: var(--leading-compact);
+}
+
+.command-item-label {
+    font-size: var(--type-body);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-heading);
+}
+
+.command-item-description,
+.command-palette-empty span {
+    font-size: var(--type-caption);
+    font-weight: var(--weight-regular);
+    line-height: 1.55;
+}
+
+.command-palette-empty strong {
+    font-size: var(--type-body);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-heading);
+}
+
+.status-message,
+.toast-message {
+    font-size: var(--type-caption);
+    font-weight: var(--weight-regular);
+    line-height: 1.55;
+}
+
+.toast-title {
+    font-size: var(--type-label);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-heading);
+}
+
+.toast-close,
+.status-dismiss {
+    font-size: var(--type-body-large);
+    font-weight: var(--weight-regular);
+    line-height: 1;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Responsive typography and 200% reflow                                     */
+/* -------------------------------------------------------------------------- */
+
+@media (max-width: 1120px) {
+    :root {
+        --type-page-title: clamp(2rem, 1.7rem + 1.5vw, 2.65rem);
+    }
+
+    .hero-header-premium .hero-subtitle,
+    .hero-header-premium .hero-copy > p {
+        max-width: 42rem;
+    }
+}
+
+@media (max-width: 820px) {
+    :root {
+        --type-display: clamp(2.15rem, 1.85rem + 2.6vw, 2.8rem);
+        --type-page-title: clamp(1.85rem, 1.55rem + 2vw, 2.35rem);
+        --doc-h1: 1.75rem;
+        --doc-h2: 1.375rem;
+    }
+
+    .auth-story h1 {
+        max-width: 18ch;
+    }
+
+    .settings-layout {
+        font-size: var(--type-body);
+    }
+}
+
+@media (max-width: 680px) {
+    :root {
+        --type-display: clamp(2rem, 1.65rem + 3.5vw, 2.45rem);
+        --type-page-title: clamp(1.72rem, 1.45rem + 2.8vw, 2.05rem);
+        --ui-control-height: 38px;
+        --ui-control-height-large: 42px;
+        --ui-compact-control: 36px;
+        --ui-panel-padding: 14px;
+        --ui-section-gap: 14px;
+        --ui-panel-header-height: 48px;
+        --doc-body: 0.9375rem;
+        --doc-h1: 1.625rem;
+        --doc-h2: 1.3125rem;
+        --doc-h3: 1.125rem;
+    }
+
+    .hero-title-main {
+        white-space: normal;
+        text-wrap: balance;
+    }
+
+    .hero-header-premium .hero-subtitle,
+    .hero-header-premium .hero-copy > p {
+        font-size: var(--type-body);
+        line-height: 1.65;
+    }
+
+    .panel-heading h2 {
+        font-size: var(--type-body);
+    }
+
+    .panel-status-separator,
+    .file-save-status {
+        font-size: var(--type-caption);
+    }
+
+    .preview {
+        padding: 20px 18px 34px;
+    }
+
+    .density-options {
+        grid-template-columns: 1fr;
+    }
+
+    .density-option {
+        min-height: 58px;
+    }
+}
+
+@media (max-width: 420px) {
+    .auth-story h1 {
+        font-size: 2rem;
+    }
+
+    .auth-story-lead,
+    .auth-login-heading p {
+        font-size: var(--type-body);
+    }
+
+    .hero-title-main {
+        font-size: 1.75rem;
+    }
+
+    .preview {
+        font-size: 0.9375rem;
+    }
+
+    .command-search-row input {
+        font-size: var(--type-body);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .density-option {
+        transform: none !important;
+    }
+}
+
+/* Final visual safeguards discovered during responsive regression. */
+.auth-title-line {
+    display: block;
+    white-space: nowrap;
+}
+
+.outline-label {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+@media (min-width: 901px) and (max-width: 1180px) {
+    .preview-panel-header .outline-label {
+        display: none;
+    }
+
+    .preview-panel-header .outline-select {
+        width: clamp(104px, 12vw, 148px);
+    }
+}
+
+@media (max-width: 420px) {
+    .auth-title-line {
+        white-space: normal;
+    }
+}
+
+/* Keep the two-line login statement inside its text measure at every desktop breakpoint. */
+@media (min-width: 1181px) {
+    .auth-story h1 {
+        width: fit-content;
+        max-width: 18ch;
+    }
+}
+
+@media (min-width: 821px) and (max-width: 1180px) {
+    .auth-story h1 {
+        width: fit-content;
+        max-width: 18ch;
+        font-size: clamp(2.15rem, 3.35vw, 2.4rem);
+    }
+}

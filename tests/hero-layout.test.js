@@ -27,7 +27,7 @@ test('premium hero uses a concise typographic product lock-up', () => {
 
 test('hero keeps supporting copy compact and task-focused', () => {
     const hero = extractHero();
-    for (const copy of ['公式优先解析', '导出前检查', '源码精准定位', 'Fusion v5.2.1']) {
+    for (const copy of ['公式优先解析', '导出前检查', '源码精准定位', 'Fusion v5.2.2']) {
         assert.ok(hero.includes(copy), `missing ${copy}`);
     }
     assert.match(hero, /让公式、表格与长文结构从实时预览到 Word 交付始终清晰、可靠、可编辑。/);

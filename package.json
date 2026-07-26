@@ -1,8 +1,8 @@
 {
-  "name": "markdown-to-word-converter-fusion-v5-2-1",
-  "version": "5.2.1",
+  "name": "markdown-to-word-converter-fusion-v5-2-2",
+  "version": "5.2.2",
   "private": true,
-  "description": "保留原版玻璃态工作台，加入高级品牌入口、精修工作区标题排版、统一快捷操作坞、导出前检查和可靠公式导出的纯前端 Markdown 转 Word 工具",
+  "description": "统一登录、工作区、编辑器、Markdown 预览、设置与反馈组件字体层级，并提供三档界面密度、导出前检查和可靠公式导出的纯前端 Markdown 转 Word 工具",
   "scripts": {
     "test": "node --test tests/*.test.js",
     "check": "node --check js/access-config.js && node --check js/math-engine.js && node --check js/preflight.js && node --check js/app.js"
