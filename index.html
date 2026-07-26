@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="color-scheme" content="light dark">
     <meta name="description" content="保留原版玻璃态与密码入口的 Markdown 转 Word 工具，提供常驻操作栏、可靠公式预览、可编辑公式导出、AI 修复和表格转换。">
-    <title>🤖 AI智能Markdown转Word转换器 · 融合体验版 v5.2</title>
+    <title>AI 智能 Markdown 转 Word · 融合体验版 v5.2.1</title>
 
     <script src="https://cdn.jsdelivr.net/npm/marked@9.0.0/marked.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" defer></script>
@@ -15,13 +15,14 @@
     <script src="https://unpkg.com/docx@7.8.2/build/index.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" defer></script>
 
-    <link rel="stylesheet" href="css/app.css?v=5.2">
-    <link rel="stylesheet" href="css/toolbar.css?v=5.2">
-    <link rel="stylesheet" href="css/experience.css?v=5.2">
-    <script src="js/access-config.js?v=5.2" defer></script>
-    <script src="js/math-engine.js?v=5.2" defer></script>
-    <script src="js/preflight.js?v=5.2" defer></script>
-    <script src="js/app.js?v=5.2" defer></script>
+    <link rel="stylesheet" href="css/app.css?v=5.2.1">
+    <link rel="stylesheet" href="css/toolbar.css?v=5.2.1">
+    <link rel="stylesheet" href="css/experience.css?v=5.2.1">
+    <link rel="stylesheet" href="css/hero.css?v=5.2.1">
+    <script src="js/access-config.js?v=5.2.1" defer></script>
+    <script src="js/math-engine.js?v=5.2.1" defer></script>
+    <script src="js/preflight.js?v=5.2.1" defer></script>
+    <script src="js/app.js?v=5.2.1" defer></script>
 </head>
 <body class="auth-locked">
     <noscript><div class="fatal-banner">此工具需要启用 JavaScript。</div></noscript>
@@ -47,7 +48,7 @@
                         <svg class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9c0-.55-.45-1-1-1h-3.2a2.8 2.8 0 0 1-2.8-2.8V4c0-.55-.45-1-1-1h-1Z"/><path d="M7.5 10.5h.01M9.5 7.5h.01M7.5 14.5h.01"/></svg>
                         <span id="authThemeText">暖阳琥珀</span>
                     </button>
-                    <span class="auth-version-pill">v5.2</span>
+                    <span class="auth-version-pill">v5.2.1</span>
                 </div>
             </header>
 
@@ -81,7 +82,7 @@
 
                         <div class="auth-update-note">
                             <span class="auth-update-dot" aria-hidden="true"></span>
-                            <div><strong>v5.2 品牌入口与高级交互</strong><p>新增本机自动进入、分享码内联导入、命令面板与专注模式。</p></div>
+                            <div><strong>v5.2.1 品牌视觉精修</strong><p>重塑工作区标题层级、身份卡片与快捷操作坞，信息更清晰、更克制。</p></div>
                         </div>
                     </div>
 
@@ -167,33 +168,57 @@
 
     <div class="app" id="app" aria-hidden="true">
         <div class="app-shell">
-            <header class="hero-header">
+            <header class="hero-header hero-header-premium">
                 <div class="hero-copy">
-                    <div class="hero-kicker">MARKDOWN · DOCX · KATEX</div>
-                    <h1>🤖 AI智能Markdown转Word转换器</h1>
-                    <p>原版玻璃态交互 · 导出前检查 · 公式源码定位 · 可编辑 Word 导出</p>
-                    <div class="author-info">由 <strong>Boning</strong> 开发 · TJUT · <span>融合体验版 v5.2</span></div>
+                    <div class="hero-brand-lockup">
+                        <div class="hero-brand-emblem" aria-hidden="true"><span>M</span><i>→</i><span>W</span></div>
+                        <div class="hero-brand-heading">
+                            <div class="hero-kicker">AI DOCUMENT STUDIO <span aria-hidden="true">·</span> MARKDOWN → DOCX</div>
+                            <h1 aria-label="AI 智能 Markdown 转 Word 转换器">
+                                <span class="hero-title-main">Markdown 转 Word</span>
+                                <span class="hero-title-badge"><span class="hero-title-badge-dot" aria-hidden="true"></span>AI 智能工作台</span>
+                            </h1>
+                        </div>
+                    </div>
+
+                    <p class="hero-subtitle">让公式、表格与长文结构从实时预览到 Word 交付始终清晰、可靠、可编辑。</p>
+
+                    <div class="hero-capability-rail" aria-label="核心能力">
+                        <span><svg class="hero-capability-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h3M8 16h8"/></svg>公式优先解析</span>
+                        <span><svg class="hero-capability-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/><path d="M21 12a9 9 0 1 1-5.3-8.2"/></svg>导出前检查</span>
+                        <span><svg class="hero-capability-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="m8 9 3 3-3 3M13 15h3"/></svg>源码精准定位</span>
+                    </div>
+
+                    <div class="author-info">
+                        <span class="hero-author"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><strong>Boning</strong> · TJUT</span>
+                        <span class="hero-version">Fusion v5.2.1</span>
+                    </div>
                 </div>
 
                 <div class="hero-utilities" aria-label="账户与偏好">
                     <div class="current-user-chip" id="userStatus">
                         <span class="user-avatar" id="userIcon">👤</span>
-                        <div>
+                        <div class="user-chip-copy">
+                            <span class="user-chip-eyebrow">当前身份</span>
                             <strong id="userName">用户</strong>
                             <span id="userLevel">个人版</span>
                         </div>
+                        <span class="user-chip-online" title="当前会话已解锁" aria-label="当前会话已解锁"></span>
                     </div>
-                    <button type="button" class="hero-utility-button" id="commandButton" data-action="open-command-palette" title="打开命令面板（Ctrl / ⌘ + K）">
-                        <svg class="auth-icon hero-utility-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7a3 3 0 1 1 3-3v16a3 3 0 1 1-3-3h8a3 3 0 1 1-3 3V4a3 3 0 1 1 3 3H8Z"/></svg><span>命令</span><kbd>⌘K</kbd>
-                    </button>
-                    <button type="button" class="hero-utility-button" id="focusModeButton" data-action="toggle-focus-mode" aria-pressed="false" title="切换专注模式（Ctrl / ⌘ + Shift + F）">
-                        <svg class="auth-icon hero-utility-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H4a1 1 0 0 0-1 1v4M16 3h4a1 1 0 0 1 1 1v4M21 16v4a1 1 0 0 1-1 1h-4M8 21H4a1 1 0 0 1-1-1v-4"/></svg><span>专注</span>
-                    </button>
-                    <button type="button" class="hero-utility-button" id="themeButton" title="切换主题" aria-label="切换颜色主题">
-                        <svg class="auth-icon hero-utility-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9c0-.55-.45-1-1-1h-3.2a2.8 2.8 0 0 1-2.8-2.8V4c0-.55-.45-1-1-1h-1Z"/><path d="M7.5 10.5h.01M9.5 7.5h.01M7.5 14.5h.01"/></svg><span id="themeText">暖阳琥珀</span>
-                    </button>
-                    <button type="button" class="hero-utility-button" id="settingsButton" title="打开统一设置"><svg class="auth-icon hero-utility-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M6 14v6"/></svg><span>设置</span></button>
-                    <button type="button" class="hero-utility-button warning-button" data-action="logout" title="退出当前会话"><svg class="auth-icon hero-utility-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9"/></svg><span>退出</span></button>
+
+                    <div class="hero-action-dock" role="group" aria-label="工作区快捷操作">
+                        <button type="button" class="hero-utility-button" id="commandButton" data-action="open-command-palette" title="打开命令面板（Ctrl / ⌘ + K）">
+                            <svg class="auth-icon hero-utility-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7a3 3 0 1 1 3-3v16a3 3 0 1 1-3-3h8a3 3 0 1 1-3 3V4a3 3 0 1 1 3 3H8Z"/></svg><span>命令</span><kbd>⌘K</kbd>
+                        </button>
+                        <button type="button" class="hero-utility-button" id="focusModeButton" data-action="toggle-focus-mode" aria-pressed="false" title="切换专注模式（Ctrl / ⌘ + Shift + F）">
+                            <svg class="auth-icon hero-utility-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H4a1 1 0 0 0-1 1v4M16 3h4a1 1 0 0 1 1 1v4M21 16v4a1 1 0 0 1-1 1h-4M8 21H4a1 1 0 0 1-1-1v-4"/></svg><span>专注</span>
+                        </button>
+                        <button type="button" class="hero-utility-button" id="themeButton" title="切换主题" aria-label="切换颜色主题">
+                            <svg class="auth-icon hero-utility-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9c0-.55-.45-1-1-1h-3.2a2.8 2.8 0 0 1-2.8-2.8V4c0-.55-.45-1-1-1h-1Z"/><path d="M7.5 10.5h.01M9.5 7.5h.01M7.5 14.5h.01"/></svg><span id="themeText">暖阳琥珀</span>
+                        </button>
+                        <button type="button" class="hero-utility-button" id="settingsButton" title="打开统一设置"><svg class="auth-icon hero-utility-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M6 14v6"/></svg><span>设置</span></button>
+                        <button type="button" class="hero-utility-button warning-button" data-action="logout" title="退出当前会话"><svg class="auth-icon hero-utility-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9"/></svg><span>退出</span></button>
+                    </div>
                 </div>
             </header>
 

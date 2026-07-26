@@ -1,50 +1,82 @@
-# AI 智能 Markdown 转 Word · 融合体验版 v5.2
+# AI 智能 Markdown 转 Word · 融合体验版 v5.2.1
 
-一个完全运行在浏览器中的 Markdown 编辑、实时预览与 Word 导出工作台。项目保留原版密码入口、渐变标题、玻璃态界面、三种本地身份与四套主题，同时继续提供公式预保护、导出前检查、源码定位、可编辑 Word 上下标、AI 修复、表格转换和响应式 Command Deck。
+一个完全运行在浏览器中的 Markdown 编辑、实时预览与 Word 导出工作台。项目保留密码入口、玻璃态主题、三种本地身份与四套配色，同时提供公式预保护、导出前检查、源码定位、可编辑 Word 上下标、AI 修复、表格转换和响应式 Command Deck。
 
-v5.2 的重点不是继续堆叠功能，而是把进入应用和高频操作做得更像成熟产品：
+v5.2.1 聚焦主工作区顶部的品牌表达与操作层级：不增加新按钮，而是把过长标题、分散身份卡和独立按钮重新组织为一套更克制的品牌锁定区与快捷操作坞。
 
-- 全新双栏品牌入口，登录动作成为唯一视觉焦点；
-- 登录前主题切换、本机自动进入、Caps Lock 提醒与内联分享码；
-- `Ctrl / Command + K` 全局命令面板；
-- `Ctrl / Command + Shift + F` 专注模式；
-- 桌面、平板和手机均经过点击命中与横向溢出回归。
+- 主标题精简为 `Markdown 转 Word`，以 `AI 智能工作台` 作为低权重状态标识；
+- 使用独立 `M→W` 品牌徽记，移除标题中的 Emoji；
+- 公式解析、导出检查与源码定位收敛成一条轻量能力轨道；
+- 身份信息与命令、专注、主题、设置、退出整合为统一玻璃态操作坞；
+- 320～1920 像素与四套主题均完成布局、点击命中和溢出检查。
 
 无需后端，也无需构建。打开静态页面即可使用；AI 修复是可选能力。
 
 ## 界面预览
 
+### v5.2.1 桌面工作区
+
+![v5.2.1 桌面工作区](docs/screenshots/app-v5.2.1-1440.png)
+
+### 精修后的顶部品牌区
+
+![v5.2.1 顶部品牌区](docs/screenshots/hero-v5.2.1-1440.png)
+
+### 现代黑金主题
+
+![v5.2.1 现代黑金顶部](docs/screenshots/hero-v5.2.1-noir.png)
+
+### 手机端紧凑标题
+
+![v5.2.1 手机顶部](docs/screenshots/hero-v5.2.1-390.png)
+
 ### 高级双栏密码入口
 
-![v5.2 桌面登录页](docs/screenshots/login-v5.2-1440.png)
+![v5.2.1 桌面登录页](docs/screenshots/login-v5.2.1-1440.png)
 
-### 手机端登录页
+### 全局命令面板与专注模式
 
-![v5.2 手机登录页](docs/screenshots/login-v5.2-390.png)
+![v5.2.1 命令面板](docs/screenshots/command-palette-v5.2.1.png)
 
-### 分享码内联导入
-
-![v5.2 分享码内联导入](docs/screenshots/login-share-code-v5.2.png)
-
-### 极光主题入口
-
-![v5.2 极光主题登录页](docs/screenshots/login-v5.2-aurora.png)
-
-### 桌面工作区
-
-![v5.2 桌面工作区](docs/screenshots/app-v5.2-1440.png)
-
-### 全局命令面板
-
-![v5.2 命令面板](docs/screenshots/command-palette-v5.2.png)
-
-### 专注模式
-
-![v5.2 专注模式](docs/screenshots/focus-mode-v5.2.png)
+![v5.2.1 专注模式](docs/screenshots/focus-mode-v5.2.1.png)
 
 ### 公式诊断与源码定位
 
-![v5.2 公式诊断](docs/screenshots/diagnostics-v5.2.png)
+![v5.2.1 公式诊断](docs/screenshots/diagnostics-v5.2.1.png)
+
+## v5.2.1 工作区品牌视觉精修
+
+### 1. 从功能长标题改为产品锁定区
+
+旧标题将 Emoji、AI、Markdown、Word 和“转换器”全部放在同一视觉层，宽屏仍可能换行。新版拆分为：
+
+```text
+M→W 品牌徽记
+AI DOCUMENT STUDIO · MARKDOWN → DOCX
+Markdown 转 Word          AI 智能工作台
+```
+
+主标题保持单行，AI 属性作为安静的状态徽标，不再与产品名争抢层级。
+
+### 2. 更适合中英文混排的字体与字距
+
+标题优先使用系统可用的 Display 字体、苹方、HarmonyOS Sans SC 与 Microsoft YaHei UI，控制字重、负字距和行高；不依赖外部字体服务，因此不会增加 CDN 失败点。
+
+### 3. 能力信息不再堆成说明卡
+
+“公式优先解析、导出前检查、源码精准定位”改成带细分隔线的能力轨道。它们提供产品可信度，但不会压过文档编辑与 Word 下载主流程。
+
+### 4. 身份与快捷操作形成一个整体
+
+当前身份使用独立状态卡，下面的命令、专注、主题、设置和退出放入一个统一操作坞。按钮不再像五张互相竞争的卡片，同时仍保留完整标签、快捷键提示、键盘焦点和点击区域。
+
+### 5. 响应式行为
+
+- 1120 像素以上保持左右双区；
+- 1120 像素及以下将身份与操作坞放到品牌内容下方；
+- 820 像素及以下让操作坞占满可用宽度；
+- 680 像素及以下隐藏次要身份和快捷入口，只保留紧凑产品名与一句价值说明；
+- 主标题在所有测试宽度保持受控，不会出现“转换器”孤立换行。
 
 ## v5.2 品牌入口与高级交互
 
@@ -342,7 +374,8 @@ v5.2 继续沿用 v5.1 的会话、设置、草稿、桌面视图和移动视图
 ├── css/
 │   ├── app.css
 │   ├── toolbar.css
-│   └── experience.css
+│   ├── experience.css
+│   └── hero.css
 ├── js/
 │   ├── access-config.js
 │   ├── app.js
@@ -350,6 +383,7 @@ v5.2 继续沿用 v5.1 的会话、设置、草稿、桌面视图和移动视图
 │   └── preflight.js
 ├── tests/
 │   ├── fusion-static.test.js
+│   ├── hero-layout.test.js
 │   ├── math-engine.test.js
 │   ├── preflight.test.js
 │   └── toolbar-layout.test.js
@@ -384,12 +418,12 @@ npm run check
 npm test
 ```
 
-v5.2 当前包含：
+v5.2.1 当前包含：
 
 ```text
 JavaScript syntax checks: 4 / 4 passed
-Node tests: 60 / 60 passed
-Browser regression checks: 299 / 299 passed
+Node tests: 66 / 66 passed
+Browser regression checks: 220 / 220 passed
 ```
 
 完整检查范围和边界见：
@@ -400,13 +434,13 @@ docs/QA_REPORT.md
 
 ## 推荐更新方式
 
-完整包应整体覆盖仓库根目录，不要只替换 `index.html` 或某一个 CSS 文件。v5.2 新增：
+完整包应整体覆盖仓库根目录，不要只替换 `index.html` 或某一个 CSS 文件。v5.2.1 新增：
 
 ```text
-css/experience.css
+css/hero.css
 ```
 
-页面资源统一使用 `?v=5.2` 进行缓存刷新。
+页面资源统一使用 `?v=5.2.1` 进行缓存刷新。
 
 详细步骤见：
 
