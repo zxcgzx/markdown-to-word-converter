@@ -7,6 +7,22 @@
 
     const COMPLEX_MATH_RE = /\\(?:frac|dfrac|tfrac|overset|underset|stackrel)\b|\\begin\{(?:matrix|pmatrix|bmatrix|vmatrix|Vmatrix|cases|aligned|array)\}/;
     const SUPPORTED_DATA_IMAGE_RE = /^data:image\/(?:png|jpe?g|gif);base64,/i;
+    const DATA_IMAGE_RE = /^data:image\/([^;,]+)(?:;[^,]*)?,/i;
+    const ASSET_IMAGE_RE = /^(?:\.\/)?md2word-assets\/[^\s?#]+/i;
+    const REMOTE_IMAGE_RE = /^https?:\/\//i;
+
+    function classifyImageTarget(target) {
+        const value = toText(target).trim();
+        if (!value) return Object.freeze({ kind: 'empty', embeddable: false });
+        if (ASSET_IMAGE_RE.test(value)) return Object.freeze({ kind: 'asset', embeddable: true });
+        if (SUPPORTED_DATA_IMAGE_RE.test(value)) return Object.freeze({ kind: 'data-supported', embeddable: true });
+        const data = value.match(DATA_IMAGE_RE);
+        if (data) return Object.freeze({ kind: 'data-unsupported', embeddable: false, mime: `image/${data[1].toLowerCase()}` });
+        if (REMOTE_IMAGE_RE.test(value)) return Object.freeze({ kind: 'remote', embeddable: 'attempt' });
+        if (/^blob:/i.test(value)) return Object.freeze({ kind: 'blob', embeddable: false });
+        if (/^(?:file:|[a-z]:[\/]|\\)/i.test(value)) return Object.freeze({ kind: 'local-file', embeddable: false });
+        return Object.freeze({ kind: 'relative', embeddable: false });
+    }
 
     function toText(value) {
         return String(value == null ? '' : value);
@@ -129,6 +145,50 @@
         return titled ? titled[1] : value.split(/\s+/)[0];
     }
 
+    function addImageTargetIssue(issues, seen, target, start, end, source) {
+        const info = classifyImageTarget(target);
+        if (info.kind === 'asset' || info.kind === 'data-supported') return;
+        if (info.kind === 'empty') {
+            addIssue(issues, seen, {
+                type: 'image-empty', severity: 'error', title: '图片地址为空',
+                message: '该图片无法显示，也无法写入 Word。请补充地址或删除图片标记。', start, end
+            }, source);
+            return;
+        }
+        if (info.kind === 'remote') {
+            addIssue(issues, seen, {
+                type: 'image-remote', severity: 'warning', title: '网络图片将在导出时尝试嵌入',
+                message: '导出 Word 时会尝试下载并转为内嵌图片；若图片服务器禁止跨域访问，将退化为“图片说明 + 地址”。要获得最稳定结果，请先导入图片素材库。', start, end
+            }, source);
+            return;
+        }
+        if (info.kind === 'data-unsupported') {
+            addIssue(issues, seen, {
+                type: 'image-format', severity: 'warning', title: '图片格式需要转换',
+                message: `${info.mime || '该图片格式'} 不能直接写入当前 DOCX。请拖入图片素材库，系统会转换为 PNG 或 JPEG。`, start, end
+            }, source);
+            return;
+        }
+        if (info.kind === 'blob') {
+            addIssue(issues, seen, {
+                type: 'image-blob', severity: 'error', title: '临时图片地址无法持久保存',
+                message: 'blob: 地址仅在当前页面临时有效。请重新粘贴或拖入图片，让它进入本地素材库。', start, end
+            }, source);
+            return;
+        }
+        if (info.kind === 'local-file') {
+            addIssue(issues, seen, {
+                type: 'image-local-file', severity: 'error', title: '浏览器无法读取本机图片路径',
+                message: 'file:、盘符或网络共享路径不能可靠写入 Word。请把图片拖入编辑器或从素材库添加。', start, end
+            }, source);
+            return;
+        }
+        addIssue(issues, seen, {
+            type: 'image-relative', severity: 'warning', title: '相对路径图片可能在导出时丢失',
+            message: '浏览器页面通常无法读取仓库或电脑中的相对路径图片。请把图片拖入编辑器，转换为当前文档的本地素材。', start, end
+        }, source);
+    }
+
     function analyze(markdown, renderResult) {
         const source = toText(markdown);
         const result = renderResult || {};
@@ -232,17 +292,16 @@
                 const target = parseLinkTarget(imageMatch[2]);
                 const start = record.start + imageMatch.index;
                 const end = start + imageMatch[0].length;
-                if (!target) {
-                    addIssue(issues, seen, {
-                        type: 'image-empty', severity: 'error', title: '图片地址为空',
-                        message: '该图片无法显示，也无法写入 Word。请补充地址或删除图片标记。', start, end
-                    }, source);
-                } else if (!SUPPORTED_DATA_IMAGE_RE.test(target)) {
-                    addIssue(issues, seen, {
-                        type: 'image-external', severity: 'warning', title: '图片不会直接嵌入 Word',
-                        message: '当前版本只直接嵌入 PNG、JPEG、GIF 的 data:image Base64 图片。网络地址或相对路径图片会在 Word 中保留为“图片说明 + 地址”。', start, end
-                    }, source);
-                }
+                addImageTargetIssue(issues, seen, target, start, end, source);
+            }
+
+            const htmlImageRe = /<img\b[^>]*?\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))[^>]*>/gi;
+            let htmlImageMatch;
+            while ((htmlImageMatch = htmlImageRe.exec(visible))) {
+                const target = htmlImageMatch[1] ?? htmlImageMatch[2] ?? htmlImageMatch[3] ?? '';
+                const start = record.start + htmlImageMatch.index;
+                const end = start + htmlImageMatch[0].length;
+                addImageTargetIssue(issues, seen, target, start, end, source);
             }
 
             const linkRe = /(^|[^!])\[([^\]]+)\]\(([^)]*)\)/g;
@@ -281,5 +340,5 @@
         });
     }
 
-    return Object.freeze({ analyze, lineColumn, createLineRecords, stripInlineCodePreserveLength });
+    return Object.freeze({ analyze, lineColumn, createLineRecords, stripInlineCodePreserveLength, classifyImageTarget });
 });

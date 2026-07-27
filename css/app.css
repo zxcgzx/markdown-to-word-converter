@@ -4500,6 +4500,10 @@ body.auth-locked {
         font-size: 0;
     }
 
+    #downloadWordButton::after {
+        content: "📄 Word";
+        font-size: 10px;
+    }
 
     .view-switch button {
         padding-inline: 3px;
@@ -4999,10 +5003,6 @@ body.auth-locked {
 }
 
 .settings-nav button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 9px;
     min-height: 38px;
     padding: 8px 10px;
     border: 1px solid transparent;
@@ -5012,12 +5012,6 @@ body.auth-locked {
     text-align: left;
     font-size: 11px;
     font-weight: 720;
-}
-
-.settings-nav-icon {
-    width: 1.05rem;
-    height: 1.05rem;
-    margin: 0;
 }
 
 .settings-nav button:hover {

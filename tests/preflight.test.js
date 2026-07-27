@@ -81,7 +81,7 @@ test('reports empty and non-embeddable image targets correctly', () => {
 
     const external = preflight.analyze('![网络图](https://example.com/a.png)', {});
     assert.equal(external.warningCount, 1);
-    assert.equal(external.issues[0].type, 'image-external');
+    assert.equal(external.issues[0].type, 'image-remote');
 
     const embedded = preflight.analyze('![内嵌](data:image/png;base64,AAAA)', {});
     assert.equal(embedded.total, 0);
@@ -155,4 +155,32 @@ test('a fenced-code line with trailing text does not close the block', () => {
     assert.equal(report.errorCount, 0);
     assert.equal(report.warningCount, 0);
     assert.deepEqual(report.issues, []);
+});
+
+test('recognizes local asset references as embeddable and diagnoses unstable image sources', () => {
+    const asset = preflight.analyze('<img src="data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=" data-md2word-asset="asset-1" data-md2word-asset-src="md2word-assets/asset-1">', {});
+    assert.equal(asset.total, 0);
+    assert.equal(preflight.classifyImageTarget('md2word-assets/asset-1').kind, 'asset');
+
+    const relative = preflight.analyze('![相对图](images/chart.png)', {});
+    assert.equal(relative.warningCount, 1);
+    assert.equal(relative.issues[0].type, 'image-relative');
+
+    const blob = preflight.analyze('![临时图](blob:https://example.com/id)', {});
+    assert.equal(blob.errorCount, 1);
+    assert.equal(blob.issues[0].type, 'image-blob');
+
+    const webp = preflight.analyze('![WebP](data:image/webp;base64,AAAA)', {});
+    assert.equal(webp.warningCount, 1);
+    assert.equal(webp.issues[0].type, 'image-format');
+});
+
+test('checks raw HTML image elements without flagging valid local assets', () => {
+    const remote = preflight.analyze('<img src="https://example.com/figure.png" alt="图">', {});
+    assert.equal(remote.warningCount, 1);
+    assert.equal(remote.issues[0].type, 'image-remote');
+    assert.equal(remote.issues[0].locatable, true);
+
+    const local = preflight.analyze('<img src="md2word-assets/asset-2" data-md2word-asset="asset-2">', {});
+    assert.equal(local.total, 0);
 });

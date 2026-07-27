@@ -9,26 +9,29 @@
         viewLegacy: 'md2word.personal.view.v5',
         viewDesktop: 'md2word.personal.view.desktop.v5.1',
         viewMobile: 'md2word.personal.view.mobile.v5.1',
-        rememberedAccess: 'md2word.fusion.remembered.v5.2',
-        currentDocument: 'md2word.workflow.current.v5.3',
-        legacyMigrated: 'md2word.workflow.legacy-migrated.v5.3'
+        rememberedAccess: 'md2word.fusion.remembered.v5.2'
     };
 
     const DEFAULT_SETTINGS = Object.freeze({
         theme: 'amber',
         editorFontSize: 15,
         uiDensity: 'standard',
+        previewPerformanceMode: 'auto',
         autosave: true,
         restoreDraftOnStart: false,
         repairLooseMath: true,
         syncScroll: false,
-        smartPaste: true,
-        versionHistory: true,
-        heroBehavior: 'auto',
         wordFont: '宋体',
         wordFontSize: 11,
         wordLineSpacing: 1.5,
-        wordMarginCm: 2.54
+        wordPaperSize: 'a4',
+        wordOrientation: 'portrait',
+        wordMarginCm: 2.54,
+        wordMarginTopCm: 2.54,
+        wordMarginRightCm: 2.54,
+        wordMarginBottomCm: 2.54,
+        wordMarginLeftCm: 2.54,
+        embedRemoteImages: true
     });
 
     const AI_PRESETS = Object.freeze({
@@ -94,8 +97,6 @@
         dirty: false,
         draftDirty: false,
         lastDraftSavedAt: null,
-        draftPersistence: 'unknown',
-        storageWarningShown: false,
         fileOrigin: 'new',
         fileSyncedAt: null,
         autosaveTimer: null,
@@ -123,22 +124,9 @@
         commandActiveIndex: 0,
         commandPreviousFocus: null,
         focusMode: false,
-        workflowReady: false,
-        documentRepository: null,
-        documentStorageMode: 'uninitialized',
-        currentDocumentId: null,
-        documents: [],
-        versionCheckpointTimer: null,
-        lastVersionCheckpointAt: 0,
-        lastVersionCheckpointContent: '',
-        documentSearchQuery: '',
-        versionDocumentId: null,
-        workflowSavePromise: Promise.resolve(),
-        dependencyStatus: [],
-        exportReceiptTimer: null,
-        lastExportFileName: '',
-        clearWorkspaceConfirmUntil: 0,
-        heroManualOverride: null
+        previewStale: false,
+        activePerformanceMode: 'realtime',
+        lastImageExport: null
     };
 
     const dom = {};
@@ -149,11 +137,6 @@
 
     function queryAll(selector, root = document) {
         return Array.from(root.querySelectorAll(selector));
-    }
-
-    function setSvgIcon(element, iconId) {
-        if (!element) return;
-        element.innerHTML = `<svg class="ui-icon" aria-hidden="true"><use href="#${iconId}"></use></svg>`;
     }
 
     function getFocusableElements(container) {
@@ -248,12 +231,7 @@
         updateTableOutput();
         updateAIToolSummary();
         updateExportReadiness();
-        updateHeroState();
         initializeAccessGate();
-        initializeWorkflow().catch((error) => {
-            console.error('工作区初始化失败:', error);
-            toast('本地工作区初始化失败', '已降级为当前草稿模式。', 'error', 6500);
-        });
     }
 
     function cacheDom() {
@@ -263,12 +241,14 @@
             dependencyMessage: byId('dependencyMessage'),
             markdownInput: byId('markdownInput'),
             preview: byId('preview'),
+            a4Preview: byId('a4Preview'),
+            previewPanel: byId('previewPanel'),
+            previewRefreshButton: byId('previewRefreshButton'),
             workspace: byId('workspace'),
             editorFrame: byId('editorFrame'),
             dropOverlay: byId('dropOverlay'),
             splitter: byId('splitter'),
             fileInput: byId('fileInput'),
-            backupFileInput: byId('backupFileInput'),
             saveDot: byId('saveDot'),
             saveStatus: byId('saveStatus'),
             fileSaveStatus: byId('fileSaveStatus'),
@@ -297,15 +277,9 @@
             toolDrawerTitle: byId('toolDrawerTitle'),
             tableToolPanel: byId('tableToolPanel'),
             aiToolPanel: byId('aiToolPanel'),
-            documentCenterToolPanel: byId('documentCenterToolPanel'),
-            versionHistoryToolPanel: byId('versionHistoryToolPanel'),
-            documentStoreSummary: byId('documentStoreSummary'),
-            documentSearchInput: byId('documentSearchInput'),
-            documentList: byId('documentList'),
-            versionHistoryTitle: byId('versionHistoryTitle'),
-            versionHistorySummary: byId('versionHistorySummary'),
-            versionHistoryList: byId('versionHistoryList'),
             exportCheckToolPanel: byId('exportCheckToolPanel'),
+            assetToolPanel: byId('assetToolPanel'),
+            templateToolPanel: byId('templateToolPanel'),
             exportCheckSummary: byId('exportCheckSummary'),
             exportCheckDetail: byId('exportCheckDetail'),
             exportCheckList: byId('exportCheckList'),
@@ -319,10 +293,6 @@
             downloadWordIcon: byId('downloadWordIcon'),
             downloadWordLabel: byId('downloadWordLabel'),
             exportIssueBadge: byId('exportIssueBadge'),
-            exportReceipt: byId('exportReceipt'),
-            exportReceiptTitle: byId('exportReceiptTitle'),
-            exportReceiptDetail: byId('exportReceiptDetail'),
-            exportReceiptMeta: byId('exportReceiptMeta'),
             toolbarMoreMenu: byId('toolbarMoreMenu'),
             passwordOverlay: byId('passwordOverlay'),
             passwordForm: byId('passwordForm'),
@@ -350,21 +320,8 @@
             commandButton: byId('commandButton'),
             focusModeButton: byId('focusModeButton'),
             focusModeExitButton: byId('focusModeExitButton'),
-            heroCollapseButton: byId('heroCollapseButton'),
-            heroCollapseLabel: byId('heroCollapseLabel'),
             settingsRememberedDeviceStatus: byId('settingsRememberedDeviceStatus'),
             clearRememberedAccessButton: byId('clearRememberedAccessButton'),
-            smartPasteToggle: byId('smartPasteToggle'),
-            versionHistoryToggle: byId('versionHistoryToggle'),
-            heroBehaviorSelect: byId('heroBehaviorSelect'),
-            dataStorageMode: byId('dataStorageMode'),
-            dataDocumentCount: byId('dataDocumentCount'),
-            dataVersionCount: byId('dataVersionCount'),
-            dataStorageUsage: byId('dataStorageUsage'),
-            dependencyStatusList: byId('dependencyStatusList'),
-            includeApiKeyBackup: byId('includeApiKeyBackup'),
-            backupImportMode: byId('backupImportMode'),
-            clearWorkspaceDataButton: byId('clearWorkspaceDataButton'),
             userStatus: byId('userStatus'),
             userIcon: byId('userIcon'),
             userName: byId('userName'),
@@ -376,7 +333,6 @@
     function bindEvents() {
         dom.markdownInput.addEventListener('input', onEditorInput);
         dom.markdownInput.addEventListener('keydown', onEditorKeydown);
-        dom.markdownInput.addEventListener('paste', onSmartPaste);
         dom.documentNameInput.addEventListener('input', onDocumentNameInput);
         dom.documentNameInput.addEventListener('blur', normalizeDocumentNameInput);
         dom.documentNameInput.addEventListener('keydown', (event) => {
@@ -390,11 +346,6 @@
         dom.preview.addEventListener('click', handlePreviewMathActivation);
         dom.preview.addEventListener('keydown', handlePreviewMathActivation);
         dom.fileInput.addEventListener('change', onFileChosen);
-        if (dom.backupFileInput) dom.backupFileInput.addEventListener('change', onBackupFileChosen);
-        if (dom.documentSearchInput) dom.documentSearchInput.addEventListener('input', debounce(() => {
-            state.documentSearchQuery = dom.documentSearchInput.value.trim();
-            renderDocumentList();
-        }, 100));
         dom.outlineSelect.addEventListener('change', navigateOutline);
         dom.syncScrollToggle.addEventListener('change', () => {
             state.settings.syncScroll = dom.syncScrollToggle.checked;
@@ -431,10 +382,6 @@
             if (state.settings.theme === 'system') applyTheme();
         }, 120));
 
-        window.addEventListener('beforeunload', () => {
-            if (state.settings.autosave && dom.markdownInput.value.trim()) saveAutosave({ immediate: true });
-        });
-
         state.themeMedia = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
         if (state.themeMedia && typeof state.themeMedia.addEventListener === 'function') {
             state.themeMedia.addEventListener('change', () => {
@@ -464,36 +411,10 @@
             locateSourceRange(Number(actionButton.dataset.sourceStart), Number(actionButton.dataset.sourceEnd));
             return;
         }
-        if (action === 'open-document') {
-            openDocumentById(actionButton.dataset.documentId);
-            return;
-        }
-        if (action === 'duplicate-document') {
-            duplicateDocumentById(actionButton.dataset.documentId);
-            return;
-        }
-        if (action === 'delete-document') {
-            deleteDocumentById(actionButton.dataset.documentId, actionButton);
-            return;
-        }
-        if (action === 'open-version-history') {
-            openVersionHistory(actionButton.dataset.documentId);
-            return;
-        }
-        if (action === 'restore-version') {
-            restoreVersion(actionButton.dataset.documentId, actionButton.dataset.versionId);
-            return;
-        }
-        if (action === 'version-to-new-document') {
-            createDocumentFromVersion(actionButton.dataset.documentId, actionButton.dataset.versionId);
-            return;
-        }
         const handlers = {
             reload: () => window.location.reload(),
             'new-document': newDocument,
             'open-file': openFilePicker,
-            'open-document-center': openDocumentCenter,
-            'create-version': createVersionForActiveContext,
             'save-markdown': saveMarkdownFile,
             'clear-document': clearDocument,
             'load-formula-example': loadFormulaExample,
@@ -512,24 +433,16 @@
             'apply-ai-result': applyAIResult,
             'open-settings-ai': () => openSettings('ai'),
             'open-settings': () => openSettings('interface'),
-            'open-data-settings': () => openSettings('data'),
             'close-settings': () => closeDialog(dom.settingsDialog, 'cancel'),
             'reset-settings': resetSettings,
             'open-command-palette': openCommandPalette,
             'close-command-palette': closeCommandPalette,
             'toggle-focus-mode': toggleFocusMode,
-            'toggle-hero': toggleHeroState,
             'exit-focus-mode': () => setFocusMode(false),
             'clear-remembered-access': clearRememberedAccess,
             'close-formula-inspector': () => toggleFormulaInspector(false),
             'undo-document': undoDocumentChange,
             'clear-status': clearStatusMessage,
-            'copy-export-file-name': copyLastExportFileName,
-            'dismiss-export-receipt': hideExportReceipt,
-            'export-workspace-backup': exportWorkspaceBackup,
-            'import-workspace-backup': openBackupFilePicker,
-            'copy-diagnostic-report': copyDiagnosticReport,
-            'clear-workspace-data': clearWorkspaceData,
             logout: logoutAccess
         };
         closeToolbarMoreMenu();
@@ -541,18 +454,16 @@
     }
 
     function checkDependencies() {
-        const dependencies = [
-            { name: 'Marked.js', ready: Boolean(window.marked && typeof window.marked.parse === 'function'), detail: 'Markdown 解析' },
-            { name: 'DOMPurify', ready: Boolean(window.DOMPurify && typeof window.DOMPurify.sanitize === 'function'), detail: '预览净化' },
-            { name: 'KaTeX', ready: Boolean(window.katex && typeof window.katex.renderToString === 'function'), detail: '公式渲染' },
-            { name: '公式引擎', ready: Boolean(window.Md2WordMath), detail: '边界保护与 Word 公式文本' },
-            { name: '导出检查器', ready: Boolean(window.Md2WordPreflight && typeof window.Md2WordPreflight.analyze === 'function'), detail: '导出前检查' },
-            { name: '工作流引擎', ready: Boolean(window.Md2WordWorkflow), detail: '多文档、版本历史与备份' },
-            { name: 'docx.js', ready: Boolean(window.docx), detail: 'Word 导出' },
-            { name: 'FileSaver', ready: typeof window.saveAs === 'function', detail: '文件下载，可降级' }
-        ];
-        state.dependencyStatus = dependencies;
-        const missing = dependencies.filter((item) => !item.ready).map((item) => item.name);
+        const missing = [];
+        if (!window.marked || typeof window.marked.parse !== 'function') missing.push('Marked.js');
+        if (!window.DOMPurify || typeof window.DOMPurify.sanitize !== 'function') missing.push('DOMPurify');
+        if (!window.katex || typeof window.katex.renderToString !== 'function') missing.push('KaTeX（公式会显示源码）');
+        if (!window.Md2WordMath) missing.push('本地公式引擎');
+        if (!window.Md2WordPreflight || typeof window.Md2WordPreflight.analyze !== 'function') missing.push('导出检查器');
+        if (!window.Md2WordAssets) missing.push('图片素材模块');
+        if (!window.Md2WordPublishing) missing.push('A4 预览与模板模块');
+        if (!window.docx) missing.push('docx（Word 导出不可用）');
+        if (typeof window.saveAs !== 'function') missing.push('FileSaver（将使用浏览器下载降级）');
 
         if (missing.length) {
             dom.dependencyMessage.textContent = `未加载：${missing.join('、')}。请检查网络后刷新。`;
@@ -560,239 +471,6 @@
         } else {
             dom.dependencyBanner.hidden = true;
         }
-        renderDependencyStatus();
-        return dependencies;
-    }
-
-    function renderDependencyStatus() {
-        if (!dom.dependencyStatusList) return;
-        const items = Array.isArray(state.dependencyStatus) ? state.dependencyStatus : [];
-        dom.dependencyStatusList.innerHTML = items.map((item) => `<div class="dependency-status-item${item.ready ? '' : ' missing'}"><span>${escapeHtml(item.name)}${item.detail ? ` · ${escapeHtml(item.detail)}` : ''}</span><span class="dependency-status-badge"><svg class="ui-icon" aria-hidden="true"><use href="#${item.ready ? 'icon-check' : 'icon-error'}"></use></svg>${item.ready ? '已就绪' : '未加载'}</span></div>`).join('');
-    }
-
-    function formatStorageSize(bytes) {
-        const value = Number(bytes || 0);
-        if (!value) return '0 B';
-        if (value < 1024) return `${value} B`;
-        if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
-        if (value < 1024 * 1024 * 1024) return `${(value / 1024 / 1024).toFixed(1)} MB`;
-        return `${(value / 1024 / 1024 / 1024).toFixed(2)} GB`;
-    }
-
-    async function updateDataDiagnostics() {
-        const documents = Array.isArray(state.documents) ? state.documents : [];
-        const versionCount = documents.reduce((sum, record) => sum + (Array.isArray(record.versions) ? record.versions.length : 0), 0);
-        const modeLabel = state.documentStorageMode === 'indexeddb'
-            ? 'IndexedDB'
-            : state.documentStorageMode === 'localstorage'
-                ? '兼容本地存储'
-                : state.documentStorageMode === 'memory'
-                    ? '临时内存'
-                    : state.documentStorageMode === 'unavailable' ? '不可用' : '正在检测…';
-        if (dom.dataStorageMode) dom.dataStorageMode.textContent = modeLabel;
-        if (dom.dataDocumentCount) dom.dataDocumentCount.textContent = String(documents.length);
-        if (dom.dataVersionCount) dom.dataVersionCount.textContent = String(versionCount);
-        if (dom.dataStorageUsage) {
-            let label = '—';
-            try {
-                if (navigator.storage && typeof navigator.storage.estimate === 'function') {
-                    const estimate = await navigator.storage.estimate();
-                    label = `${formatStorageSize(estimate.usage)} / ${formatStorageSize(estimate.quota)}`;
-                }
-            } catch (_error) { /* ignore */ }
-            dom.dataStorageUsage.textContent = label;
-        }
-        renderDependencyStatus();
-    }
-
-    async function exportWorkspaceBackup() {
-        if (!window.Md2WordWorkflow || !state.documentRepository) {
-            toast('无法导出备份', '工作流引擎尚未就绪。', 'error');
-            return;
-        }
-        await saveAutosave({ immediate: true });
-        const documents = await state.documentRepository.exportAll();
-        const ai = state.aiConfig ? { ...state.aiConfig } : null;
-        if (ai && !(dom.includeApiKeyBackup && dom.includeApiKeyBackup.checked)) ai.key = '';
-        const backup = window.Md2WordWorkflow.buildBackup({
-            appVersion: '5.3',
-            documents,
-            currentDocumentId: state.currentDocumentId,
-            settings: state.settings,
-            ai,
-            metadata: {
-                storageMode: state.documentStorageMode,
-                apiKeyIncluded: Boolean(ai && ai.key),
-                userLevel: state.currentUser ? state.currentUser.level : null
-            }
-        });
-        const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json;charset=utf-8' });
-        const date = new Date().toISOString().slice(0, 10);
-        downloadBlob(blob, `markdown-to-word-backup-${date}.json`);
-        setStatusMessage(`工作区备份已导出 · ${documents.length} 个文档。`, { duration: 4800 });
-    }
-
-    function openBackupFilePicker() {
-        if (!dom.backupFileInput) return;
-        dom.backupFileInput.value = '';
-        dom.backupFileInput.click();
-    }
-
-    function onBackupFileChosen(event) {
-        const file = event.target.files && event.target.files[0];
-        if (!file) return;
-        if (file.size > 50 * 1024 * 1024) {
-            toast('备份文件过大', '请确认这是由本工具生成的 JSON 备份。', 'error');
-            return;
-        }
-        const reader = new FileReader();
-        reader.onload = () => importWorkspaceBackup(String(reader.result || ''));
-        reader.onerror = () => toast('读取备份失败', reader.error ? reader.error.message : '未知错误', 'error');
-        reader.readAsText(file, 'utf-8');
-    }
-
-    async function importWorkspaceBackup(text) {
-        if (!window.Md2WordWorkflow || !state.documentRepository) return;
-        try {
-            const backup = window.Md2WordWorkflow.parseBackup(text);
-            const replace = Boolean(dom.backupImportMode && dom.backupImportMode.value === 'replace');
-            if (replace) await saveAutosave({ immediate: true });
-            const imported = await state.documentRepository.importAll(backup.documents, { replace });
-            if (backup.settings && typeof backup.settings === 'object') {
-                state.settings = {
-                    ...DEFAULT_SETTINGS,
-                    ...state.settings,
-                    ...backup.settings,
-                    uiDensity: ['compact', 'standard', 'spacious'].includes(backup.settings.uiDensity) ? backup.settings.uiDensity : state.settings.uiDensity,
-                    heroBehavior: ['auto', 'expanded', 'compact'].includes(backup.settings.heroBehavior) ? backup.settings.heroBehavior : state.settings.heroBehavior
-                };
-                persistSettings();
-                applySettings();
-                populateSettingsForm();
-            }
-            if (backup.ai && typeof backup.ai === 'object') {
-                state.aiConfig = { ...state.aiConfig, ...backup.ai };
-                persistAIConfig();
-                populateAISettings();
-                updateAIToolSummary();
-            }
-            await refreshDocuments();
-            const preferredId = backup.currentDocumentId && imported.find((record) => record.id === backup.currentDocumentId)
-                ? backup.currentDocumentId
-                : imported[0] && imported[0].id;
-            if (preferredId) await openDocumentById(preferredId);
-            else if (replace) {
-                state.currentDocumentId = null;
-                localStorageRemove(STORAGE.currentDocument);
-                localStorageRemove(STORAGE.autosave);
-                dom.markdownInput.value = '';
-                setDocumentIdentity('未命名.md', { origin: 'new', syncedAt: null });
-                state.dirty = false;
-                state.draftDirty = false;
-                state.pendingDraft = null;
-                updateStats();
-                updateSaveStatus();
-                renderPreview({ immediate: true, force: true });
-                updateHeroState();
-            }
-            updateDataDiagnostics();
-            setStatusMessage(`备份导入完成 · ${imported.length} 个文档${replace ? '，已替换原文档' : ''}。`, { duration: 6000 });
-        } catch (error) {
-            console.error('备份导入失败:', error);
-            toast('备份导入失败', error.message || String(error), 'error', 6500);
-        }
-    }
-
-    function buildDiagnosticText() {
-        if (!window.Md2WordWorkflow) return '工作流引擎未加载。';
-        const report = state.exportReport || buildExportReport();
-        const documents = Array.isArray(state.documents) ? state.documents : [];
-        return window.Md2WordWorkflow.buildDiagnosticReport({
-            appVersion: '5.3',
-            userAgent: navigator.userAgent,
-            storageMode: state.documentStorageMode,
-            documentCount: documents.length,
-            versionCount: documents.reduce((sum, record) => sum + (record.versions || []).length, 0),
-            documentName: state.documentName,
-            characterCount: dom.markdownInput.value.length,
-            mathCount: state.renderResult ? state.renderResult.mathCount : 0,
-            mathErrors: state.renderResult && state.renderResult.errors ? state.renderResult.errors.length : 0,
-            preflightErrors: report ? report.errorCount : 0,
-            preflightWarnings: report ? report.warningCount : 0,
-            dependencies: state.dependencyStatus
-        });
-    }
-
-    async function copyText(value) {
-        const text = String(value || '');
-        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-            await navigator.clipboard.writeText(text);
-            return;
-        }
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.select();
-        const ok = document.execCommand('copy');
-        textarea.remove();
-        if (!ok) throw new Error('copy failed');
-    }
-
-    async function copyDiagnosticReport() {
-        try {
-            await copyText(buildDiagnosticText());
-            setStatusMessage('诊断报告已复制，可直接粘贴到反馈中。', { duration: 3800 });
-        } catch (error) {
-            toast('复制诊断报告失败', error.message || String(error), 'error');
-        }
-    }
-
-    async function clearWorkspaceData() {
-        if (!state.documentRepository) return;
-        const currentTime = Date.now();
-        if (state.clearWorkspaceConfirmUntil < currentTime) {
-            state.clearWorkspaceConfirmUntil = currentTime + 5000;
-            if (dom.clearWorkspaceDataButton) dom.clearWorkspaceDataButton.textContent = '再次点击确认清除';
-            setStatusMessage('再次点击“确认清除”才会删除全部本地文档与历史版本。', { tone: 'warning', duration: 5000 });
-            window.setTimeout(() => {
-                if (Date.now() >= state.clearWorkspaceConfirmUntil && dom.clearWorkspaceDataButton) {
-                    dom.clearWorkspaceDataButton.textContent = '清除全部本地数据';
-                }
-            }, 5100);
-            return;
-        }
-        state.clearWorkspaceConfirmUntil = 0;
-        window.clearTimeout(state.autosaveTimer);
-        window.clearTimeout(state.versionCheckpointTimer);
-        await state.workflowSavePromise.catch(() => null);
-        state.workflowSavePromise = Promise.resolve();
-        await state.documentRepository.clear();
-        localStorageRemove(STORAGE.autosave);
-        localStorageRemove(STORAGE.currentDocument);
-        state.currentDocumentId = null;
-        state.documents = [];
-        state.pendingDraft = null;
-        state.lastDestructiveSnapshot = null;
-        state.lastVersionCheckpointAt = 0;
-        state.lastVersionCheckpointContent = '';
-        state.versionDocumentId = null;
-        state.documentSearchQuery = '';
-        if (dom.documentSearchInput) dom.documentSearchInput.value = '';
-        dom.markdownInput.value = '';
-        setDocumentIdentity('未命名.md', { origin: 'new', syncedAt: null });
-        state.dirty = false;
-        state.draftDirty = false;
-        state.lastDraftSavedAt = null;
-        state.draftPersistence = 'unknown';
-        if (dom.clearWorkspaceDataButton) dom.clearWorkspaceDataButton.textContent = '清除全部本地数据';
-        updateStats();
-        updateSaveStatus();
-        renderPreview({ immediate: true, force: true });
-        updateHeroState();
-        await refreshDocuments();
-        setStatusMessage('全部本地文档和历史版本已清除。', { tone: 'warning', duration: 4800 });
     }
 
     function getAccessConfig() {
@@ -1194,13 +872,18 @@
             theme: allowedThemes.has(legacyTheme) ? legacyTheme : DEFAULT_SETTINGS.theme,
             editorFontSize: clamp(Number(stored.editorFontSize ?? DEFAULT_SETTINGS.editorFontSize), 12, 24),
             uiDensity: ['compact', 'standard', 'spacious'].includes(stored.uiDensity) ? stored.uiDensity : DEFAULT_SETTINGS.uiDensity,
+            previewPerformanceMode: ['auto', 'realtime', 'balanced', 'manual'].includes(stored.previewPerformanceMode) ? stored.previewPerformanceMode : DEFAULT_SETTINGS.previewPerformanceMode,
             restoreDraftOnStart: Boolean(stored.restoreDraftOnStart),
-            smartPaste: stored.smartPaste !== false,
-            versionHistory: stored.versionHistory !== false,
-            heroBehavior: ['auto', 'expanded', 'compact'].includes(stored.heroBehavior) ? stored.heroBehavior : DEFAULT_SETTINGS.heroBehavior,
             wordFontSize: clamp(Number(stored.wordFontSize ?? DEFAULT_SETTINGS.wordFontSize), 9, 18),
             wordLineSpacing: clamp(Number(stored.wordLineSpacing ?? DEFAULT_SETTINGS.wordLineSpacing), 1, 2.5),
-            wordMarginCm: clamp(Number(stored.wordMarginCm ?? DEFAULT_SETTINGS.wordMarginCm), 1, 4)
+            wordPaperSize: ['a4', 'letter'].includes(stored.wordPaperSize) ? stored.wordPaperSize : DEFAULT_SETTINGS.wordPaperSize,
+            wordOrientation: stored.wordOrientation === 'landscape' ? 'landscape' : DEFAULT_SETTINGS.wordOrientation,
+            wordMarginCm: clamp(Number(stored.wordMarginCm ?? DEFAULT_SETTINGS.wordMarginCm), 0.8, 4.5),
+            wordMarginTopCm: clamp(Number(stored.wordMarginTopCm ?? stored.wordMarginCm ?? DEFAULT_SETTINGS.wordMarginTopCm), 0.8, 4.5),
+            wordMarginRightCm: clamp(Number(stored.wordMarginRightCm ?? stored.wordMarginCm ?? DEFAULT_SETTINGS.wordMarginRightCm), 0.8, 4.5),
+            wordMarginBottomCm: clamp(Number(stored.wordMarginBottomCm ?? stored.wordMarginCm ?? DEFAULT_SETTINGS.wordMarginBottomCm), 0.8, 4.5),
+            wordMarginLeftCm: clamp(Number(stored.wordMarginLeftCm ?? stored.wordMarginCm ?? DEFAULT_SETTINGS.wordMarginLeftCm), 0.8, 4.5),
+            embedRemoteImages: stored.embedRemoteImages !== false
         };
     }
 
@@ -1216,7 +899,8 @@
             : DEFAULT_SETTINGS.uiDensity;
         dom.syncScrollToggle.checked = Boolean(state.settings.syncScroll);
         if (dom.settingsSyncScrollToggle) dom.settingsSyncScrollToggle.checked = Boolean(state.settings.syncScroll);
-        updateHeroState();
+        updatePerformanceIndicator();
+        if (window.Md2WordPublishing) window.Md2WordPublishing.onPreviewRendered(dom.preview, state.settings);
     }
 
     function applyTheme() {
@@ -1252,7 +936,6 @@
         populateSettingsForm();
         activateSettingsTab(section);
         showDialog(dom.settingsDialog);
-        if (section === 'data') updateDataDiagnostics();
         requestAnimationFrame(() => {
             const active = dom.settingsNav && dom.settingsNav.querySelector('[aria-selected="true"]');
             if (active) active.focus({ preventScroll: true });
@@ -1275,25 +958,28 @@
             panel.hidden = !active;
             panel.classList.toggle('active', active);
         });
-        if (valid === 'data') updateDataDiagnostics();
     }
 
     function populateSettingsForm() {
         byId('themeSelect').value = state.settings.theme;
         byId('editorFontSize').value = state.settings.editorFontSize;
+        byId('previewPerformanceMode').value = state.settings.previewPerformanceMode;
         const densityInput = dom.settingsForm.querySelector(`input[name="uiDensity"][value="${state.settings.uiDensity}"]`);
         if (densityInput) densityInput.checked = true;
         byId('autosaveToggle').checked = Boolean(state.settings.autosave);
         byId('restoreDraftOnStartToggle').checked = Boolean(state.settings.restoreDraftOnStart);
         byId('repairLooseMathToggle').checked = Boolean(state.settings.repairLooseMath);
         byId('settingsSyncScrollToggle').checked = Boolean(state.settings.syncScroll);
-        if (dom.smartPasteToggle) dom.smartPasteToggle.checked = Boolean(state.settings.smartPaste);
-        if (dom.versionHistoryToggle) dom.versionHistoryToggle.checked = Boolean(state.settings.versionHistory);
-        if (dom.heroBehaviorSelect) dom.heroBehaviorSelect.value = state.settings.heroBehavior;
         byId('wordFont').value = state.settings.wordFont;
         byId('wordFontSize').value = state.settings.wordFontSize;
         byId('wordLineSpacing').value = String(state.settings.wordLineSpacing);
-        byId('wordMarginCm').value = state.settings.wordMarginCm;
+        byId('wordPaperSize').value = state.settings.wordPaperSize;
+        byId('wordOrientation').value = state.settings.wordOrientation;
+        byId('wordMarginTopCm').value = state.settings.wordMarginTopCm;
+        byId('wordMarginRightCm').value = state.settings.wordMarginRightCm;
+        byId('wordMarginBottomCm').value = state.settings.wordMarginBottomCm;
+        byId('wordMarginLeftCm').value = state.settings.wordMarginLeftCm;
+        byId('embedRemoteImagesToggle').checked = Boolean(state.settings.embedRemoteImages);
         populateAISettings();
         updateRememberedDeviceStatus();
     }
@@ -1310,22 +996,25 @@
                 theme: byId('themeSelect').value,
                 editorFontSize: clamp(Number(byId('editorFontSize').value), 12, 24),
                 uiDensity: dom.settingsForm.querySelector('input[name="uiDensity"]:checked')?.value || DEFAULT_SETTINGS.uiDensity,
+                previewPerformanceMode: byId('previewPerformanceMode').value,
                 autosave: byId('autosaveToggle').checked,
                 restoreDraftOnStart: byId('restoreDraftOnStartToggle').checked,
                 repairLooseMath: byId('repairLooseMathToggle').checked,
                 syncScroll: byId('settingsSyncScrollToggle').checked,
-                smartPaste: dom.smartPasteToggle ? dom.smartPasteToggle.checked : true,
-                versionHistory: dom.versionHistoryToggle ? dom.versionHistoryToggle.checked : true,
-                heroBehavior: dom.heroBehaviorSelect ? dom.heroBehaviorSelect.value : DEFAULT_SETTINGS.heroBehavior,
                 wordFont: byId('wordFont').value,
                 wordFontSize: clamp(Number(byId('wordFontSize').value), 9, 18),
                 wordLineSpacing: clamp(Number(byId('wordLineSpacing').value), 1, 2.5),
-                wordMarginCm: clamp(Number(byId('wordMarginCm').value), 1, 4)
+                wordPaperSize: byId('wordPaperSize').value,
+                wordOrientation: byId('wordOrientation').value,
+                wordMarginTopCm: clamp(Number(byId('wordMarginTopCm').value), 0.8, 4.5),
+                wordMarginRightCm: clamp(Number(byId('wordMarginRightCm').value), 0.8, 4.5),
+                wordMarginBottomCm: clamp(Number(byId('wordMarginBottomCm').value), 0.8, 4.5),
+                wordMarginLeftCm: clamp(Number(byId('wordMarginLeftCm').value), 0.8, 4.5),
+                embedRemoteImages: byId('embedRemoteImagesToggle').checked
             };
             state.aiConfig = collectAIConfigFromSettings();
             persistSettings();
             persistAIConfig();
-            state.heroManualOverride = null;
             applySettings();
             updateSaveStatus();
             updateAIToolSummary();
@@ -1355,7 +1044,6 @@
         state.aiConfig = { provider: 'custom', endpoint: '', model: '', key: '', mode: 'format', extraPrompt: '' };
         persistSettings();
         persistAIConfig();
-        state.heroManualOverride = null;
         applySettings();
         populateSettingsForm();
         updateSaveStatus();
@@ -1381,27 +1069,22 @@
 
     function getEmptyPreviewHtml() {
         const draftAction = state.pendingDraft && state.pendingDraft.content && state.pendingDraft.content.trim()
-            ? `<button type="button" class="secondary-button" data-action="restore-draft">恢复旧版草稿 · ${escapeHtml(formatDateTime(state.pendingDraft.updatedAt))}</button>`
-            : '';
-        const recentDocuments = Array.isArray(state.documents)
-            ? state.documents.filter((document) => document && String(document.content || '').trim()).slice(0, 3)
-            : [];
-        const recentHtml = recentDocuments.length
-            ? `<div class="preview-recent-documents"><div class="preview-recent-head"><strong>最近文档</strong><button type="button" class="text-button" data-action="open-document-center">查看全部</button></div><div class="preview-recent-list">${recentDocuments.map((document) => `<button type="button" class="preview-recent-item" data-action="open-document" data-document-id="${escapeHtml(document.id)}"><strong>${escapeHtml(document.name)}</strong><span>${escapeHtml(formatDateTime(document.updatedAt))} · ${String(document.content || '').length.toLocaleString()} 字符</span></button>`).join('')}</div></div>`
+            ? `<button type="button" class="secondary-button" data-action="restore-draft">恢复本地草稿 · ${escapeHtml(formatDateTime(state.pendingDraft.updatedAt))}</button>`
             : '';
         return `
             <div class="preview-empty">
                 <div class="preview-empty-card">
                     <div class="preview-empty-icon" aria-hidden="true">✦</div>
                     <h3>空白启动，按你的节奏开始</h3>
-                    <p>粘贴 Markdown 后会立即预览。每份文档都会独立保存，并保留可恢复的版本历史。</p>
+                    <p>粘贴 Markdown 后会立即预览。示例不会自动载入，本地草稿也只在你主动恢复时进入编辑器。</p>
                     <div class="preview-empty-actions">
                         <button type="button" class="secondary-button" data-action="open-file">打开 Markdown</button>
-                        <button type="button" class="secondary-button" data-action="open-document-center">文档中心</button>
+                        <button type="button" class="secondary-button" data-action="open-document-center">打开文档中心</button>
+                        <button type="button" class="secondary-button" data-action="open-templates">选择文档模板</button>
+                        <button type="button" class="secondary-button" data-action="open-assets">添加图片</button>
                         <button type="button" class="secondary-button" data-action="load-formula-example">加载公式示例</button>
                         ${draftAction}
                     </div>
-                    ${recentHtml}
                 </div>
             </div>`;
     }
@@ -1438,7 +1121,6 @@
         updateSaveStatus();
         scheduleAutosave();
         updateExportReadiness();
-        updateHeroState();
     }
 
     function normalizeDocumentNameInput() {
@@ -1457,23 +1139,44 @@
     }
 
     function onEditorInput() {
-        if (dom.exportReceipt && !dom.exportReceipt.hidden) hideExportReceipt();
         state.dirty = true;
         state.draftDirty = true;
         updateStats();
         updateSaveStatus();
         scheduleRender();
         scheduleAutosave();
-        scheduleVersionCheckpoint();
-        updateHeroState();
+    }
+
+    function getPreviewPerformancePolicy() {
+        if (window.Md2WordPublishing && typeof window.Md2WordPublishing.getPerformancePolicy === 'function') {
+            return window.Md2WordPublishing.getPerformancePolicy(state.settings.previewPerformanceMode, dom.markdownInput.value.length);
+        }
+        return { mode: 'realtime', autoRender: true, delay: 110, label: '实时预览' };
+    }
+
+    function updatePerformanceIndicator() {
+        if (!dom.previewPanel) return;
+        const policy = getPreviewPerformancePolicy();
+        state.activePerformanceMode = policy.mode;
+        dom.previewPanel.dataset.performance = policy.mode;
+        dom.previewPanel.dataset.previewStale = String(Boolean(state.previewStale));
+        if (dom.previewRefreshButton) dom.previewRefreshButton.dataset.stale = String(Boolean(state.previewStale));
     }
 
     function scheduleRender() {
         window.clearTimeout(state.renderTimer);
-        const length = dom.markdownInput.value.length;
-        const delay = length > 80000 ? 360 : length > 25000 ? 220 : 110;
-        dom.renderStatus.textContent = '等待渲染…';
-        state.renderTimer = window.setTimeout(() => renderPreview({ force: true }), delay);
+        const policy = getPreviewPerformancePolicy();
+        state.activePerformanceMode = policy.mode;
+        if (!policy.autoRender) {
+            state.previewStale = true;
+            dom.renderStatus.textContent = '预览已暂停 · 点击刷新';
+            updatePerformanceIndicator();
+            return;
+        }
+        state.previewStale = true;
+        dom.renderStatus.textContent = policy.mode === 'balanced' ? '长文优化 · 等待更新…' : '等待渲染…';
+        updatePerformanceIndicator();
+        state.renderTimer = window.setTimeout(() => renderPreview({ force: true }), policy.delay);
     }
 
     function renderPreview(options = {}) {
@@ -1484,6 +1187,8 @@
         }
 
         const text = dom.markdownInput.value;
+        state.previewStale = false;
+        updatePerformanceIndicator();
         const generation = ++state.renderGeneration;
         const startedAt = performance.now();
         const previousRatio = getScrollRatio(dom.preview);
@@ -1507,6 +1212,8 @@
             updateMathStatus();
             buildOutline();
             updateExportReadiness();
+            if (window.Md2WordAssets) window.Md2WordAssets.onPreviewRendered(dom.preview);
+            if (window.Md2WordPublishing) window.Md2WordPublishing.onPreviewRendered(dom.preview, state.settings);
             dom.renderStatus.textContent = '等待输入';
             return state.renderResult;
         }
@@ -1523,7 +1230,7 @@
         try {
             const sanitize = (html) => {
                 if (window.DOMPurify && typeof window.DOMPurify.sanitize === 'function') {
-                    return window.DOMPurify.sanitize(html, { USE_PROFILES: { html: true }, ADD_ATTR: ['target', 'rel', 'data-math-index', 'data-math-start', 'data-math-end', 'data-math-source', 'data-math-display', 'role', 'tabindex'] });
+                    return window.DOMPurify.sanitize(html, { USE_PROFILES: { html: true }, ALLOW_UNKNOWN_PROTOCOLS: true, ADD_ATTR: ['target', 'rel', 'data-math-index', 'data-math-start', 'data-math-end', 'data-math-source', 'data-math-display', 'data-md2word-asset', 'data-width-mode', 'data-page-break', 'width', 'height', 'role', 'tabindex'] });
                 }
                 return html;
             };
@@ -1544,6 +1251,8 @@
             buildOutline();
             updateMathStatus();
             updateExportReadiness();
+            if (window.Md2WordAssets) window.Md2WordAssets.onPreviewRendered(dom.preview);
+            if (window.Md2WordPublishing) window.Md2WordPublishing.onPreviewRendered(dom.preview, state.settings);
             requestAnimationFrame(() => setScrollRatio(dom.preview, previousRatio));
 
             const elapsed = Math.max(1, Math.round(performance.now() - startedAt));
@@ -1757,6 +1466,7 @@
     function navigateOutline() {
         const id = dom.outlineSelect.value;
         if (!id) return;
+        if (window.Md2WordPublishing && window.Md2WordPublishing.locateHeading(id)) { dom.outlineSelect.value = ''; return; }
         const target = dom.preview.querySelector(`#${cssEscape(id)}`);
         if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
         dom.outlineSelect.value = '';
@@ -1781,462 +1491,6 @@
         dom.readTime.textContent = minutes.toLocaleString();
     }
 
-    async function initializeWorkflow() {
-        if (!window.Md2WordWorkflow || typeof window.Md2WordWorkflow.DocumentRepository !== 'function') {
-            state.workflowReady = false;
-            state.documentStorageMode = 'unavailable';
-            updateDataDiagnostics();
-            return;
-        }
-        const repository = new window.Md2WordWorkflow.DocumentRepository();
-        state.documentRepository = repository;
-        state.documentStorageMode = await repository.init();
-        state.workflowReady = true;
-        await migrateLegacyDraftToWorkspace();
-        await refreshDocuments();
-
-        const rememberedId = localStorageGet(STORAGE.currentDocument);
-        if (state.settings.restoreDraftOnStart && rememberedId && !dom.markdownInput.value.trim()) {
-            const record = await repository.get(rememberedId);
-            if (record && record.content.trim()) await applyDocumentRecord(record, { silent: true, preserveSnapshot: false });
-        }
-        updateDataDiagnostics();
-        if (!dom.markdownInput.value.trim()) renderPreview({ immediate: true, force: true });
-    }
-
-    async function migrateLegacyDraftToWorkspace() {
-        if (!state.documentRepository || localStorageGet(STORAGE.legacyMigrated) === '1') return;
-        const payload = state.pendingDraft || safeJsonParse(localStorageGet(STORAGE.autosave), null);
-        if (!payload || typeof payload.content !== 'string' || !payload.content.trim()) {
-            localStorageSet(STORAGE.legacyMigrated, '1');
-            return;
-        }
-        const existing = await state.documentRepository.list();
-        const duplicate = existing.find((record) => record.content === payload.content && record.name === (payload.documentName || deriveDocumentName(payload.fileName)));
-        if (!duplicate) {
-            const record = await state.documentRepository.create({
-                name: payload.documentName || deriveDocumentName(payload.fileName),
-                content: payload.content,
-                createdAt: payload.updatedAt || Date.now(),
-                updatedAt: payload.updatedAt || Date.now(),
-                lastOpenedAt: payload.updatedAt || Date.now(),
-                fileOrigin: payload.fileOrigin || 'legacy-draft',
-                fileSyncedAt: payload.fileSyncedAt || null,
-                fileDirty: payload.fileDirty !== false,
-                versions: []
-            });
-            if (state.settings.restoreDraftOnStart) {
-                state.currentDocumentId = record.id;
-                localStorageSet(STORAGE.currentDocument, record.id);
-            }
-        }
-        localStorageSet(STORAGE.legacyMigrated, '1');
-    }
-
-    function currentWorkspaceView() {
-        return dom.workspace && ['editor', 'split', 'preview'].includes(dom.workspace.dataset.view)
-            ? dom.workspace.dataset.view
-            : 'split';
-    }
-
-    function buildCurrentDocumentRecord(existing = {}) {
-        const name = sanitizeFileName(state.documentName || state.currentFileName || '未命名');
-        const content = dom.markdownInput.value;
-        return {
-            ...existing,
-            id: existing.id || state.currentDocumentId || window.Md2WordWorkflow.createId('doc'),
-            name,
-            fileName: `${name}.md`,
-            content,
-            createdAt: existing.createdAt || Date.now(),
-            updatedAt: Date.now(),
-            lastOpenedAt: Date.now(),
-            fileOrigin: state.fileOrigin || existing.fileOrigin || 'new',
-            fileSyncedAt: state.fileSyncedAt == null ? null : state.fileSyncedAt,
-            fileDirty: Boolean(state.dirty),
-            selectionStart: dom.markdownInput.selectionStart || 0,
-            selectionEnd: dom.markdownInput.selectionEnd || 0,
-            editorScrollTop: dom.markdownInput.scrollTop || 0,
-            previewScrollTop: dom.preview.scrollTop || 0,
-            view: currentWorkspaceView(),
-            versions: Array.isArray(existing.versions) ? existing.versions : []
-        };
-    }
-
-    function captureCurrentDocumentRecord(options = {}) {
-        if (!window.Md2WordWorkflow) return null;
-        let id = options.id || state.currentDocumentId;
-        if (!id && options.createId !== false) {
-            id = window.Md2WordWorkflow.createId('doc');
-            state.currentDocumentId = id;
-            localStorageSet(STORAGE.currentDocument, id);
-        }
-        const existing = id ? { id } : {};
-        return buildCurrentDocumentRecord(existing);
-    }
-
-    async function saveCurrentDocumentRecord(options = {}) {
-        if (!state.workflowReady || !state.documentRepository || !window.Md2WordWorkflow) return null;
-        const content = dom.markdownInput.value;
-        if (!state.currentDocumentId && !content.trim() && !options.allowBlank) return null;
-
-        const saveTask = async () => {
-            let existing = state.currentDocumentId ? await state.documentRepository.get(state.currentDocumentId) : null;
-            const record = buildCurrentDocumentRecord(existing || {});
-            const saved = await state.documentRepository.put(record);
-            state.currentDocumentId = saved.id;
-            localStorageSet(STORAGE.currentDocument, saved.id);
-            state.documents = [saved, ...(state.documents || []).filter((item) => item.id !== saved.id)].sort((a, b) => b.updatedAt - a.updatedAt);
-            if (options.refresh === true) await refreshDocuments();
-            else {
-                if (state.activeTool === 'documents') renderDocumentList();
-                updateDataDiagnostics();
-            }
-            return saved;
-        };
-        state.workflowSavePromise = state.workflowSavePromise.catch(() => null).then(saveTask);
-        return state.workflowSavePromise;
-    }
-
-    async function refreshDocuments() {
-        if (!state.documentRepository) return [];
-        state.documents = await state.documentRepository.list();
-        if (dom.documentStoreSummary) {
-            const modeLabel = state.documentStorageMode === 'indexeddb' ? 'IndexedDB' : state.documentStorageMode === 'localstorage' ? '浏览器兼容存储' : '临时内存';
-            dom.documentStoreSummary.textContent = `${state.documents.length} 个文档 · ${modeLabel}`;
-        }
-        renderDocumentList();
-        updateDataDiagnostics();
-        return state.documents;
-    }
-
-    function documentSnippet(content) {
-        return String(content || '')
-            .replace(/```[\s\S]*?```/g, ' ')
-            .replace(/[#>*_`\[\]\\|]/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim()
-            .slice(0, 140) || '空白文档';
-    }
-
-    function formatRelativeTime(value) {
-        const timestamp = Number(value) || Date.now();
-        const diff = timestamp - Date.now();
-        const absolute = Math.abs(diff);
-        try {
-            const formatter = new Intl.RelativeTimeFormat('zh-CN', { numeric: 'auto' });
-            if (absolute < 60 * 1000) return formatter.format(Math.round(diff / 1000), 'second');
-            if (absolute < 60 * 60 * 1000) return formatter.format(Math.round(diff / 60000), 'minute');
-            if (absolute < 24 * 60 * 60 * 1000) return formatter.format(Math.round(diff / 3600000), 'hour');
-            if (absolute < 7 * 24 * 60 * 60 * 1000) return formatter.format(Math.round(diff / 86400000), 'day');
-        } catch (_error) { /* fall back */ }
-        return formatDateTime(timestamp);
-    }
-
-    async function openDocumentCenter() {
-        await refreshDocuments();
-        openToolDrawer('documents', '本地文档中心');
-        if (dom.documentSearchInput) requestAnimationFrame(() => dom.documentSearchInput.focus());
-    }
-
-    function renderDocumentList() {
-        if (!dom.documentList) return;
-        const query = String(state.documentSearchQuery || '').trim().toLowerCase();
-        const documents = (state.documents || []).filter((record) => {
-            if (!query) return true;
-            return `${record.name}\n${record.content}`.toLowerCase().includes(query);
-        });
-        if (!documents.length) {
-            dom.documentList.innerHTML = `<div class="document-list-empty"><strong>${query ? '没有匹配的文档' : '还没有本地文档'}</strong><span>${query ? '尝试更短的关键词。' : '开始输入、打开文件或新建文档后，会自动出现在这里。'}</span></div>`;
-            return;
-        }
-        dom.documentList.innerHTML = documents.map((record) => {
-            const isCurrent = record.id === state.currentDocumentId;
-            const originLabel = record.fileOrigin === 'opened' ? '打开文件' : record.fileOrigin === 'duplicate' ? '副本' : record.fileOrigin === 'imported' ? '导入' : '本地';
-            return `<article class="document-card${isCurrent ? ' current' : ''}" data-document-id="${escapeHtml(record.id)}">
-                <div class="document-card-top"><div class="document-card-title"><svg class="ui-icon" aria-hidden="true"><use href="#icon-documents"></use></svg><strong title="${escapeHtml(record.name)}">${escapeHtml(record.name)}</strong></div>${isCurrent ? '<span class="document-current-badge">当前</span>' : ''}</div>
-                <div class="document-card-snippet">${escapeHtml(documentSnippet(record.content))}</div>
-                <div class="document-card-meta"><span>${escapeHtml(formatRelativeTime(record.updatedAt))}</span><span>${String(record.content || '').length.toLocaleString()} 字符</span></div>
-                <div class="document-card-meta"><span class="document-origin-badge">${originLabel}</span><span class="document-version-count">${(record.versions || []).length} 个版本</span></div>
-                <div class="document-card-actions">
-                    <button type="button" data-action="open-document" data-document-id="${escapeHtml(record.id)}">${isCurrent ? '继续编辑' : '打开'}</button>
-                    <button type="button" data-action="open-version-history" data-document-id="${escapeHtml(record.id)}">版本</button>
-                    <button type="button" data-action="duplicate-document" data-document-id="${escapeHtml(record.id)}">创建副本</button>
-                    <button type="button" class="danger-action" data-action="delete-document" data-document-id="${escapeHtml(record.id)}">删除</button>
-                </div>
-            </article>`;
-        }).join('');
-    }
-
-    async function applyDocumentRecord(record, options = {}) {
-        if (!record) return;
-        if (options.preserveSnapshot !== false && dom.markdownInput.value.trim()) takeDocumentSnapshot('切换文档前的内容');
-        dom.markdownInput.value = record.content || '';
-        state.currentDocumentId = record.id;
-        localStorageSet(STORAGE.currentDocument, record.id);
-        setDocumentIdentity(record.fileName || `${record.name}.md`, {
-            documentName: record.name,
-            origin: record.fileOrigin || 'draft',
-            syncedAt: record.fileSyncedAt || null
-        });
-        state.dirty = Boolean(record.fileDirty);
-        state.draftDirty = false;
-        state.lastDraftSavedAt = record.updatedAt || null;
-        state.pendingDraft = {
-            content: record.content,
-            documentName: record.name,
-            fileName: record.fileName,
-            updatedAt: record.updatedAt,
-            fileDirty: record.fileDirty,
-            fileOrigin: record.fileOrigin,
-            fileSyncedAt: record.fileSyncedAt,
-            documentId: record.id
-        };
-        state.lastVersionCheckpointContent = record.versions && record.versions[0] ? record.versions[0].content : record.content;
-        state.lastVersionCheckpointAt = record.versions && record.versions[0] ? record.versions[0].createdAt : 0;
-        updateStats();
-        updateSaveStatus();
-        renderPreview({ immediate: true, force: true });
-        updateHeroState();
-        requestAnimationFrame(() => {
-            const start = clamp(Number(record.selectionStart || 0), 0, dom.markdownInput.value.length);
-            const end = clamp(Number(record.selectionEnd || start), start, dom.markdownInput.value.length);
-            dom.markdownInput.setSelectionRange(start, end);
-            dom.markdownInput.scrollTop = Number(record.editorScrollTop || 0);
-            dom.preview.scrollTop = Number(record.previewScrollTop || 0);
-            if (!options.silent) dom.markdownInput.focus();
-        });
-        if (!options.silent) {
-            closeToolDrawer();
-            setStatusMessage(`已打开本地文档：${record.name}`, { duration: 3600 });
-        }
-    }
-
-    async function openDocumentById(id) {
-        if (!id || !state.documentRepository) return;
-        await saveAutosave({ immediate: true });
-        const record = await state.documentRepository.get(id);
-        if (!record) {
-            toast('文档不存在', '它可能已经在另一个标签页中被删除。', 'error');
-            await refreshDocuments();
-            return;
-        }
-        record.lastOpenedAt = Date.now();
-        const saved = await state.documentRepository.put(record);
-        await applyDocumentRecord(saved, { preserveSnapshot: false });
-        await refreshDocuments();
-    }
-
-    async function duplicateDocumentById(id) {
-        if (!state.documentRepository || !id) return;
-        await saveAutosave({ immediate: true });
-        const duplicated = await state.documentRepository.duplicate(id);
-        if (!duplicated) return;
-        await refreshDocuments();
-        await applyDocumentRecord(duplicated, { preserveSnapshot: false });
-        setStatusMessage(`已创建副本：${duplicated.name}`, { duration: 3600 });
-    }
-
-    async function deleteDocumentById(id, button) {
-        if (!state.documentRepository || !id) return;
-        const nowValue = Date.now();
-        const confirmUntil = Number(button && button.dataset.confirmUntil || 0);
-        if (confirmUntil < nowValue) {
-            if (button) {
-                button.dataset.confirmUntil = String(nowValue + 4500);
-                button.textContent = '再次点击删除';
-                window.setTimeout(() => {
-                    if (button.isConnected && Number(button.dataset.confirmUntil || 0) <= Date.now()) {
-                        button.textContent = '删除';
-                        delete button.dataset.confirmUntil;
-                    }
-                }, 4600);
-            }
-            return;
-        }
-        if (state.currentDocumentId === id) {
-            window.clearTimeout(state.autosaveTimer);
-            window.clearTimeout(state.versionCheckpointTimer);
-            await state.workflowSavePromise.catch(() => null);
-        }
-        const record = await state.documentRepository.get(id);
-        await state.documentRepository.remove(id);
-        if (state.currentDocumentId === id) {
-            state.currentDocumentId = null;
-            localStorageRemove(STORAGE.currentDocument);
-            localStorageRemove(STORAGE.autosave);
-            dom.markdownInput.value = '';
-            setDocumentIdentity('未命名.md', { origin: 'new', syncedAt: null });
-            state.dirty = false;
-            state.draftDirty = false;
-            state.pendingDraft = null;
-            updateStats();
-            updateSaveStatus();
-            renderPreview({ immediate: true, force: true });
-            updateHeroState();
-        }
-        await refreshDocuments();
-        setStatusMessage(`已删除本地文档：${record ? record.name : '未命名'}`, { tone: 'warning', duration: 3600 });
-    }
-
-    async function openVersionHistory(documentId = state.currentDocumentId) {
-        if (!state.documentRepository || !documentId) {
-            setStatusMessage('当前还没有可保存版本的本地文档。', { tone: 'warning', duration: 3000 });
-            return;
-        }
-        if (documentId === state.currentDocumentId) await saveAutosave({ immediate: true });
-        const record = await state.documentRepository.get(documentId);
-        if (!record) return;
-        state.versionDocumentId = documentId;
-        renderVersionHistory(record);
-        openToolDrawer('versions', '版本历史');
-    }
-
-    function renderVersionHistory(record) {
-        if (!dom.versionHistoryList || !record) return;
-        dom.versionHistoryTitle.textContent = `${record.name} · 版本历史`;
-        dom.versionHistorySummary.textContent = `${(record.versions || []).length} 个可恢复版本 · 自动保留最近 20 个`;
-        const versions = record.versions || [];
-        if (!versions.length) {
-            dom.versionHistoryList.innerHTML = '<div class="version-history-empty"><strong>还没有历史版本</strong><span>破坏性操作前会自动保存；也可以点击“保存当前版本”。</span></div>';
-            return;
-        }
-        dom.versionHistoryList.innerHTML = versions.map((version) => `<article class="version-card">
-            <div class="version-card-top"><div class="version-card-title"><svg class="ui-icon" aria-hidden="true"><use href="#icon-history"></use></svg><strong>${escapeHtml(version.reason)}</strong></div><span class="document-version-count">${version.source === 'automatic' ? '自动' : version.source === 'destructive' ? '保护点' : '手动'}</span></div>
-            <div class="version-card-preview">${escapeHtml(documentSnippet(version.content))}</div>
-            <div class="version-card-meta"><span>${escapeHtml(formatDateTime(version.createdAt))}</span><span>${String(version.content || '').length.toLocaleString()} 字符</span></div>
-            <div class="version-card-actions"><button type="button" data-action="restore-version" data-document-id="${escapeHtml(record.id)}" data-version-id="${escapeHtml(version.id)}">恢复到当前文档</button><button type="button" data-action="version-to-new-document" data-document-id="${escapeHtml(record.id)}" data-version-id="${escapeHtml(version.id)}">另存为新文档</button></div>
-        </article>`).join('');
-    }
-
-    function scheduleVersionCheckpoint() {
-        window.clearTimeout(state.versionCheckpointTimer);
-        if (!state.settings.versionHistory || !dom.markdownInput.value.trim()) return;
-        const minimumInterval = 5 * 60 * 1000;
-        const elapsed = Date.now() - Number(state.lastVersionCheckpointAt || 0);
-        const delay = Math.max(45000, minimumInterval - elapsed);
-        state.versionCheckpointTimer = window.setTimeout(() => {
-            const changed = dom.markdownInput.value !== state.lastVersionCheckpointContent;
-            if (changed) createVersionCheckpoint('自动版本', 'automatic');
-        }, delay);
-    }
-
-    async function persistCapturedVersion(capturedRecord, reason, source) {
-        if (!capturedRecord || !state.documentRepository || !window.Md2WordWorkflow) return null;
-        const task = async () => {
-            const existing = capturedRecord.id ? await state.documentRepository.get(capturedRecord.id) : null;
-            const merged = {
-                ...(existing || {}),
-                ...capturedRecord,
-                id: capturedRecord.id || (existing && existing.id) || window.Md2WordWorkflow.createId('doc'),
-                createdAt: (existing && existing.createdAt) || capturedRecord.createdAt || Date.now(),
-                updatedAt: Math.max(Number(existing && existing.updatedAt || 0), Number(capturedRecord.updatedAt || 0), Date.now()),
-                versions: existing && Array.isArray(existing.versions)
-                    ? existing.versions
-                    : Array.isArray(capturedRecord.versions) ? capturedRecord.versions : []
-            };
-            const saved = await state.documentRepository.put(merged);
-            const beforeCount = (saved.versions || []).length;
-            const snapshot = window.Md2WordWorkflow.createVersionSnapshot(capturedRecord, reason, source);
-            const updated = await state.documentRepository.addVersion(saved.id, snapshot, 20);
-            return {
-                saved: updated || saved,
-                snapshot,
-                changed: Boolean(updated && (updated.versions || []).length > beforeCount)
-            };
-        };
-        state.workflowSavePromise = state.workflowSavePromise.catch(() => null).then(task);
-        return state.workflowSavePromise;
-    }
-
-    async function createVersionCheckpoint(reason = '手动保存版本', source = 'manual', options = {}) {
-        if (!state.settings.versionHistory && !options.force) return null;
-        const capturedRecord = options.capturedRecord || captureCurrentDocumentRecord();
-        if (!capturedRecord || !capturedRecord.content.trim()) {
-            if (options.notify) setStatusMessage('空白文档无需保存历史版本。', { tone: 'warning', duration: 2600 });
-            return null;
-        }
-        const result = await persistCapturedVersion(capturedRecord, reason, source);
-        if (!result) return null;
-        if (capturedRecord.id === state.currentDocumentId && dom.markdownInput.value === capturedRecord.content) {
-            state.lastVersionCheckpointAt = result.snapshot.createdAt;
-            state.lastVersionCheckpointContent = result.snapshot.content;
-        }
-        await refreshDocuments();
-        if (state.activeTool === 'versions' && state.versionDocumentId === result.saved.id) renderVersionHistory(result.saved);
-        if (options.notify) {
-            setStatusMessage(result.changed ? `已保存版本：${reason}` : '当前内容与最新版本相同，无需重复保存。', { duration: 3200 });
-        }
-        return result.saved;
-    }
-
-    async function createVersionForActiveContext() {
-        if (state.activeTool === 'versions' && state.versionDocumentId && state.versionDocumentId !== state.currentDocumentId) {
-            if (!state.documentRepository || !window.Md2WordWorkflow) return null;
-            const record = await state.documentRepository.get(state.versionDocumentId);
-            if (!record || !record.content.trim()) {
-                setStatusMessage('空白文档无需保存历史版本。', { tone: 'warning', duration: 2600 });
-                return null;
-            }
-            const beforeCount = (record.versions || []).length;
-            const snapshot = window.Md2WordWorkflow.createVersionSnapshot(record, '手动保存版本', 'manual');
-            const updated = await state.documentRepository.addVersion(record.id, snapshot, 20);
-            await refreshDocuments();
-            const latest = await state.documentRepository.get(record.id) || updated || record;
-            renderVersionHistory(latest);
-            const changed = (latest.versions || []).length > beforeCount;
-            setStatusMessage(changed ? `已为 ${record.name} 保存当前存储版本。` : '该文档内容与最新版本相同，无需重复保存。', { duration: 3400 });
-            return latest;
-        }
-        return createVersionCheckpoint('手动保存版本', 'manual', { force: true, notify: true });
-    }
-
-    async function restoreVersion(documentId, versionId) {
-        if (!state.documentRepository) return;
-        let record = await state.documentRepository.get(documentId);
-        const version = record && (record.versions || []).find((item) => item.id === versionId);
-        if (!record || !version) return;
-        if (state.currentDocumentId && state.currentDocumentId !== documentId) {
-            await saveAutosave({ immediate: true });
-        } else if (state.currentDocumentId === documentId && dom.markdownInput.value.trim()) {
-            await createVersionCheckpoint('恢复历史版本前', 'destructive', { force: true });
-            record = await state.documentRepository.get(documentId) || record;
-        }
-        const next = {
-            ...record,
-            content: version.content,
-            name: version.documentName || record.name,
-            fileName: `${version.documentName || record.name}.md`,
-            selectionStart: version.selectionStart || 0,
-            selectionEnd: version.selectionEnd || 0,
-            updatedAt: Date.now(),
-            fileDirty: true,
-            lastOpenedAt: Date.now()
-        };
-        const saved = await state.documentRepository.put(next);
-        await refreshDocuments();
-        await applyDocumentRecord(saved, { preserveSnapshot: false });
-        setStatusMessage(`已恢复版本：${version.reason} · ${formatDateTime(version.createdAt)}`, { duration: 6000 });
-    }
-
-    async function createDocumentFromVersion(documentId, versionId) {
-        if (!state.documentRepository) return;
-        await saveAutosave({ immediate: true });
-        const record = await state.documentRepository.get(documentId);
-        const version = record && (record.versions || []).find((item) => item.id === versionId);
-        if (!record || !version) return;
-        const created = await state.documentRepository.create({
-            name: `${record.name} 历史副本`,
-            content: version.content,
-            fileOrigin: 'version-copy',
-            fileDirty: true,
-            versions: [window.Md2WordWorkflow.createVersionSnapshot({ ...record, content: version.content }, '创建历史副本时', 'manual')]
-        });
-        await refreshDocuments();
-        await applyDocumentRecord(created, { preserveSnapshot: false });
-        setStatusMessage(`已从历史版本创建新文档：${created.name}`, { duration: 4200 });
-    }
-
     function prepareAutosave() {
         const payload = safeJsonParse(localStorageGet(STORAGE.autosave), null);
         if (!payload || typeof payload.content !== 'string' || !payload.content.trim()) {
@@ -2258,17 +1512,16 @@
         state.autosaveTimer = window.setTimeout(saveAutosave, 650);
     }
 
-    async function saveAutosave(options = {}) {
-        if (!state.settings.autosave) return null;
+    function saveAutosave() {
+        if (!state.settings.autosave) return;
         const content = dom.markdownInput.value;
-        if (!content.trim() && !state.currentDocumentId) {
-            localStorageRemove(STORAGE.autosave);
+        if (!content.trim()) {
+            localStorageRemove(STORAGE.autosave)
             state.pendingDraft = null;
             state.draftDirty = false;
             state.lastDraftSavedAt = null;
-            state.draftPersistence = 'unknown';
             updateSaveStatus();
-            return null;
+            return;
         }
         const payload = {
             content,
@@ -2277,53 +1530,19 @@
             updatedAt: Date.now(),
             fileDirty: state.dirty,
             fileOrigin: state.fileOrigin,
-            fileSyncedAt: state.fileSyncedAt,
-            documentId: state.currentDocumentId
+            fileSyncedAt: state.fileSyncedAt
         };
         try {
-            const legacySaved = localStorageSet(STORAGE.autosave, JSON.stringify(payload));
+            if (!localStorageSet(STORAGE.autosave, JSON.stringify(payload))) throw new Error('localStorage unavailable');
             state.pendingDraft = payload;
-
-            let saved = null;
-            let repositoryError = null;
-            try {
-                saved = await saveCurrentDocumentRecord({ refresh: options.refresh === true, allowBlank: Boolean(state.currentDocumentId) });
-            } catch (error) {
-                repositoryError = error;
-                console.warn('文档中心保存失败:', error);
-            }
-
-            if (saved) {
-                payload.documentId = saved.id;
-                if (legacySaved) localStorageSet(STORAGE.autosave, JSON.stringify(payload));
-                state.pendingDraft = payload;
-            }
-
-            if (!legacySaved && !saved) {
-                throw repositoryError || new Error('persistent storage unavailable');
-            }
-
-            state.draftPersistence = saved && state.documentStorageMode === 'memory' && !legacySaved
-                ? 'memory'
-                : 'persistent';
             state.draftDirty = false;
             state.lastDraftSavedAt = payload.updatedAt;
             updateSaveStatus();
-
-            if (state.draftPersistence === 'memory' && !state.storageWarningShown) {
-                state.storageWarningShown = true;
-                setStatusMessage('当前浏览器未提供持久存储，草稿仅在本页临时保留。建议导出工作区备份。', { tone: 'warning', duration: 9000 });
-            } else if (repositoryError && legacySaved) {
-                setStatusMessage('文档中心暂不可用，当前内容仍已保存到浏览器草稿。', { tone: 'warning', duration: 5200 });
-            }
-            return saved;
         } catch (error) {
             console.warn('自动保存失败:', error);
-            state.draftPersistence = 'failed';
             state.draftDirty = true;
             updateSaveStatus();
-            toast('自动保存失败', '浏览器本地空间可能已满或被禁用。建议立即下载 Markdown 或导出工作区备份。', 'error');
-            return null;
+            toast('自动保存失败', '浏览器本地空间可能已满。', 'error');
         }
     }
 
@@ -2340,8 +1559,6 @@
             origin: payload.fileOrigin || 'draft',
             syncedAt: payload.fileSyncedAt || null
         });
-        state.currentDocumentId = payload.documentId || state.currentDocumentId || null;
-        if (state.currentDocumentId) localStorageSet(STORAGE.currentDocument, state.currentDocumentId);
         state.dirty = typeof payload.fileDirty === 'boolean' ? payload.fileDirty : true;
         state.draftDirty = false;
         state.lastDraftSavedAt = payload.updatedAt || null;
@@ -2349,8 +1566,6 @@
         updateStats();
         updateSaveStatus();
         renderPreview({ immediate: true, force: true });
-        updateHeroState();
-        saveAutosave({ immediate: true });
         if (!options.silent) setStatusMessage(`已恢复浏览器草稿 · ${formatDateTime(payload.updatedAt)}`, { undo: Boolean(state.lastDestructiveSnapshot), duration: 8000 });
     }
 
@@ -2375,15 +1590,9 @@
             dom.saveDot.classList.add('dirty');
         } else if (state.lastDraftSavedAt || (state.pendingDraft && state.pendingDraft.updatedAt)) {
             const savedAt = state.lastDraftSavedAt || state.pendingDraft.updatedAt;
-            if (state.draftPersistence === 'memory') {
-                dom.saveStatus.textContent = `临时草稿：已保存 ${formatTime(savedAt)} · 关闭页面后失效`;
-                dom.saveStatus.dataset.state = 'temporary';
-                dom.saveDot.classList.add('dirty');
-            } else {
-                dom.saveStatus.textContent = `浏览器草稿：已保存 ${formatTime(savedAt)}`;
-                dom.saveStatus.dataset.state = 'saved';
-                dom.saveDot.classList.add('saved');
-            }
+            dom.saveStatus.textContent = `浏览器草稿：已保存 ${formatTime(savedAt)}`;
+            dom.saveStatus.dataset.state = 'saved';
+            dom.saveDot.classList.add('saved');
         } else {
             dom.saveStatus.textContent = '浏览器草稿：自动保存已启用';
             dom.saveStatus.dataset.state = 'idle';
@@ -2426,7 +1635,6 @@
     }
 
     function takeDocumentSnapshot(reason = '上一步') {
-        const capturedRecord = dom.markdownInput.value.trim() ? captureCurrentDocumentRecord() : null;
         state.lastDestructiveSnapshot = {
             content: dom.markdownInput.value,
             fileName: state.currentFileName,
@@ -2436,16 +1644,11 @@
             fileOrigin: state.fileOrigin,
             fileSyncedAt: state.fileSyncedAt,
             lastDraftSavedAt: state.lastDraftSavedAt,
-            documentId: capturedRecord ? capturedRecord.id : state.currentDocumentId,
             selectionStart: dom.markdownInput.selectionStart,
             selectionEnd: dom.markdownInput.selectionEnd,
             reason,
             createdAt: Date.now()
         };
-        if (state.settings.versionHistory && capturedRecord && capturedRecord.content.trim()) {
-            createVersionCheckpoint(reason, 'destructive', { force: true, capturedRecord })
-                .catch((error) => console.warn('版本保护点保存失败:', error));
-        }
     }
 
     function loadFormulaExample() {
@@ -2466,40 +1669,33 @@
         }
         takeDocumentSnapshot('清空前的内容');
         dom.markdownInput.value = '';
-        state.dirty = true;
-        state.draftDirty = true;
-        state.lastDraftSavedAt = null;
-        updateStats();
-        updateSaveStatus();
-        renderPreview({ immediate: true, force: true });
-        scheduleAutosave();
-        updateHeroState();
-        dom.markdownInput.focus();
-        setStatusMessage('内容已清空，历史版本仍可恢复。', { undo: true, duration: 9000 });
-    }
-
-    async function newDocument() {
-        if (dom.markdownInput.value.trim()) {
-            takeDocumentSnapshot('新建前的内容');
-            await saveAutosave({ immediate: true });
-        }
-        dom.markdownInput.value = '';
-        state.currentDocumentId = null;
-        localStorageRemove(STORAGE.currentDocument);
         setDocumentIdentity('未命名.md', { origin: 'new', syncedAt: null });
         state.dirty = false;
         state.draftDirty = false;
         state.lastDraftSavedAt = null;
-        state.draftPersistence = 'unknown';
+        localStorageRemove(STORAGE.autosave)
         state.pendingDraft = null;
-        localStorageRemove(STORAGE.autosave);
         updateStats();
         updateSaveStatus();
         renderPreview({ immediate: true, force: true });
-        updateHeroState();
-        closeToolDrawer();
         dom.markdownInput.focus();
-        setStatusMessage('已新建空白文档；旧文档已保存在文档中心。', { undo: Boolean(state.lastDestructiveSnapshot), duration: 9000 });
+        setStatusMessage('内容已清空。', { undo: true, duration: 9000 });
+    }
+
+    function newDocument() {
+        if (dom.markdownInput.value.trim()) takeDocumentSnapshot('新建前的内容');
+        dom.markdownInput.value = '';
+        setDocumentIdentity('未命名.md', { origin: 'new', syncedAt: null });
+        state.dirty = false;
+        state.draftDirty = false;
+        state.lastDraftSavedAt = null;
+        localStorageRemove(STORAGE.autosave)
+        state.pendingDraft = null;
+        updateStats();
+        updateSaveStatus();
+        renderPreview({ immediate: true, force: true });
+        dom.markdownInput.focus();
+        setStatusMessage('已新建空白文档。', { undo: Boolean(state.lastDestructiveSnapshot), duration: 9000 });
     }
 
     function undoDocumentChange() {
@@ -2511,9 +1707,6 @@
             origin: snapshot.fileOrigin || 'new',
             syncedAt: snapshot.fileSyncedAt || null
         });
-        state.currentDocumentId = snapshot.documentId || null;
-        if (state.currentDocumentId) localStorageSet(STORAGE.currentDocument, state.currentDocumentId);
-        else localStorageRemove(STORAGE.currentDocument);
         state.dirty = Boolean(snapshot.dirty);
         state.draftDirty = Boolean(snapshot.draftDirty);
         state.lastDraftSavedAt = snapshot.lastDraftSavedAt || null;
@@ -2524,7 +1717,6 @@
         dom.markdownInput.setSelectionRange(snapshot.selectionStart || 0, snapshot.selectionEnd || 0);
         state.lastDestructiveSnapshot = null;
         scheduleAutosave();
-        updateHeroState();
         setStatusMessage(`已撤销：${snapshot.reason}。`, { duration: 3200 });
     }
 
@@ -2594,24 +1786,6 @@
         onEditorInput();
     }
 
-    function onSmartPaste(event) {
-        if (!state.settings.smartPaste || !window.Md2WordWorkflow || !event.clipboardData) return;
-        const items = Array.from(event.clipboardData.items || []);
-        if (items.some((item) => item.kind === 'file')) return;
-        const text = event.clipboardData.getData('text/plain');
-        const html = event.clipboardData.getData('text/html');
-        const result = window.Md2WordWorkflow.detectSmartPaste({ text, html }, { normalizeLineEndings: false });
-        if (!result || !result.handled || result.text === text) return;
-        event.preventDefault();
-        if (dom.markdownInput.value.trim()) takeDocumentSnapshot('智能粘贴前的内容');
-        const start = dom.markdownInput.selectionStart;
-        const end = dom.markdownInput.selectionEnd;
-        dom.markdownInput.setRangeText(result.text, start, end, 'end');
-        dom.markdownInput.focus();
-        onEditorInput();
-        setStatusMessage(result.message || '已智能处理剪贴板内容。', { tone: 'smart', undo: Boolean(state.lastDestructiveSnapshot), duration: 9000 });
-    }
-
     function onEditorKeydown(event) {
         if (event.key === 'Tab') {
             event.preventDefault();
@@ -2633,13 +1807,8 @@
             },
             {
                 id: 'document-center', icon: 'D', label: '打开文档中心',
-                description: '查看本地文档、最近修改与版本历史', keywords: '文档 中心 最近 历史 documents', shortcut: '',
-                run: openDocumentCenter
-            },
-            {
-                id: 'save-version', icon: '↶', label: '保存当前版本',
-                description: '为当前文档创建可恢复的历史版本', keywords: '版本 历史 快照 恢复 version history', shortcut: '',
-                run: () => createVersionCheckpoint('手动保存版本', 'manual', { force: true, notify: true })
+                description: '管理最近文档、版本历史、备份与恢复', keywords: '文档 中心 历史 版本 document workspace', shortcut: 'Ctrl Shift O',
+                run: () => window.Md2WordWorkflow && window.Md2WordWorkflow.openDocumentCenter()
             },
             {
                 id: 'save-markdown', icon: 'MD', label: '下载 Markdown',
@@ -2692,6 +1861,26 @@
                 run: openTableTool
             },
             {
+                id: 'image-assets', icon: '▧', label: '打开图片素材库',
+                description: '粘贴、拖入或下载网络图片并嵌入 Word', keywords: '图片 素材 截图 image asset', shortcut: '',
+                run: () => window.Md2WordAssets && window.Md2WordAssets.openAssetPanel()
+            },
+            {
+                id: 'document-templates', icon: 'T', label: '选择文档模板',
+                description: '应用报告、论文、实验记录或横向表格模板', keywords: '模板 报告 论文 template', shortcut: '',
+                run: () => window.Md2WordPublishing && window.Md2WordPublishing.openTemplatePanel()
+            },
+            {
+                id: 'page-break', icon: '↡', label: '插入分页符',
+                description: '在 Word 与 A4 预览中从新页面开始', keywords: '分页 页面 page break', shortcut: 'Alt P',
+                run: () => window.Md2WordPublishing && window.Md2WordPublishing.insertPageBreak()
+            },
+            {
+                id: 'a4-preview', icon: 'A4', label: '切换 A4 页面预览',
+                description: '按当前 Word 纸张、方向、边距和字号预览分页', keywords: 'a4 页面 预览 word', shortcut: '',
+                run: () => window.Md2WordPublishing && window.Md2WordPublishing.setPreviewMode('a4')
+            },
+            {
                 id: 'ai-fix', icon: 'AI', label: '运行 AI 修复',
                 description: '按当前 AI 设置处理选区或全文', keywords: 'ai 修复 格式 优化', shortcut: '',
                 run: runAIDirect
@@ -2710,21 +1899,6 @@
                 id: 'focus', icon: '◫', label: state.focusMode ? '退出专注模式' : '进入专注模式',
                 description: '隐藏非必要区域，聚焦编辑与预览', keywords: '专注 聚焦 focus', shortcut: 'Ctrl Shift F',
                 run: toggleFocusMode
-            },
-            {
-                id: 'toggle-hero', icon: '⌃', label: dom.app && dom.app.querySelector('.app-shell')?.classList.contains('hero-compact') ? '展开品牌标题区' : '收起品牌标题区',
-                description: '在品牌展示与紧凑工作区之间切换', keywords: '标题 品牌 收起 展开 hero compact', shortcut: '',
-                run: toggleHeroState
-            },
-            {
-                id: 'workspace-backup', icon: 'B', label: '导出工作区备份',
-                description: '备份本地文档、版本历史和界面设置', keywords: '备份 导出 数据 backup', shortcut: '',
-                run: exportWorkspaceBackup
-            },
-            {
-                id: 'diagnostics', icon: 'i', label: '打开数据与诊断',
-                description: '查看依赖状态、存储模式并复制诊断报告', keywords: '诊断 依赖 存储 数据 diagnostic', shortcut: '',
-                run: () => openSettings('data')
             },
             {
                 id: 'settings', icon: '⚙', label: '打开统一设置',
@@ -2922,30 +2096,6 @@
         setStatusMessage(state.settings.syncScroll ? '已开启编辑与预览同步滚动。' : '已关闭同步滚动。', { duration: 2600 });
     }
 
-    function updateHeroState() {
-        const shell = dom.app ? dom.app.querySelector('.app-shell') : null;
-        if (!shell) return;
-        const behavior = ['auto', 'expanded', 'compact'].includes(state.settings.heroBehavior) ? state.settings.heroBehavior : 'auto';
-        let compact;
-        if (typeof state.heroManualOverride === 'boolean') compact = state.heroManualOverride;
-        else if (behavior === 'compact') compact = true;
-        else if (behavior === 'expanded') compact = false;
-        else compact = Boolean(dom.markdownInput && dom.markdownInput.value.trim());
-        shell.classList.toggle('hero-compact', compact);
-        if (dom.heroCollapseButton) {
-            dom.heroCollapseButton.setAttribute('aria-pressed', String(compact));
-            dom.heroCollapseButton.title = compact ? '展开品牌标题区' : '收起品牌标题区';
-        }
-        if (dom.heroCollapseLabel) dom.heroCollapseLabel.textContent = compact ? '展开' : '收起';
-    }
-
-    function toggleHeroState() {
-        const shell = dom.app ? dom.app.querySelector('.app-shell') : null;
-        if (!shell) return;
-        state.heroManualOverride = !shell.classList.contains('hero-compact');
-        updateHeroState();
-    }
-
     function setFocusMode(enabled, options = {}) {
         const next = Boolean(enabled);
         if (next && document.body.classList.contains('auth-locked')) return;
@@ -3037,6 +2187,9 @@
         } else if (event.altKey && key === 'm') {
             event.preventDefault();
             applyEditorCommand('display-math');
+        } else if (event.altKey && key === 'p') {
+            event.preventDefault();
+            if (window.Md2WordPublishing) window.Md2WordPublishing.insertPageBreak();
         }
     }
 
@@ -3061,22 +2214,16 @@
             return;
         }
         const reader = new FileReader();
-        reader.onload = async () => {
-            if (dom.markdownInput.value.trim()) {
-                takeDocumentSnapshot('打开文件前的内容');
-                await saveAutosave({ immediate: true });
-            }
-            state.currentDocumentId = null;
-            localStorageRemove(STORAGE.currentDocument);
+        reader.onload = () => {
+            if (dom.markdownInput.value.trim()) takeDocumentSnapshot('打开文件前的内容');
             dom.markdownInput.value = String(reader.result || '');
             setDocumentIdentity(file.name, { origin: 'opened', syncedAt: Date.now() });
             state.dirty = false;
             state.draftDirty = true;
             updateStats();
             renderPreview({ immediate: true, force: true });
-            await saveAutosave({ immediate: true });
+            saveAutosave();
             updateSaveStatus();
-            updateHeroState();
             dom.markdownInput.focus();
             setStatusMessage(`已打开 ${file.name} · ${formatBytes(file.size)}`, { undo: Boolean(state.lastDestructiveSnapshot), duration: 7000 });
         };
@@ -3114,7 +2261,7 @@
             state.dragDepth = 0;
             dom.dropOverlay.classList.remove('visible');
             const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
-            if (file) loadFile(file);
+            if (file && !String(file.type || '').startsWith('image/')) loadFile(file);
         });
     }
 
@@ -3329,6 +2476,7 @@
             return;
         }
         renderPreview({ immediate: true, force: true });
+        if (window.Md2WordAssets) await window.Md2WordAssets.resolvePreviewAssets(dom.preview);
         const clone = dom.preview.cloneNode(true);
         queryAll('[data-action]', clone).forEach((element) => element.remove());
         const html = clone.innerHTML;
@@ -3388,8 +2536,8 @@
         dom.tableToolPanel.hidden = panel !== 'table';
         dom.aiToolPanel.hidden = panel !== 'ai';
         dom.exportCheckToolPanel.hidden = panel !== 'export';
-        if (dom.documentCenterToolPanel) dom.documentCenterToolPanel.hidden = panel !== 'documents';
-        if (dom.versionHistoryToolPanel) dom.versionHistoryToolPanel.hidden = panel !== 'versions';
+        if (dom.assetToolPanel) dom.assetToolPanel.hidden = panel !== 'asset';
+        if (dom.templateToolPanel) dom.templateToolPanel.hidden = panel !== 'template';
         requestAnimationFrame(() => dom.toolDrawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
     }
 
@@ -3399,8 +2547,8 @@
         dom.tableToolPanel.hidden = true;
         dom.aiToolPanel.hidden = true;
         dom.exportCheckToolPanel.hidden = true;
-        if (dom.documentCenterToolPanel) dom.documentCenterToolPanel.hidden = true;
-        if (dom.versionHistoryToolPanel) dom.versionHistoryToolPanel.hidden = true;
+        if (dom.assetToolPanel) dom.assetToolPanel.hidden = true;
+        if (dom.templateToolPanel) dom.templateToolPanel.hidden = true;
     }
 
     function openTableTool() {
@@ -3736,7 +2884,23 @@
                 errorCount: 1, warningCount: 0, total: 1, readiness: 'error', checkedAt: Date.now()
             });
         }
-        return window.Md2WordPreflight.analyze(dom.markdownInput.value, state.renderResult);
+        const base = window.Md2WordPreflight.analyze(dom.markdownInput.value, state.renderResult);
+        const pageIssues = window.Md2WordPublishing && typeof window.Md2WordPublishing.getPageIssues === 'function'
+            ? window.Md2WordPublishing.getPageIssues()
+            : [];
+        const assetIssues = window.Md2WordAssets && typeof window.Md2WordAssets.getAssetIssues === 'function'
+            ? window.Md2WordAssets.getAssetIssues(dom.preview, dom.markdownInput.value)
+            : [];
+        const extra = [...pageIssues, ...assetIssues];
+        if (!extra.length) return base;
+        const issues = [...base.issues, ...extra];
+        const errors = issues.filter((issue) => issue.severity === 'error');
+        const warnings = issues.filter((issue) => issue.severity !== 'error');
+        return Object.freeze({
+            issues: Object.freeze(issues), errors: Object.freeze(errors), warnings: Object.freeze(warnings),
+            errorCount: errors.length, warningCount: warnings.length, total: issues.length,
+            readiness: errors.length ? 'error' : warnings.length ? 'warning' : dom.markdownInput.value.trim() ? 'ready' : 'empty', checkedAt: Date.now()
+        });
     }
 
     function updateExportReadiness(report = null) {
@@ -3749,20 +2913,20 @@
         dom.downloadWordButton.classList.remove('export-ready', 'export-warning', 'export-error');
         dom.exportIssueBadge.hidden = true;
         dom.exportIssueBadge.textContent = '';
-        setSvgIcon(dom.downloadWordIcon, 'icon-word');
+        dom.downloadWordIcon.textContent = '📄';
         dom.downloadWordLabel.textContent = '下载 Word';
 
         if (!hasContent) {
             dom.downloadWordButton.title = '请先输入内容，再导出 DOCX（Ctrl+D）';
         } else if (next.errorCount) {
             dom.downloadWordButton.classList.add('export-error');
-            setSvgIcon(dom.downloadWordIcon, 'icon-error');
+            dom.downloadWordIcon.textContent = '⛔';
             dom.exportIssueBadge.textContent = `${next.errorCount} 错误`;
             dom.exportIssueBadge.hidden = false;
             dom.downloadWordButton.title = `导出前发现 ${next.errorCount} 个错误和 ${next.warningCount} 个提醒；点击查看`;
         } else if (next.warningCount) {
             dom.downloadWordButton.classList.add('export-warning');
-            setSvgIcon(dom.downloadWordIcon, 'icon-warning');
+            dom.downloadWordIcon.textContent = '⚠️';
             dom.exportIssueBadge.textContent = `${next.warningCount} 提醒`;
             dom.exportIssueBadge.hidden = false;
             dom.downloadWordButton.title = `导出前有 ${next.warningCount} 个提醒；点击查看`;
@@ -3814,7 +2978,6 @@
     async function downloadWord(options = {}) {
         if (state.exporting) return;
         const markdown = dom.markdownInput.value.trim();
-        const exportStartedAt = performance.now();
         if (!markdown) {
             setStatusMessage('没有可导出的内容。', { tone: 'warning', duration: 2800 });
             return;
@@ -3828,6 +2991,12 @@
         dom.renderStatus.textContent = '正在执行导出前检查…';
         const renderResult = renderPreview({ immediate: true, force: true });
         await nextFrame();
+        if (window.Md2WordAssets && typeof window.Md2WordAssets.resolvePreviewAssets === 'function') {
+            await window.Md2WordAssets.resolvePreviewAssets(dom.preview);
+        }
+        if (window.Md2WordPublishing && window.Md2WordPublishing.getPreviewMode?.() === 'a4') {
+            window.Md2WordPublishing.buildA4Preview({ immediate: true });
+        }
         const report = updateExportReadiness(buildExportReport());
         if (!options.force && report.issues.length) {
             openExportCheck(report);
@@ -3837,17 +3006,22 @@
         }
 
         if (state.activeTool === 'export') closeToolDrawer();
-        showExportProgress(true, '正在转换标题、列表、表格与公式…');
+        showExportProgress(true, '正在准备图片、标题、列表、表格与公式…');
         try {
+            state.lastImageExport = window.Md2WordAssets
+                ? await window.Md2WordAssets.preparePreviewForExport(dom.preview, { fetchRemote: state.settings.embedRemoteImages !== false, timeout: 12000 })
+                : null;
             const children = convertPreviewToDocxChildren(dom.preview);
             if (!children.length) throw new Error('没有可写入 Word 的内容');
 
             const title = state.documentName || extractTitle(markdown) || '未命名文档';
-            const margin = cmToTwip(state.settings.wordMarginCm);
+            const pageProperties = window.Md2WordPublishing
+                ? window.Md2WordPublishing.getDocxPageProperties(state.settings, window.docx)
+                : { margin: { top: cmToTwip(state.settings.wordMarginCm), right: cmToTwip(state.settings.wordMarginCm), bottom: cmToTwip(state.settings.wordMarginCm), left: cmToTwip(state.settings.wordMarginCm) } };
             const line = Math.round(240 * state.settings.wordLineSpacing);
             const fontSize = Math.round(state.settings.wordFontSize * 2);
             const doc = new window.docx.Document({
-                creator: 'AI 智能 Markdown 转 Word · 融合体验版 v5.3',
+                creator: 'AI 智能 Markdown 转 Word · 融合体验版 v5.4',
                 title,
                 description: '由浏览器本地生成；公式转换为可编辑文本与上下标',
                 styles: {
@@ -3857,7 +3031,7 @@
                     paragraphStyles: createWordParagraphStyles(fontSize, line)
                 },
                 sections: [{
-                    properties: { page: { margin: { top: margin, right: margin, bottom: margin, left: margin } } },
+                    properties: { page: pageProperties },
                     children
                 }]
             });
@@ -3868,19 +3042,7 @@
             downloadBlob(blob, fileName);
             const mathCount = renderResult ? Number(renderResult.mathCount || 0) : 0;
             const mathErrors = renderResult && renderResult.errors ? renderResult.errors.length : 0;
-            const tableCount = dom.preview.querySelectorAll('table').length;
-            const imageCount = dom.preview.querySelectorAll('img').length;
-            const elapsedMs = Math.max(1, Math.round(performance.now() - exportStartedAt));
             showExportProgress(false);
-            showExportReceipt({
-                fileName,
-                mathCount,
-                mathErrors,
-                tableCount,
-                imageCount,
-                warningCount: report.warningCount || 0,
-                elapsedMs
-            });
             setStatusMessage(`Word 已生成：${fileName} · 公式 ${mathCount} 个，渲染错误 ${mathErrors} 个。`, { duration: 6500 });
         } catch (error) {
             console.error('Word 导出失败:', error);
@@ -3928,6 +3090,11 @@
         if (!(element instanceof Element)) return [];
         if (element.classList.contains('preview-empty')) return [];
         const tag = element.tagName.toLowerCase();
+
+        if (element.classList.contains('md2word-page-break') || element.dataset.pageBreak === 'true') {
+            if (d.PageBreak) return [new d.Paragraph({ children: [new d.PageBreak()] })];
+            return [new d.Paragraph({ children: [new d.TextRun({ text: '', break: 1 })], pageBreakBefore: true })];
+        }
 
         if (/^h[1-6]$/.test(tag)) {
             const level = Number(tag.slice(1));
@@ -4146,9 +3313,14 @@
             const binary = atob(match[2]);
             const bytes = new Uint8Array(binary.length);
             for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
-            const width = clamp(Number(element.getAttribute('width') || element.naturalWidth || 520), 40, 560);
-            const naturalWidth = Number(element.naturalWidth || width);
-            const naturalHeight = Number(element.naturalHeight || width * 0.65);
+            const geometry = window.Md2WordPublishing && typeof window.Md2WordPublishing.pageGeometry === 'function'
+                ? window.Md2WordPublishing.pageGeometry(state.settings)
+                : null;
+            const maximumWidth = Math.max(120, Math.floor(geometry && geometry.contentWidthPx ? geometry.contentWidthPx : 620));
+            const requestedWidth = Number(element.getAttribute('width') || element.dataset.naturalWidth || element.naturalWidth || 520);
+            const width = clamp(requestedWidth, 40, maximumWidth);
+            const naturalWidth = Number(element.dataset.naturalWidth || element.naturalWidth || width);
+            const naturalHeight = Number(element.dataset.naturalHeight || element.naturalHeight || width * 0.65);
             const height = Math.max(30, Math.round(width * (naturalHeight / Math.max(1, naturalWidth))));
             return new d.ImageRun({ data: bytes, transformation: { width, height } });
         } catch (_error) {
@@ -4193,54 +3365,12 @@
         return Math.round(Number(cm || 2.54) * 566.929);
     }
 
-    function showExportReceipt(data = {}) {
-        if (!dom.exportReceipt) return;
-        window.clearTimeout(state.exportReceiptTimer);
-        state.lastExportFileName = data.fileName || '';
-        dom.exportReceiptTitle.textContent = `已下载 ${data.fileName || 'Word 文档'}`;
-        dom.exportReceiptDetail.textContent = data.warningCount
-            ? `文件已生成，并保留 ${data.warningCount} 项兼容性提醒。`
-            : '导出检查通过，文件已交给浏览器下载。';
-        const meta = [
-            `公式 ${Number(data.mathCount || 0)}`,
-            `表格 ${Number(data.tableCount || 0)}`,
-            `图片 ${Number(data.imageCount || 0)}`,
-            `${(Number(data.elapsedMs || 0) / 1000).toFixed(1)} 秒`
-        ];
-        dom.exportReceiptMeta.textContent = meta.join(' · ');
-        dom.exportReceipt.hidden = false;
-        dom.downloadWordButton.classList.add('export-success');
-        setSvgIcon(dom.downloadWordIcon, 'icon-check');
-        dom.downloadWordLabel.textContent = '已下载';
-        state.exportReceiptTimer = window.setTimeout(() => {
-            hideExportReceipt();
-        }, 9000);
-    }
-
-    function hideExportReceipt() {
-        window.clearTimeout(state.exportReceiptTimer);
-        state.exportReceiptTimer = null;
-        if (dom.exportReceipt) dom.exportReceipt.hidden = true;
-        if (dom.downloadWordButton) dom.downloadWordButton.classList.remove('export-success');
-        if (!state.exporting) updateExportReadiness();
-    }
-
-    async function copyLastExportFileName() {
-        if (!state.lastExportFileName) return;
-        try {
-            await copyText(state.lastExportFileName);
-            setStatusMessage('文件名已复制。', { duration: 2400 });
-        } catch (error) {
-            toast('复制文件名失败', error.message || String(error), 'error');
-        }
-    }
-
     function showExportProgress(visible, text = '') {
         state.exporting = visible;
         dom.downloadWordButton.disabled = visible;
         dom.downloadWordButton.setAttribute('aria-busy', String(visible));
         if (visible) {
-            setSvgIcon(dom.downloadWordIcon, 'icon-spinner');
+            dom.downloadWordIcon.textContent = '⏳';
             dom.downloadWordLabel.textContent = '生成中…';
             dom.exportIssueBadge.hidden = true;
         } else {
@@ -4294,9 +3424,25 @@
         window.setTimeout(close, duration);
     }
 
+    window.Md2WordCore = Object.freeze({
+        renderPreview,
+        getSettings: () => ({ ...state.settings }),
+        applySettingsPatch: (patch = {}, options = {}) => {
+            state.settings = { ...state.settings, ...patch };
+            if (options.persist !== false) persistSettings();
+            applySettings();
+            populateSettingsForm();
+            if (options.render !== false) renderPreview({ immediate: true, force: true });
+            return { ...state.settings };
+        },
+        getState: () => ({ ...state }),
+        buildExportReport,
+        setView
+    });
+
     window.addEventListener('DOMContentLoaded', initialize, { once: true });
 
-    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.search.includes('md2word-test=1')) {
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
         window.__MD2WORD__ = {
             renderPreview,
             convertTableInput,
@@ -4318,19 +3464,630 @@
             toggleFocusMode,
             parseSharedAccess,
             clearRememberedAccess,
-            updateRememberedDeviceStatus,
-            initializeWorkflow,
-            openDocumentCenter,
-            openDocumentById,
-            createVersionCheckpoint,
-            openVersionHistory,
-            restoreVersion,
-            exportWorkspaceBackup,
-            importWorkspaceBackup,
-            buildDiagnosticText,
-            updateHeroState,
-            toggleHeroState,
-            onSmartPaste
+            updateRememberedDeviceStatus
         };
     }
 })();
+
+/* v5.4 reliable workflow and publishing enhancement. Runs after the v5.2.3 core and keeps the application fully static. */
+(function () {
+    'use strict';
+
+    const VERSION = '5.4';
+    const SETTINGS_KEY = 'md2word.workflow.settings.v5.4';
+    const LAST_DOCUMENT_KEY = 'md2word.workspace.last-document.v5.4';
+    const LEGACY_AUTOSAVE_KEY = 'md2word.personal.autosave.v3';
+    const BASE_SETTINGS_KEY = 'md2word.personal.settings.v3';
+    const AI_KEY = 'md2word.personal.ai.v3';
+    const AUTO_VERSION_INTERVAL = 5 * 60 * 1000;
+    const AUTO_VERSION_CHANGE_THRESHOLD = 420;
+    const MAX_BACKUP_BYTES = 50 * 1024 * 1024;
+    const DEFAULTS = Object.freeze({ heroBehavior: 'auto', smartPasteMode: 'auto', versionHistory: true });
+
+    const state = {
+        store: null,
+        ready: false,
+        settings: { ...DEFAULTS },
+        currentId: null,
+        currentCreatedAt: null,
+        documents: [],
+        versions: [],
+        selectedId: null,
+        saveTimer: null,
+        saveChain: Promise.resolve(),
+        pendingPaste: null,
+        lastVersionAt: 0,
+        lastVersionContent: '',
+        exportStartedAt: 0,
+        receiptTimer: null,
+        transitionGuard: false,
+        centerOpen: false,
+        workspaceError: '',
+        workspaceNotice: ''
+    };
+
+    const dom = {};
+    const $ = (id) => document.getElementById(id);
+    const q = (selector, root = document) => root.querySelector(selector);
+    const qa = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+    const safeParse = (raw, fallback = null) => { try { return raw ? JSON.parse(raw) : fallback; } catch (_error) { return fallback; } };
+    const storageGet = (key) => {
+        try { return window.localStorage ? window.localStorage.getItem(key) : null; }
+        catch (_error) { return null; }
+    };
+    const storageSet = (key, value) => {
+        try { if (!window.localStorage) return false; window.localStorage.setItem(key, value); return true; }
+        catch (_error) { return false; }
+    };
+    const storageRemove = (key) => {
+        try { if (!window.localStorage) return false; window.localStorage.removeItem(key); return true; }
+        catch (_error) { return false; }
+    };
+    const escapeHtml = (value) => String(value == null ? '' : value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+    const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+    const formatBytes = (bytes) => { const value = Number(bytes) || 0; if (value < 1024) return `${value} B`; if (value < 1024 * 1024) return `${(value / 1024).toFixed(value < 10240 ? 1 : 0)} KB`; return `${(value / 1024 / 1024).toFixed(1)} MB`; };
+    const formatDateTime = (timestamp) => { if (!timestamp) return '刚刚'; try { return new Intl.DateTimeFormat('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(timestamp)); } catch (_error) { return new Date(timestamp).toLocaleString(); } };
+    const formatRelativeTime = (timestamp) => {
+        const delta = Date.now() - Number(timestamp || 0);
+        if (delta < 60_000) return '刚刚';
+        if (delta < 3_600_000) return `${Math.max(1, Math.floor(delta / 60_000))} 分钟前`;
+        if (delta < 86_400_000) return `${Math.floor(delta / 3_600_000)} 小时前`;
+        if (delta < 604_800_000) return `${Math.floor(delta / 86_400_000)} 天前`;
+        return formatDateTime(timestamp);
+    };
+    const stripMarkdown = (value) => String(value || '').replace(/```[\s\S]*?```/g, ' ').replace(/`([^`]*)`/g, '$1').replace(/!\[[^\]]*\]\([^)]*\)/g, ' ').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/^#{1,6}\s+/gm, '').replace(/[>*_~|\\]/g, ' ').replace(/\s+/g, ' ').trim();
+    const getBaseSettings = () => safeParse(storageGet(BASE_SETTINGS_KEY), {}) || {};
+    const isAutosaveEnabled = () => getBaseSettings().autosave !== false;
+
+    function cacheDom() {
+        Object.assign(dom, {
+            input: $('markdownInput'), name: $('documentNameInput'), preview: $('preview'),
+            centerLayer: $('documentCenterLayer'), center: $('documentCenter'), centerStatus: $('documentCenterStatus'),
+            search: $('documentSearchInput'), list: $('documentList'), listEmpty: $('documentListEmpty'), listCount: $('documentListCount'),
+            versionList: $('versionList'), versionEmpty: $('versionListEmpty'), versionName: $('versionDocumentName'),
+            smartBar: $('smartPasteBar'), smartTitle: $('smartPasteTitle'), smartDetail: $('smartPasteDetail'),
+            heroButton: $('heroCollapseButton'), settingsForm: $('settingsForm'), heroSelect: $('heroBehaviorSelect'),
+            pasteSelect: $('smartPasteModeSelect'), historyToggle: $('versionHistoryToggle'),
+            backupInput: $('backupFileInput'), includeApiKey: $('backupIncludeApiKey'), dependencyList: $('dependencyStatusList'),
+            dataDocumentCount: $('dataDocumentCount'), dataVersionCount: $('dataVersionCount'), dataAssetCount: $('dataAssetCount'), dataStorageSize: $('dataStorageSize'), dataStorageBackend: $('dataStorageBackend'),
+            receipt: $('exportReceipt'), receiptFile: $('exportReceiptFileName'), receiptSummary: $('exportReceiptSummary'), receiptMetrics: $('exportReceiptMetrics')
+        });
+    }
+
+    function loadWorkflowSettings() {
+        const saved = safeParse(storageGet(SETTINGS_KEY), {}) || {};
+        state.settings = {
+            heroBehavior: ['auto', 'expanded', 'compact'].includes(saved.heroBehavior) ? saved.heroBehavior : DEFAULTS.heroBehavior,
+            smartPasteMode: ['auto', 'ask', 'plain'].includes(saved.smartPasteMode) ? saved.smartPasteMode : DEFAULTS.smartPasteMode,
+            versionHistory: typeof saved.versionHistory === 'boolean' ? saved.versionHistory : DEFAULTS.versionHistory
+        };
+        populateWorkflowSettings();
+    }
+
+    function populateWorkflowSettings() {
+        if (dom.heroSelect) dom.heroSelect.value = state.settings.heroBehavior;
+        if (dom.pasteSelect) dom.pasteSelect.value = state.settings.smartPasteMode;
+        if (dom.historyToggle) dom.historyToggle.checked = state.settings.versionHistory;
+    }
+
+    function saveWorkflowSettings() {
+        state.settings = {
+            heroBehavior: dom.heroSelect && ['auto', 'expanded', 'compact'].includes(dom.heroSelect.value) ? dom.heroSelect.value : DEFAULTS.heroBehavior,
+            smartPasteMode: dom.pasteSelect && ['auto', 'ask', 'plain'].includes(dom.pasteSelect.value) ? dom.pasteSelect.value : DEFAULTS.smartPasteMode,
+            versionHistory: dom.historyToggle ? dom.historyToggle.checked : DEFAULTS.versionHistory
+        };
+        storageSet(SETTINGS_KEY, JSON.stringify(state.settings));
+        applyHeroBehavior();
+    }
+
+    function notify(message, options = {}) {
+        const box = $('statusMessage');
+        const text = $('statusMessageText');
+        if (!box || !text) return;
+        text.textContent = String(message || '');
+        box.hidden = false;
+        box.dataset.type = options.type || 'info';
+        window.clearTimeout(notify.timer);
+        notify.timer = window.setTimeout(() => { box.hidden = true; }, Number(options.duration) || 4200);
+    }
+
+    function toast(title, message, type = 'info') {
+        const region = $('toastRegion');
+        if (!region) { notify(`${title}：${message}`, { type }); return; }
+        const item = document.createElement('div');
+        item.className = `toast ${type}`;
+        item.innerHTML = `<strong>${escapeHtml(title)}</strong><span>${escapeHtml(message)}</span><button type="button" class="toast-close" aria-label="关闭">×</button>`;
+        region.appendChild(item);
+        const close = () => item.remove();
+        q('.toast-close', item).addEventListener('click', close);
+        window.setTimeout(close, 5200);
+    }
+
+    function ensureDocumentId() {
+        if (state.currentId) return state.currentId;
+        state.currentId = state.store && state.store.makeId ? state.store.makeId('doc') : `doc-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+        state.currentCreatedAt = Date.now();
+        return state.currentId;
+    }
+
+    function currentRecord() {
+        const now = Date.now();
+        const name = (dom.name && dom.name.value.trim()) || '未命名';
+        return {
+            id: ensureDocumentId(), name, fileName: `${name}.md`, content: dom.input.value,
+            createdAt: state.currentCreatedAt || now, updatedAt: now, lastOpenedAt: now,
+            cursorStart: dom.input.selectionStart || 0, cursorEnd: dom.input.selectionEnd || 0,
+            editorScrollTop: dom.input.scrollTop || 0, previewScrollTop: dom.preview ? dom.preview.scrollTop || 0 : 0,
+            viewDesktop: storageGet('md2word.personal.view.desktop.v5.1') || 'split',
+            viewMobile: storageGet('md2word.personal.view.mobile.v5.1') || 'editor',
+            fileOrigin: 'draft', fileDirty: true
+        };
+    }
+
+    function saveCurrent(options = {}) {
+        if (!state.ready || !state.store || (!options.force && !isAutosaveEnabled())) return Promise.resolve(null);
+        if (!dom.input.value.trim() && !state.currentId && !options.force) return Promise.resolve(null);
+        const record = currentRecord();
+        state.saveChain = state.saveChain.catch(() => null).then(async () => {
+            const saved = await state.store.putDocument(record);
+            state.currentId = saved.id; state.currentCreatedAt = saved.createdAt;
+            await state.store.setMeta('lastDocumentId', saved.id);
+            storageSet(LAST_DOCUMENT_KEY, saved.id);
+            if (state.centerOpen) await refreshDocumentCenter();
+            return saved;
+        }).catch((error) => { state.workspaceError = String(error.message || error); console.warn('v5.4 文档保存失败', error); throw error; });
+        return state.saveChain;
+    }
+
+    function scheduleSave() {
+        window.clearTimeout(state.saveTimer);
+        if (!isAutosaveEnabled()) return;
+        state.saveTimer = window.setTimeout(() => saveCurrent().catch(() => toast('文档中心保存失败', '浏览器空间可能不足。', 'error')), 720);
+    }
+
+    async function createVersion(reason = '自动快照', options = {}) {
+        if (!state.ready || !state.store || !state.settings.versionHistory) return null;
+        const content = Object.prototype.hasOwnProperty.call(options, 'content') ? String(options.content || '') : dom.input.value;
+        if (!content.trim()) return null;
+        const version = await state.store.putVersion({
+            documentId: ensureDocumentId(), documentName: (dom.name.value || '未命名').trim() || '未命名', content,
+            reason, automatic: options.automatic !== false, createdAt: Date.now(),
+            cursorStart: dom.input.selectionStart || 0, cursorEnd: dom.input.selectionEnd || 0
+        }, { force: Boolean(options.force) });
+        state.lastVersionAt = version.createdAt; state.lastVersionContent = content;
+        if (state.centerOpen && state.selectedId === state.currentId) await selectDocumentForVersions(state.currentId);
+        return version;
+    }
+
+    function maybeAutomaticVersion() {
+        if (!state.settings.versionHistory || !dom.input.value.trim()) return;
+        if (!state.lastVersionAt) { state.lastVersionAt = Date.now(); state.lastVersionContent = dom.input.value; return; }
+        const elapsed = Date.now() - state.lastVersionAt;
+        const delta = Math.abs(dom.input.value.length - state.lastVersionContent.length);
+        if (elapsed >= AUTO_VERSION_INTERVAL && (delta >= AUTO_VERSION_CHANGE_THRESHOLD || elapsed >= AUTO_VERSION_INTERVAL * 2)) {
+            createVersion('定期自动快照', { automatic: true }).catch(() => {});
+        }
+    }
+
+    function setHeroCollapsed(collapsed) {
+        document.body.classList.toggle('hero-collapsed', Boolean(collapsed));
+        if (dom.heroButton) {
+            dom.heroButton.setAttribute('aria-pressed', String(Boolean(collapsed)));
+            dom.heroButton.title = collapsed ? '展开品牌标题区' : '收起品牌标题区';
+        }
+    }
+
+    function applyHeroBehavior() {
+        const behavior = state.settings.heroBehavior;
+        if (behavior === 'expanded') setHeroCollapsed(false);
+        else if (behavior === 'compact') setHeroCollapsed(true);
+        else setHeroCollapsed(Boolean(dom.input && dom.input.value.trim()));
+    }
+
+    function toggleHeroCollapse() { setHeroCollapsed(!document.body.classList.contains('hero-collapsed')); }
+
+    function renderDocumentList() {
+        const current = state.currentId;
+        dom.listCount.textContent = `${state.documents.length} 个`;
+        dom.listEmpty.hidden = state.documents.length > 0;
+        dom.list.innerHTML = state.documents.map((doc) => {
+            const currentClass = doc.id === current ? ' current' : '';
+            const selectedClass = doc.id === state.selectedId ? ' selected' : '';
+            const preview = stripMarkdown(doc.content).slice(0, 150) || '空白文档';
+            return `<article class="document-card${currentClass}${selectedClass}" role="listitem" data-document-id="${escapeHtml(doc.id)}">
+                <div class="document-card-head"><h4>${escapeHtml(doc.name)}</h4>${doc.id === current ? '<span class="document-current-pill">当前</span>' : ''}</div>
+                <p class="document-card-preview">${escapeHtml(preview)}</p>
+                <div class="document-card-meta"><span>${formatRelativeTime(doc.updatedAt)}</span><span>${Number(doc.content.length).toLocaleString()} 字符</span></div>
+                <div class="document-card-actions">
+                    <button type="button" data-action="select-workspace-document" data-document-id="${escapeHtml(doc.id)}">版本</button>
+                    <button type="button" data-action="open-workspace-document" data-document-id="${escapeHtml(doc.id)}">打开</button>
+                    <button type="button" data-action="duplicate-workspace-document" data-document-id="${escapeHtml(doc.id)}">副本</button>
+                    <button type="button" data-action="delete-workspace-document" data-document-id="${escapeHtml(doc.id)}">删除</button>
+                </div></article>`;
+        }).join('');
+    }
+
+    function renderVersionList() {
+        dom.versionEmpty.hidden = state.versions.length > 0;
+        dom.versionList.innerHTML = state.versions.map((version) => `<article class="version-card" role="listitem" data-version-id="${escapeHtml(version.id)}">
+            <div><strong>${escapeHtml(version.reason)}</strong><p>${formatDateTime(version.createdAt)} · ${Number(version.size || version.content.length).toLocaleString()} 字符</p></div>
+            <div class="version-card-preview">${escapeHtml(stripMarkdown(version.content).slice(0, 120) || '空白版本')}</div>
+            <div class="version-card-actions"><button type="button" data-action="restore-workspace-version" data-version-id="${escapeHtml(version.id)}">恢复</button><button type="button" data-action="delete-workspace-version" data-version-id="${escapeHtml(version.id)}">删除</button></div>
+        </article>`).join('');
+    }
+
+    async function refreshDocumentCenter() {
+        if (!state.ready) return;
+        state.documents = await state.store.listDocuments({ query: dom.search ? dom.search.value : '', limit: 200 });
+        renderDocumentList();
+        const diagnostics = await state.store.diagnostics();
+        if (dom.centerStatus) dom.centerStatus.textContent = `${diagnostics.documents} 个文档 · ${diagnostics.versions} 个版本 · ${diagnostics.backend}`;
+        await refreshDataOverview(diagnostics);
+    }
+
+    async function openDocumentCenter() {
+        if (!state.ready) return toast('文档中心尚未就绪', state.workspaceError || '请稍后重试。', 'error');
+        await saveCurrent({ force: Boolean(dom.input.value.trim() || state.currentId) }).catch(() => null);
+        state.centerOpen = true;
+        dom.centerLayer.hidden = false; dom.centerLayer.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('document-center-open');
+        await refreshDocumentCenter();
+        if (state.currentId) await selectDocumentForVersions(state.currentId, { silent: true });
+        window.setTimeout(() => dom.search && dom.search.focus(), 30);
+    }
+
+    function closeDocumentCenter() {
+        state.centerOpen = false; dom.centerLayer.hidden = true; dom.centerLayer.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('document-center-open');
+    }
+
+    async function selectDocumentForVersions(id, options = {}) {
+        state.selectedId = id;
+        const doc = await state.store.getDocument(id);
+        state.versions = await state.store.listVersions(id, { limit: 30 });
+        if (dom.versionName) dom.versionName.textContent = doc ? doc.name : '文档不存在';
+        renderDocumentList(); renderVersionList();
+        if (!options.silent) q('.version-list-panel')?.scrollIntoView({ block: 'nearest' });
+    }
+
+    async function loadWorkspaceDocument(id, options = {}) {
+        const doc = await state.store.getDocument(id);
+        if (!doc) return toast('文档不存在', '它可能已在其他标签页中删除。', 'error');
+        if (!options.skipSave && state.currentId !== id) await saveCurrent({ force: Boolean(dom.input.value.trim() || state.currentId) }).catch(() => null);
+        state.currentId = doc.id; state.currentCreatedAt = doc.createdAt; state.lastVersionAt = 0; state.lastVersionContent = doc.content;
+        dom.name.value = doc.name; dom.name.dispatchEvent(new Event('input', { bubbles: true }));
+        dom.input.value = doc.content; dom.input.dispatchEvent(new Event('input', { bubbles: true }));
+        await state.store.setMeta('lastDocumentId', doc.id); storageSet(LAST_DOCUMENT_KEY, doc.id);
+        window.setTimeout(() => { dom.input.selectionStart = clamp(doc.cursorStart || 0, 0, dom.input.value.length); dom.input.selectionEnd = clamp(doc.cursorEnd || doc.cursorStart || 0, 0, dom.input.value.length); dom.input.scrollTop = doc.editorScrollTop || 0; if (dom.preview) dom.preview.scrollTop = doc.previewScrollTop || 0; }, 80);
+        closeDocumentCenter(); applyHeroBehavior(); document.dispatchEvent(new CustomEvent('md2word:document-changed', { detail: { id: doc.id } })); notify(`已打开“${doc.name}”。`);
+    }
+
+    async function newDocumentFromCenter() {
+        await saveCurrent({ force: Boolean(dom.input.value.trim() || state.currentId) }).catch(() => null);
+        state.currentId = null; state.currentCreatedAt = null; state.lastVersionAt = 0; state.lastVersionContent = '';
+        closeDocumentCenter();
+        state.transitionGuard = true; q('[data-action="new-document"]')?.click(); state.transitionGuard = false;
+        applyHeroBehavior();
+        document.dispatchEvent(new CustomEvent('md2word:document-changed', { detail: { id: null } }));
+    }
+
+    async function duplicateDocument(id) {
+        const doc = await state.store.getDocument(id); if (!doc) return;
+        const targetId = state.store.makeId('doc');
+        const content = window.Md2WordAssets && typeof window.Md2WordAssets.duplicateDocumentAssets === 'function'
+            ? await window.Md2WordAssets.duplicateDocumentAssets(doc.id, targetId, doc.content)
+            : doc.content;
+        const copy = { ...doc, id: targetId, content, name: `${doc.name} 副本`.slice(0, 80), fileName: `${doc.name} 副本.md`, createdAt: Date.now(), updatedAt: Date.now(), lastOpenedAt: Date.now() };
+        await state.store.putDocument(copy); await refreshDocumentCenter(); notify('已创建文档副本，并复制关联图片素材。');
+    }
+
+    async function deleteDocument(id) {
+        const doc = await state.store.getDocument(id); if (!doc) return;
+        if (!window.confirm(`确认删除“${doc.name}”及其历史版本？`)) return;
+        await state.store.deleteDocument(id);
+        if (state.currentId === id) { state.currentId = null; state.currentCreatedAt = null; state.transitionGuard = true; q('[data-action="new-document"]')?.click(); state.transitionGuard = false; }
+        if (state.selectedId === id) { state.selectedId = null; state.versions = []; dom.versionName.textContent = '选择一个文档查看恢复点'; renderVersionList(); }
+        await refreshDocumentCenter(); notify('文档已从当前浏览器删除。');
+    }
+
+    async function restoreVersion(id) {
+        const version = await state.store.getVersion(id); if (!version) return;
+        if (dom.input.value.trim()) await createVersion('恢复历史版本前', { force: true, automatic: false }).catch(() => null);
+        state.currentId = version.documentId; dom.name.value = version.documentName; dom.name.dispatchEvent(new Event('input', { bubbles: true }));
+        dom.input.value = version.content; dom.input.dispatchEvent(new Event('input', { bubbles: true }));
+        await saveCurrent({ force: true }); closeDocumentCenter(); notify(`已恢复“${version.reason}”。`);
+    }
+
+    async function deleteVersion(id) { if (!window.confirm('确认删除这个历史版本？')) return; await state.store.deleteVersion(id); if (state.selectedId) await selectDocumentForVersions(state.selectedId, { silent: true }); }
+
+    function convertTsv(text) {
+        const lines = String(text || '').trim().split(/\r?\n/).filter(Boolean);
+        if (lines.length < 2) return '';
+        const rows = lines.map((line) => line.split('\t').map((cell) => cell.trim().replace(/\|/g, '\\|')));
+        const width = Math.max(...rows.map((row) => row.length));
+        if (width < 2 || !rows.every((row) => row.length === width)) return '';
+        return [`| ${rows[0].join(' | ')} |`, `| ${rows[0].map(() => '---').join(' | ')} |`, ...rows.slice(1).map((row) => `| ${row.join(' | ')} |`)].join('\n');
+    }
+
+    function htmlToMarkdown(html) {
+        const documentNode = new DOMParser().parseFromString(String(html || ''), 'text/html');
+        function walk(node, context = {}) {
+            if (node.nodeType === Node.TEXT_NODE) return node.nodeValue.replace(/\s+/g, ' ');
+            if (node.nodeType !== Node.ELEMENT_NODE) return '';
+            const tag = node.tagName.toLowerCase();
+            const children = () => Array.from(node.childNodes).map((child) => walk(child, context)).join('');
+            if (/^h[1-6]$/.test(tag)) return `${'#'.repeat(Number(tag[1]))} ${children().trim()}\n\n`;
+            if (tag === 'p' || tag === 'div') return `${children().trim()}\n\n`;
+            if (tag === 'br') return '\n';
+            if (tag === 'strong' || tag === 'b') return `**${children().trim()}**`;
+            if (tag === 'em' || tag === 'i') return `*${children().trim()}*`;
+            if (tag === 'code' && node.parentElement?.tagName.toLowerCase() !== 'pre') return `\`${node.textContent}\``;
+            if (tag === 'pre') return `\n\n\`\`\`\n${node.textContent.replace(/^\n|\n$/g, '')}\n\`\`\`\n\n`;
+            if (tag === 'a') return `[${children().trim() || node.getAttribute('href')}](${node.getAttribute('href') || ''})`;
+            if (tag === 'img') return `![${node.getAttribute('alt') || ''}](${node.getAttribute('src') || ''})`;
+            if (tag === 'li') return `${context.ordered ? `${context.index || 1}.` : '-'} ${children().trim()}\n`;
+            if (tag === 'ul' || tag === 'ol') return `${Array.from(node.children).map((child, index) => walk(child, { ordered: tag === 'ol', index: index + 1 })).join('')}\n`;
+            if (tag === 'blockquote') return `${children().trim().split('\n').map((line) => `> ${line}`).join('\n')}\n\n`;
+            if (tag === 'table') {
+                const rows = Array.from(node.querySelectorAll('tr')).map((row) => Array.from(row.children).map((cell) => cell.textContent.trim().replace(/\|/g, '\\|')));
+                if (!rows.length) return '';
+                return `| ${rows[0].join(' | ')} |\n| ${rows[0].map(() => '---').join(' | ')} |\n${rows.slice(1).map((row) => `| ${row.join(' | ')} |`).join('\n')}\n\n`;
+            }
+            return children();
+        }
+        return walk(documentNode.body).replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+    }
+
+    function stripOuterMarkdownFence(text) {
+        const match = String(text || '').trim().match(/^```(?:markdown|md)?\s*\n([\s\S]*?)\n```$/i);
+        return match ? match[1].trim() : '';
+    }
+
+    function normalizeBareTex(text) {
+        const trimmed = String(text || '').trim();
+        if (!/^[(（][\s\S]+[)）]$/.test(trimmed) || !window.Md2WordMath?.isProbablyBareInlineLatex(trimmed.slice(1, -1))) return '';
+        const result = typeof window.Md2WordMath.escapeLikelyPercentSigns === 'function' ? window.Md2WordMath.escapeLikelyPercentSigns(trimmed) : { text: trimmed.replace(/(?<=\d)%/g, '\\%') };
+        const escaped = typeof result === 'string' ? result : String(result && result.text || trimmed);
+        return `\\(${escaped}\\)`;
+    }
+
+    function analyzeSmartPaste(plainText, htmlText = '') {
+        const plain = String(plainText || '');
+        const fenced = stripOuterMarkdownFence(plain);
+        if (fenced) return { type: 'markdown-fence', confidence: 'high', title: '检测到 Markdown 代码围栏', detail: '可以移除最外层围栏，直接作为文档内容插入。', original: plain, transformed: fenced };
+        const table = convertTsv(plain);
+        if (table) return { type: 'table', confidence: 'high', title: '检测到表格数据', detail: '可以转换为 Markdown 表格。', original: plain, transformed: table };
+        const bare = normalizeBareTex(plain);
+        if (bare) return { type: 'tex', confidence: 'high', title: '检测到裸行内公式', detail: '可以补充公式边界并修正数值百分号。', original: plain, transformed: bare };
+        if (htmlText && /<(?:h[1-6]|p|strong|em|ul|ol|table|a)\b/i.test(htmlText)) {
+            const markdown = htmlToMarkdown(htmlText);
+            if (markdown && markdown !== plain.trim()) return { type: 'rich', confidence: 'medium', title: '检测到富文本', detail: '可以保留标题、粗体、列表、链接和表格语义。', original: plain, transformed: markdown };
+        }
+        return null;
+    }
+
+    function insertAtSelection(value) {
+        const start = dom.input.selectionStart || 0, end = dom.input.selectionEnd || start;
+        dom.input.setRangeText(String(value), start, end, 'end'); dom.input.dispatchEvent(new Event('input', { bubbles: true })); dom.input.focus();
+    }
+
+    function showPasteSuggestion(analysis) {
+        state.pendingPaste = analysis; dom.smartTitle.textContent = analysis.title; dom.smartDetail.textContent = analysis.detail; dom.smartBar.hidden = false;
+    }
+    function dismissPaste() { state.pendingPaste = null; dom.smartBar.hidden = true; }
+    function applyPaste(transformed = true) { if (!state.pendingPaste) return; insertAtSelection(transformed ? state.pendingPaste.transformed : state.pendingPaste.original); notify(transformed ? '已按建议转换并插入。' : '已保留原始粘贴内容。'); dismissPaste(); }
+
+    function onPaste(event) {
+        if (state.settings.smartPasteMode === 'plain' || event.defaultPrevented) return;
+        const clipboard = event.clipboardData; if (!clipboard) return;
+        const plain = clipboard.getData('text/plain'); const html = clipboard.getData('text/html');
+        const analysis = analyzeSmartPaste(plain, html); if (!analysis) return;
+        event.preventDefault();
+        if (state.settings.smartPasteMode === 'auto' && analysis.confidence === 'high') { insertAtSelection(analysis.transformed); notify(`智能粘贴：${analysis.title.replace('检测到', '已处理')}`, { duration: 3200 }); }
+        else showPasteSuggestion(analysis);
+    }
+
+    function getDependencyStatuses() {
+        return [
+            { label: 'Marked', ok: Boolean(window.marked?.parse), detail: 'Markdown 解析' },
+            { label: 'DOMPurify', ok: Boolean(window.DOMPurify?.sanitize), detail: '预览净化' },
+            { label: 'KaTeX', ok: Boolean(window.katex?.renderToString), detail: '公式渲染' },
+            { label: '公式引擎', ok: Boolean(window.Md2WordMath), detail: '边界保护' },
+            { label: '导出检查', ok: Boolean(window.Md2WordPreflight?.analyze), detail: '兼容性检查' },
+            { label: 'docx.js', ok: Boolean(window.docx), detail: 'Word 生成' },
+            { label: 'FileSaver', ok: typeof window.saveAs === 'function', detail: '浏览器下载' },
+            { label: '文档中心', ok: state.ready, detail: state.store ? state.store.backendName : '未就绪' }
+        ];
+    }
+
+    function renderDependencyStatuses() {
+        if (!dom.dependencyList) return;
+        dom.dependencyList.innerHTML = getDependencyStatuses().map((item) => `<div class="dependency-status-item${item.ok ? ' ok' : ''}"><span><i></i>${escapeHtml(item.label)}</span><small>${escapeHtml(item.ok ? item.detail : '未加载')}</small></div>`).join('');
+    }
+
+    async function refreshDataOverview(existing) {
+        if (!state.ready || !state.store) return;
+        const info = existing || await state.store.diagnostics();
+        if (dom.dataDocumentCount) dom.dataDocumentCount.textContent = Number(info.documents || 0).toLocaleString();
+        if (dom.dataVersionCount) dom.dataVersionCount.textContent = Number(info.versions || 0).toLocaleString();
+        if (dom.dataAssetCount) dom.dataAssetCount.textContent = Number(info.assets || 0).toLocaleString();
+        if (dom.dataStorageSize) dom.dataStorageSize.textContent = formatBytes(info.approximateBytes || 0);
+        if (dom.dataStorageBackend) dom.dataStorageBackend.textContent = info.backend || '存储状态';
+        renderDependencyStatuses();
+    }
+
+    async function exportWorkspaceBackup() {
+        if (!state.ready) return;
+        await saveCurrent({ force: Boolean(dom.input.value.trim() || state.currentId) }).catch(() => null);
+        const workspace = await state.store.exportAll();
+        const ai = safeParse(storageGet(AI_KEY), {}) || {};
+        if (!dom.includeApiKey?.checked) delete ai.key;
+        const payload = { schema: 'md2word-fusion-backup', version: VERSION, exportedAt: Date.now(), app: { name: 'Markdown 转 Word', version: VERSION }, settings: safeParse(storageGet(BASE_SETTINGS_KEY), {}) || {}, workflowSettings: { ...state.settings }, ai, workspace };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+        const name = `markdown-to-word-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        if (typeof window.saveAs === 'function') window.saveAs(blob, name); else { const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = name; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 1000); }
+        notify(`完整备份已生成：${workspace.documents.length} 个文档，${workspace.versions.length} 个版本。`, { duration: 5200 });
+    }
+
+    function chooseBackup() { dom.backupInput.value = ''; dom.backupInput.click(); }
+    async function importBackupPayload(payload, sourceName = '备份文件') {
+        const workspace = payload?.schema === 'md2word-fusion-backup' ? payload.workspace : payload;
+        if (!workspace || workspace.schema !== 'md2word-workspace-backup' || !Array.isArray(workspace.documents) || !Array.isArray(workspace.versions)) throw new Error('备份格式不受支持');
+        if (JSON.stringify(workspace).length > MAX_BACKUP_BYTES) throw new Error('备份内容超过 50 MB');
+        if (!window.confirm(`将从“${sourceName}”导入 ${workspace.documents.length} 个文档和 ${workspace.versions.length} 个版本，是否继续？`)) return;
+        await saveCurrent({ force: Boolean(dom.input.value.trim() || state.currentId) }).catch(() => null);
+        await state.store.importAll(workspace, { replace: false });
+        if (payload.workflowSettings) { state.settings = { ...DEFAULTS, ...payload.workflowSettings }; storageSet(SETTINGS_KEY, JSON.stringify(state.settings)); populateWorkflowSettings(); applyHeroBehavior(); }
+        await refreshDocumentCenter(); await refreshDataOverview(); notify(`备份导入完成：${workspace.documents.length} 个文档，${workspace.versions.length} 个版本。`, { duration: 5800 });
+    }
+    function onBackupFile(event) {
+        const file = event.target.files && event.target.files[0]; if (!file) return;
+        if (file.size > MAX_BACKUP_BYTES) return toast('备份文件过大', '请选择不超过 50 MB 的 JSON 文件。', 'error');
+        const reader = new FileReader(); reader.onerror = () => toast('备份读取失败', '浏览器无法读取所选文件。', 'error');
+        reader.onload = async () => { try { await importBackupPayload(JSON.parse(String(reader.result || '')), file.name); } catch (error) { toast('备份导入失败', error.message || String(error), 'error'); } };
+        reader.readAsText(file, 'utf-8');
+    }
+
+    function buildDiagnosticsReport() {
+        let report = null; try { report = window.__MD2WORD__?.buildExportReport?.(); } catch (_error) { report = null; }
+        const statuses = getDependencyStatuses();
+        const formulaText = $('mathStatusText')?.textContent || '公式状态不可用';
+        return [
+            '# Markdown 转 Word 诊断报告', '',
+            `- 应用版本：${VERSION}`, `- 生成时间：${new Date().toLocaleString('zh-CN')}`, `- 浏览器：${navigator.userAgent}`,
+            `- 主题：${document.documentElement.dataset.theme || '未知'}`, `- 文档中心后端：${state.store ? state.store.backendName : '未加载'}`, `- 文档中心状态：${state.workspaceError || state.workspaceNotice || '正常'}`, `- 图片素材：${state.store ? (state.store.diagnostics ? '见存储统计' : '未知') : '未加载'}`, '',
+            '## 当前文档', `- ID：${state.currentId || '未建立'}`, `- 名称：${dom.name.value || '未命名'}`, `- 字符：${dom.input.value.length}`, `- 行数：${dom.input.value ? dom.input.value.split('\n').length : 0}`, `- ${formulaText}`, `- 导出错误：${report?.errorCount || 0}`, `- 导出提醒：${report?.warningCount || 0}`, '',
+            '## 依赖状态', ...statuses.map((item) => `- ${item.label}：${item.ok ? '已加载' : '不可用'}（${item.detail}）`), '',
+            '> 报告不包含 API Key、访问密码和文档正文。'
+        ].join('\n');
+    }
+
+    async function copyText(text) {
+        if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text);
+        const area = document.createElement('textarea'); area.value = text; area.style.position = 'fixed'; area.style.opacity = '0'; document.body.appendChild(area); area.select(); document.execCommand('copy'); area.remove();
+    }
+    async function copyDiagnostics() { try { await copyText(buildDiagnosticsReport()); notify('诊断报告已复制，不包含 API Key、密码或文档正文。', { duration: 5000 }); } catch (error) { toast('复制诊断失败', error.message || String(error), 'error'); } }
+
+    async function clearWorkspaceData() {
+        if (!window.confirm('确认清除当前浏览器中的全部文档和历史版本？此操作无法撤销。')) return;
+        window.clearTimeout(state.saveTimer); await state.saveChain.catch(() => null); await state.store.clearAll();
+        state.currentId = null; state.currentCreatedAt = null; state.documents = []; state.versions = []; state.selectedId = null;
+        storageRemove(LAST_DOCUMENT_KEY); storageRemove(LEGACY_AUTOSAVE_KEY);
+        dom.input.value = ''; dom.input.dispatchEvent(new Event('input', { bubbles: true })); dom.name.value = '未命名'; dom.name.dispatchEvent(new Event('input', { bubbles: true }));
+        await refreshDocumentCenter(); notify('全部本地文档和历史版本已清除。');
+    }
+
+    function closeReceipt() { clearTimeout(state.receiptTimer); dom.receipt.hidden = true; }
+    function showReceipt(details = {}) {
+        if (!dom.receipt) return;
+        clearTimeout(state.receiptTimer);
+        dom.receiptFile.textContent = details.fileName || '未命名.docx';
+        dom.receiptSummary.textContent = details.warningCount ? `已交给浏览器下载，并保留 ${details.warningCount} 项兼容性提醒。` : '已交给浏览器下载，导出前检查通过。';
+        const metrics = [`公式 ${details.mathCount || 0}`, `表格 ${details.tableCount || 0}`, `图片 ${details.imageCount || 0}`, formatBytes(details.bytes || 0), `${Math.max(1, details.duration || 1)} ms`];
+        dom.receiptMetrics.innerHTML = metrics.map((item) => `<span>${escapeHtml(item)}</span>`).join(''); dom.receipt.hidden = false;
+        state.receiptTimer = setTimeout(closeReceipt, 9000);
+    }
+    function patchSaveAs() {
+        const original = window.saveAs; if (typeof original !== 'function' || original.__v54Wrapped) return;
+        const wrapped = function (blob, name, ...rest) {
+            const result = original.call(this, blob, name, ...rest);
+            if (/\.docx$/i.test(String(name || ''))) setTimeout(() => {
+                let report = null; try { report = window.__MD2WORD__?.buildExportReport?.(); } catch (_error) {}
+                showReceipt({ fileName: name, warningCount: report?.warningCount || 0, mathCount: dom.preview.querySelectorAll('.katex').length, tableCount: dom.preview.querySelectorAll('table').length, imageCount: dom.preview.querySelectorAll('img').length, bytes: blob?.size || 0, duration: Math.round(performance.now() - (state.exportStartedAt || performance.now())) });
+            }, 40);
+            return result;
+        };
+        wrapped.__v54Wrapped = true; wrapped.__original = original; window.saveAs = wrapped;
+    }
+
+    async function initializeWorkspace() {
+        if (!window.Md2WordWorkspaceStore) { state.workspaceError = '文档中心模块未加载'; return; }
+        state.store = window.Md2WordWorkspaceStore; await state.store.ready(); state.ready = true;
+        const migration = await state.store.getMeta('migration.v5.3').catch(() => null);
+        if (migration && migration.documents > 0) {
+            state.workspaceNotice = `已从 v5.3 迁移 ${migration.documents} 个文档和 ${migration.versions || 0} 个版本`;
+        }
+        let docs = await state.store.listDocuments({ limit: 200 });
+        if (!docs.length) {
+            const legacy = safeParse(storageGet(LEGACY_AUTOSAVE_KEY), null);
+            if (legacy && typeof legacy.content === 'string' && legacy.content.trim()) {
+                const name = String(legacy.documentName || '恢复的草稿').slice(0, 80);
+                await state.store.putDocument({ name, fileName: legacy.fileName || `${name}.md`, content: legacy.content, updatedAt: legacy.updatedAt || Date.now(), createdAt: legacy.updatedAt || Date.now(), fileOrigin: 'legacy-autosave' });
+                docs = await state.store.listDocuments({ limit: 200 }); state.workspaceNotice = '已将旧版单草稿迁移到文档中心';
+            }
+        }
+        state.documents = docs;
+        if (dom.input.value.trim()) {
+            const match = docs.find((doc) => doc.content === dom.input.value && doc.name === dom.name.value) || null;
+            if (match) { state.currentId = match.id; state.currentCreatedAt = match.createdAt; }
+        } else if (getBaseSettings().restoreDraftOnStart === true && docs.length) {
+            const preferredId = storageGet(LAST_DOCUMENT_KEY) || await state.store.getMeta('lastDocumentId').catch(() => null) || storageGet('md2word.workflow.current.v5.3');
+            const preferred = docs.find((doc) => doc.id === preferredId) || docs[0];
+            if (preferred && preferred.content.trim()) await loadWorkspaceDocument(preferred.id, { skipSave: true });
+        }
+        await refreshDataOverview(); applyHeroBehavior();
+    }
+
+    function handleAction(event) {
+        const button = event.target.closest('[data-action]'); if (!button) return;
+        const action = button.dataset.action;
+        const id = button.dataset.documentId || button.closest('[data-document-id]')?.dataset.documentId;
+        const versionId = button.dataset.versionId || button.closest('[data-version-id]')?.dataset.versionId;
+        const handlers = {
+            'open-document-center': openDocumentCenter, 'close-document-center': closeDocumentCenter,
+            'refresh-document-center': refreshDocumentCenter, 'new-document-from-center': newDocumentFromCenter,
+            'select-workspace-document': () => selectDocumentForVersions(id), 'open-workspace-document': () => loadWorkspaceDocument(id),
+            'duplicate-workspace-document': () => duplicateDocument(id), 'delete-workspace-document': () => deleteDocument(id),
+            'restore-workspace-version': () => restoreVersion(versionId), 'delete-workspace-version': () => deleteVersion(versionId),
+            'apply-smart-paste': () => applyPaste(true), 'insert-smart-paste-plain': () => applyPaste(false), 'dismiss-smart-paste': dismissPaste,
+            'toggle-hero-collapse': toggleHeroCollapse, 'export-workspace-backup': exportWorkspaceBackup,
+            'import-workspace-backup': chooseBackup, 'copy-diagnostics': copyDiagnostics, 'refresh-diagnostics': () => refreshDataOverview(),
+            'clear-workspace-data': clearWorkspaceData, 'close-export-receipt': closeReceipt,
+            'copy-export-filename': () => copyText(dom.receiptFile.textContent).then(() => notify('Word 文件名已复制。')),
+            'open-data-settings': () => { closeDocumentCenter(); $('settingsButton')?.click(); setTimeout(() => window.__MD2WORD__?.activateSettingsTab?.('data', { focus: true }), 40); }
+        };
+        if (handlers[action]) { event.preventDefault(); event.stopPropagation(); Promise.resolve(handlers[action]()).catch((error) => toast('操作失败', error.message || String(error), 'error')); }
+    }
+
+    function captureDestructiveAction(event) {
+        const button = event.target.closest('[data-action]'); if (!button || state.transitionGuard) return;
+        const action = button.dataset.action;
+        if (action === 'download-word') state.exportStartedAt = performance.now();
+        if (action === 'clear-document') createVersion('清空前', { force: true, automatic: false }).catch(() => {});
+        if (action === 'apply-ai-result') createVersion('AI 应用前', { force: true, automatic: false }).catch(() => {});
+        if (action === 'new-document') {
+            saveCurrent({ force: Boolean(dom.input.value.trim() || state.currentId) }).catch(() => {});
+            setTimeout(() => { state.currentId = null; state.currentCreatedAt = null; state.lastVersionAt = 0; state.lastVersionContent = ''; applyHeroBehavior(); }, 0);
+        }
+    }
+
+    function bind() {
+        dom.input.addEventListener('input', () => { scheduleSave(); maybeAutomaticVersion(); applyHeroBehavior(); });
+        dom.name.addEventListener('input', scheduleSave);
+        dom.input.addEventListener('paste', onPaste, true);
+        dom.search?.addEventListener('input', (() => { let timer; return () => { clearTimeout(timer); timer = setTimeout(refreshDocumentCenter, 220); }; })());
+        dom.backupInput?.addEventListener('change', onBackupFile);
+        dom.settingsForm?.addEventListener('submit', () => { saveWorkflowSettings(); setTimeout(refreshDataOverview, 60); });
+        document.addEventListener('click', handleAction);
+        document.addEventListener('click', captureDestructiveAction, true);
+        document.addEventListener('keydown', (event) => {
+            const mod = event.ctrlKey || event.metaKey;
+            if (mod && event.shiftKey && event.key.toLowerCase() === 'o') { event.preventDefault(); openDocumentCenter(); }
+            if (event.key === 'Escape' && state.centerOpen) { event.preventDefault(); closeDocumentCenter(); }
+        });
+    }
+
+    async function initialize() {
+        cacheDom(); loadWorkflowSettings(); bind(); patchSaveAs();
+        await initializeWorkspace();
+    }
+
+    window.Md2WordWorkflow = Object.freeze({
+        openDocumentCenter, closeDocumentCenter, refreshDocumentCenter, loadWorkspaceDocument,
+        saveCurrent, createVersion, analyzeSmartPaste, htmlToMarkdown, stripOuterMarkdownFence,
+        exportWorkspaceBackup, importBackupPayload, buildDiagnosticsReport, showReceipt,
+        setHeroCollapsed, applyHeroBehavior, getState: () => ({ ...state }), version: VERSION
+    });
+
+    window.addEventListener('DOMContentLoaded', () => initialize().catch((error) => { console.error('v5.4 工作流初始化失败', error); toast('工作流初始化失败', error.message || String(error), 'error'); }), { once: true });
+}());

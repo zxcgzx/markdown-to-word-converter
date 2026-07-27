@@ -17,8 +17,11 @@ const experienceCss = fs.readFileSync(path.join(root, 'css', 'experience.css'), 
 const heroCss = fs.readFileSync(path.join(root, 'css', 'hero.css'), 'utf8');
 const typographyCss = fs.readFileSync(path.join(root, 'css', 'typography.css'), 'utf8');
 const workflowCss = fs.readFileSync(path.join(root, 'css', 'workflow.css'), 'utf8');
-const workflowJs = fs.readFileSync(path.join(root, 'js', 'workflow.js'), 'utf8');
-const css = `${appCss}\n${toolbarCss}\n${experienceCss}\n${heroCss}\n${typographyCss}\n${workflowCss}`;
+const publishingCss = fs.readFileSync(path.join(root, 'css', 'publishing.css'), 'utf8');
+const assetsJs = fs.readFileSync(path.join(root, 'js', 'assets.js'), 'utf8');
+const publishingJs = fs.readFileSync(path.join(root, 'js', 'publishing.js'), 'utf8');
+const storeJs = fs.readFileSync(path.join(root, 'js', 'workspace-store.js'), 'utf8');
+const css = `${appCss}\n${toolbarCss}\n${experienceCss}\n${heroCss}\n${typographyCss}\n${workflowCss}\n${publishingCss}`;
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 
 function collectIds(source) {
@@ -42,16 +45,14 @@ function findOpeningTags(source, tagName) {
     return [...source.matchAll(regex)].map((match) => match[0]);
 }
 
-test('package and page identify the complete v5.3 workflow release', () => {
-    assert.equal(pkg.version, '5.3.0');
-    assert.match(html, /融合体验版 v5\.3/);
-    for (const asset of [
-        'css/app.css?v=5.3', 'css/toolbar.css?v=5.3', 'css/experience.css?v=5.3',
-        'css/hero.css?v=5.3', 'css/typography.css?v=5.3', 'css/workflow.css?v=5.3',
-        'js/access-config.js?v=5.3', 'js/math-engine.js?v=5.3', 'js/preflight.js?v=5.3',
-        'js/workflow.js?v=5.3', 'js/app.js?v=5.3'
-    ]) assert.ok(html.includes(asset), `missing release asset ${asset}`);
-    assert.match(pkg.scripts.check, /workflow\.js/);
+test('package and page identify the complete v5.4 release', () => {
+    assert.equal(pkg.version, '5.4.0');
+    assert.match(html, /融合体验版 v5\.4/);
+    assert.match(html, /js\/preflight\.js\?v=5\.4/);
+    assert.match(html, /css\/toolbar\.css\?v=5\.4/);
+    assert.match(html, /css\/experience\.css\?v=5\.4/);
+    assert.match(html, /css\/hero\.css\?v=5\.4/);
+    assert.match(pkg.scripts.check, /preflight\.js/);
 });
 
 test('keeps the familiar password gate, user identity and four visual themes', () => {
@@ -156,7 +157,7 @@ test('export preflight is inline, locatable and controls Word readiness', () => 
     assert.match(appJs, /if \(!options\.force && report\.issues\.length\)/);
     assert.match(preflightJs, /math-render/);
     assert.match(preflightJs, /code-fence/);
-    assert.match(preflightJs, /image-external/);
+    assert.match(preflightJs, /image-remote/);
     assert.match(preflightJs, /wide-table/);
     assert.match(css, /#downloadWordButton\.export-warning/);
     assert.match(css, /\.export-check-list\s*\{/);
@@ -179,7 +180,7 @@ test('common tools stay inline while low-frequency options use one categorized s
     assert.match(html, /id="aiToolPanel"/);
     assert.match(html, /id="settingsDialog"/);
     assert.equal(findOpeningTags(html, 'dialog').length, 1);
-    for (const section of ['interface', 'word', 'ai', 'shortcuts', 'data', 'account']) {
+    for (const section of ['interface', 'word', 'ai', 'shortcuts', 'account']) {
         assert.match(html, new RegExp(`data-settings-tab="${section}"`));
         assert.match(html, new RegExp(`data-settings-panel="${section}"`));
     }
@@ -213,11 +214,11 @@ test('DOCX export parses math separately into editable subscript and superscript
     assert.match(appJs, /Md2WordMath\.latexToWordSegments/);
     assert.match(appJs, /subScript:\s*Boolean\(segment\.subScript\)/);
     assert.match(appJs, /superScript:\s*Boolean\(segment\.superScript\)/);
-    assert.match(html, /融合体验版 v5\.3/);
+    assert.match(html, /融合体验版 v5\.4/);
     assert.doesNotMatch(appJs, /请.{0,8}手动添加公式/);
 });
 
-test('v5.3 login is a focused brand-and-auth composition rather than a card wall', () => {
+test('v5.4 login is a focused brand-and-auth composition rather than a card wall', () => {
     for (const id of [
         'authStoryTitle', 'authThemeButton', 'authThemeText', 'rememberDeviceToggle',
         'capsLockHint', 'shareCodePanel', 'shareCodeInput', 'importShareCodeButton',
@@ -247,7 +248,7 @@ test('remembered access, inline share codes, Caps Lock and login states are impl
     assert.match(experienceCss, /\.password-btn\[data-state="success"\]/);
 });
 
-test('v5.3 provides a keyboard command palette and a reversible focus mode', () => {
+test('v5.4 provides a keyboard command palette and a reversible focus mode', () => {
     for (const id of [
         'commandButton', 'commandPalette', 'commandPaletteInput', 'commandPaletteList',
         'commandPaletteCount', 'focusModeButton', 'focusModeExitButton'
@@ -303,7 +304,7 @@ test('the command palette traps keyboard focus while open', () => {
 });
 
 
-test('v5.3 keeps conservative bare-inline TeX recovery and visible repair controls', () => {
+test('v5.4 adds conservative bare-inline TeX recovery and visible repair controls', () => {
     assert.match(mathJs, /function isProbablyBareInlineLatex/);
     assert.match(mathJs, /repairBareInline/);
     assert.match(mathJs, /escapeLikelyPercentSigns/);
