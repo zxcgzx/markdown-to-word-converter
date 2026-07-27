@@ -45,13 +45,13 @@ function findOpeningTags(source, tagName) {
     return [...source.matchAll(regex)].map((match) => match[0]);
 }
 
-test('package and page identify the complete v5.4 release', () => {
-    assert.equal(pkg.version, '5.4.0');
-    assert.match(html, /融合体验版 v5\.4/);
-    assert.match(html, /js\/preflight\.js\?v=5\.4/);
-    assert.match(html, /css\/toolbar\.css\?v=5\.4/);
-    assert.match(html, /css\/experience\.css\?v=5\.4/);
-    assert.match(html, /css\/hero\.css\?v=5\.4/);
+test('package and page identify the complete v5.5 release', () => {
+    assert.equal(pkg.version, '5.5.0');
+    assert.match(html, /融合体验版 v5\.5/);
+    assert.match(html, /js\/preflight\.js\?v=5\.5/);
+    assert.match(html, /css\/toolbar\.css\?v=5\.5/);
+    assert.match(html, /css\/experience\.css\?v=5\.5/);
+    assert.match(html, /css\/hero\.css\?v=5\.5/);
     assert.match(pkg.scripts.check, /preflight\.js/);
 });
 
@@ -214,7 +214,7 @@ test('DOCX export parses math separately into editable subscript and superscript
     assert.match(appJs, /Md2WordMath\.latexToWordSegments/);
     assert.match(appJs, /subScript:\s*Boolean\(segment\.subScript\)/);
     assert.match(appJs, /superScript:\s*Boolean\(segment\.superScript\)/);
-    assert.match(html, /融合体验版 v5\.4/);
+    assert.match(html, /融合体验版 v5\.5/);
     assert.doesNotMatch(appJs, /请.{0,8}手动添加公式/);
 });
 

@@ -15,11 +15,11 @@ function positionOf(fragment) {
     return index;
 }
 
-test('v5.4 loads cache-busted toolbar, experience and hero stylesheets', () => {
-    assert.match(html, /css\/app\.css\?v=5\.4/);
-    assert.match(html, /css\/toolbar\.css\?v=5\.4/);
-    assert.match(html, /css\/experience\.css\?v=5\.4/);
-    assert.match(html, /css\/hero\.css\?v=5\.4/);
+test('v5.5 loads cache-busted toolbar, experience and hero stylesheets', () => {
+    assert.match(html, /css\/app\.css\?v=5\.5/);
+    assert.match(html, /css\/toolbar\.css\?v=5\.5/);
+    assert.match(html, /css\/experience\.css\?v=5\.5/);
+    assert.match(html, /css\/hero\.css\?v=5\.5/);
     assert.match(html, /class="quick-toolbar" data-layout="command-deck"/);
 });
 

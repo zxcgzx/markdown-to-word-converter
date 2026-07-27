@@ -1,10 +1,10 @@
 {
-  "name": "markdown-to-word-converter-fusion-v5-4",
-  "version": "5.4.0",
+  "name": "markdown-to-word-converter-fusion-v5-5",
+  "version": "5.5.0",
   "private": true,
-  "description": "保留原版玻璃态交互与可靠工作流，新增 A4/Letter 页面预览、图片素材库、网络图片嵌入、文档模板和长文性能模式的纯前端 Markdown 转 Word 工具",
+  "description": "保留原版玻璃态交互与可靠工作流，新增专业封面、自动目录、标题编号、页眉页脚、局部分节、题注和正式 Word 样式方案的纯前端 Markdown 转 Word 工具",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "check": "node --check js/access-config.js && node --check js/math-engine.js && node --check js/preflight.js && node --check js/workspace-store.js && node --check js/assets.js && node --check js/publishing.js && node --check js/app.js"
+    "check": "node --check js/access-config.js && node --check js/math-engine.js && node --check js/preflight.js && node --check js/workspace-store.js && node --check js/assets.js && node --check js/publishing.js && node --check js/professional.js && node --check js/app.js"
   }
 }

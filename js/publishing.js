@@ -166,7 +166,7 @@
         if (!drawer) return;
         drawer.hidden = false;
         $('toolDrawerTitle').textContent = '文档模板';
-        ['tableToolPanel', 'aiToolPanel', 'exportCheckToolPanel', 'assetToolPanel'].forEach((id) => { const panel = $(id); if (panel) panel.hidden = true; });
+        ['tableToolPanel', 'aiToolPanel', 'exportCheckToolPanel', 'assetToolPanel', 'professionalToolPanel'].forEach((id) => { const panel = $(id); if (panel) panel.hidden = true; });
         if (dom.templatePanel) dom.templatePanel.hidden = false;
         renderTemplateCards();
         requestAnimationFrame(() => drawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
@@ -242,12 +242,25 @@
         return measure;
     }
 
-    function createPageNode(index, geometry, blocks, scale) {
+    function previewPageNumberText(index, total, input = {}) {
+        const professional = root.Md2WordProfessional?.normalizeSettings?.(input) || input;
+        const current = index + 1;
+        if (professional.pageNumberEnabled === false) return '';
+        if (professional.pageNumberFormat === 'current-total') return `${current} / ${total}`;
+        if (professional.pageNumberFormat === 'page-current') return `第 ${current} 页`;
+        if (professional.pageNumberFormat === 'page-current-total') return `第 ${current} 页 / 共 ${total} 页`;
+        return String(current);
+    }
+
+    function createPageNode(index, pageRecord, totalPages, settings, pageNumberIndex = index) {
+        const geometry = pageRecord.geometry;
+        const scale = updateScale(geometry);
         const shell = document.createElement('section');
         shell.className = 'a4-page-shell';
         shell.style.width = `${geometry.widthPx * scale}px`;
         shell.style.height = `${geometry.heightPx * scale}px`;
         shell.setAttribute('aria-label', `第 ${index + 1} 页`);
+        shell.dataset.orientation = geometry.wordOrientation;
         const page = document.createElement('article');
         page.className = 'a4-page';
         page.style.width = `${geometry.widthPx}px`;
@@ -262,11 +275,35 @@
         page.style.setProperty('--page-line-height', String(geometry.wordLineSpacing));
         const content = document.createElement('div');
         content.className = 'a4-page-content preview-document-content';
-        blocks.forEach((block) => content.appendChild(block));
-        const footer = document.createElement('footer');
-        footer.className = 'a4-page-number';
-        footer.textContent = String(index + 1);
-        page.append(content, footer);
+        pageRecord.blocks.forEach((block) => content.appendChild(block));
+        const professional = root.Md2WordProfessional?.normalizeSettings?.(settings) || settings;
+        const meta = root.Md2WordProfessional?.metadata?.(settings, $('documentNameInput')?.value || '未命名文档') || {};
+        const isCover = pageRecord.kind === 'cover' || content.querySelector('[data-professional-cover="true"]');
+        const suppressFirstPageHeaderFooter = !professional.coverEnabled && professional.firstPageDifferent && pageNumberIndex === 0;
+        if (!isCover && !suppressFirstPageHeaderFooter) {
+            page.dataset.professionalPage = 'true';
+            const substitute = root.Md2WordProfessional?.substitutePlaceholders || ((value) => String(value || ''));
+            const headerText = professional.headerEnabled ? substitute(professional.headerText, meta) : '';
+            if (headerText) {
+                const header = document.createElement('header');
+                header.className = 'a4-page-header';
+                header.textContent = headerText;
+                page.appendChild(header);
+            }
+            const footerText = substitute(professional.footerText, meta);
+            const pageText = previewPageNumberText(pageNumberIndex, totalPages, professional);
+            if (footerText || pageText) {
+                const footer = document.createElement('footer');
+                footer.className = 'a4-page-footer';
+                footer.dataset.align = professional.pageNumberAlignment || 'center';
+                footer.textContent = [footerText, pageText].filter(Boolean).join(footerText && pageText ? ' · ' : '');
+                page.appendChild(footer);
+            }
+        }
+        const fallbackFooter = document.createElement('footer');
+        fallbackFooter.className = 'a4-page-number';
+        fallbackFooter.textContent = String(index + 1);
+        page.append(content, fallbackFooter);
         shell.appendChild(page);
         return shell;
     }
@@ -274,41 +311,74 @@
     function updateScale(geometry) {
         if (!dom.a4Preview) return 1;
         const available = Math.max(280, dom.a4Preview.clientWidth - 42);
-        return clamp(available / geometry.widthPx, 0.34, 1);
+        return clamp(available / geometry.widthPx, 0.26, 1);
     }
 
     function buildA4Preview(options = {}) {
         if (!dom.preview || !dom.a4Preview || state.previewMode !== 'a4') return { pageCount: state.pageCount, overflowIssues: state.overflowIssues };
         if (state.building) return { pageCount: state.pageCount, overflowIssues: state.overflowIssues };
         state.building = true;
+        let measure = null;
         try {
-            const settings = normalizePageSettings({ ...state.settings, ...(root.Md2WordCore?.getSettings?.() || {}) });
-            const geometry = pageGeometry(settings);
-            const sourceBlocks = Array.from(dom.preview.children);
-            const scale = updateScale(geometry);
-            state.lastScale = scale;
-            const measure = makeMeasureContainer(geometry);
+            const allSettings = { ...state.settings, ...(root.Md2WordCore?.getSettings?.() || {}) };
+            const normalized = normalizePageSettings(allSettings);
+            const professional = root.Md2WordProfessional?.normalizeSettings?.({ ...allSettings, ...normalized }) || { ...allSettings, ...normalized };
+            const sourceBlocks = root.Md2WordProfessional?.preparePreviewBlocks
+                ? root.Md2WordProfessional.preparePreviewBlocks(dom.preview, professional, $('documentNameInput')?.value || '未命名文档')
+                : Array.from(dom.preview.children);
             const pages = [];
             let current = [];
+            let currentOrientation = normalized.wordOrientation;
+            let geometry = pageGeometry({ ...normalized, wordOrientation: currentOrientation });
             let overflowIssues = [];
             let forcedBreakAtEnd = false;
 
-            const flush = (options = {}) => {
-                const allowEmpty = options.allowEmpty === true;
-                if (!current.length && pages.length && !allowEmpty) return;
-                pages.push(current);
-                current = [];
-                measure.replaceChildren();
+            const resetMeasure = () => {
+                if (measure) measure.remove();
+                geometry = pageGeometry({ ...normalized, wordOrientation: currentOrientation });
+                measure = makeMeasureContainer(geometry);
             };
+            const flush = (flushOptions = {}) => {
+                const allowEmpty = flushOptions.allowEmpty === true;
+                // Do not synthesize a leading blank page before a full-page cover/TOC or an initial section marker.
+                // Explicit page breaks can still request a blank page with allowEmpty=true.
+                if (!current.length && !allowEmpty) return;
+                pages.push({ blocks: current, geometry, kind: flushOptions.kind || 'content' });
+                current = [];
+                if (measure) measure.replaceChildren();
+            };
+            resetMeasure();
 
-            if (!sourceBlocks.length) pages.push([]);
+            if (!sourceBlocks.length) pages.push({ blocks: [], geometry, kind: 'content' });
             sourceBlocks.forEach((sourceBlock, sourceIndex) => {
-                if (sourceBlock.matches('.md2word-page-break, [data-page-break="true"]')) {
+                if (sourceBlock.matches?.('.md2word-section-break, [data-section-break="true"]')) {
+                    flush();
+                    currentOrientation = sourceBlock.dataset.orientation === 'portrait' ? 'portrait' : 'landscape';
+                    resetMeasure();
+                    forcedBreakAtEnd = false;
+                    return;
+                }
+                if (sourceBlock.matches?.('.md2word-page-break, [data-page-break="true"]')) {
                     flush({ allowEmpty: true });
                     forcedBreakAtEnd = true;
                     return;
                 }
                 forcedBreakAtEnd = false;
+                const isFullPage = sourceBlock.classList?.contains('md2word-full-page-block');
+                if (isFullPage) {
+                    flush();
+                    const full = copyPreviewBlock(sourceBlock);
+                    const kind = sourceBlock.dataset.professionalCover === 'true' ? 'cover' : sourceBlock.dataset.professionalToc === 'true' ? 'toc' : 'full';
+                    // The DOCX cover is always portrait. Keep the browser page preview aligned
+                    // even when the document's default body orientation is landscape.
+                    const fullGeometry = kind === 'cover'
+                        ? pageGeometry({ ...normalized, wordOrientation: 'portrait' })
+                        : geometry;
+                    pages.push({ blocks: [full], geometry: fullGeometry, kind });
+                    current = [];
+                    measure.replaceChildren();
+                    return;
+                }
                 const clone = copyPreviewBlock(sourceBlock);
                 measure.appendChild(clone);
                 const height = measure.scrollHeight;
@@ -335,17 +405,25 @@
                 flush();
             });
             if (current.length || !pages.length || forcedBreakAtEnd) flush({ allowEmpty: forcedBreakAtEnd });
-            measure.remove();
 
             dom.a4Preview.replaceChildren();
-            pages.forEach((blocks, index) => dom.a4Preview.appendChild(createPageNode(index, geometry, blocks, scale)));
+            let numberedPageIndex = 0;
+            pages.forEach((record, index) => {
+                const pageNumberIndex = record.kind === 'cover' ? null : numberedPageIndex++;
+                dom.a4Preview.appendChild(createPageNode(index, record, pages.length, professional, pageNumberIndex));
+            });
             state.pageCount = pages.length;
             state.overflowIssues = overflowIssues;
-            const paper = PAPER_SIZES[settings.wordPaperSize] || PAPER_SIZES.a4;
-            if (dom.pagePreviewStatus) dom.pagePreviewStatus.textContent = `${paper.label} · ${settings.wordOrientation === 'landscape' ? '横向' : '纵向'} · 预计 ${pages.length} 页${overflowIssues.length ? ` · ${overflowIssues.length} 项溢出提醒` : ''}`;
-            root.document.dispatchEvent(new CustomEvent('md2word:page-preview-updated', { detail: { pageCount: pages.length, overflowIssues } }));
+            state.lastScale = pages.length ? updateScale(pages[0].geometry) : 1;
+            const paper = PAPER_SIZES[normalized.wordPaperSize] || PAPER_SIZES.a4;
+            const orientations = new Set(pages.map((page) => page.geometry.wordOrientation));
+            const orientationLabel = orientations.size > 1 ? '混合方向' : (normalized.wordOrientation === 'landscape' ? '横向' : '纵向');
+            const extras = [professional.coverEnabled ? '含封面' : '', professional.tocEnabled ? '含目录' : ''].filter(Boolean).join(' · ');
+            if (dom.pagePreviewStatus) dom.pagePreviewStatus.textContent = `${paper.label} · ${orientationLabel} · 预计 ${pages.length} 页${extras ? ` · ${extras}` : ''}${overflowIssues.length ? ` · ${overflowIssues.length} 项溢出提醒` : ''}`;
+            root.document.dispatchEvent(new CustomEvent('md2word:page-preview-updated', { detail: { pageCount: pages.length, overflowIssues, orientations: Array.from(orientations) } }));
             return { pageCount: pages.length, overflowIssues };
         } finally {
+            if (measure) measure.remove();
             state.building = false;
         }
     }
@@ -446,7 +524,7 @@
     if (root.addEventListener) root.addEventListener('DOMContentLoaded', initialize, { once: true });
 
     return Object.freeze({
-        version: '5.4', PAPER_SIZES, PAGE_BREAK_HTML, TEMPLATES,
+        version: '5.5', PAPER_SIZES, PAGE_BREAK_HTML, TEMPLATES,
         normalizePageSettings, pageGeometry, getDocxPageProperties, getPerformancePolicy,
         templateById, applyTemplate, openTemplatePanel, insertPageBreak,
         setPreviewMode, getPreviewMode: () => state.previewMode, buildA4Preview, scheduleA4Preview,

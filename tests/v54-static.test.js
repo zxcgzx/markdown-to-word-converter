@@ -16,8 +16,8 @@ const css = read('css/publishing.css');
 const pkg = JSON.parse(read('package.json'));
 
 test('v5.4 loads the publishing and asset modules with cache-busted resources', () => {
-    assert.equal(pkg.version, '5.4.0');
-    for (const resource of ['css/publishing.css?v=5.4', 'js/workspace-store.js?v=5.4', 'js/assets.js?v=5.4', 'js/publishing.js?v=5.4', 'js/app.js?v=5.4']) {
+    assert.equal(pkg.version, '5.5.0');
+    for (const resource of ['css/publishing.css?v=5.5', 'js/workspace-store.js?v=5.5', 'js/assets.js?v=5.5', 'js/publishing.js?v=5.5', 'js/app.js?v=5.5']) {
         assert.ok(html.includes(resource), `missing ${resource}`);
     }
     for (const script of ['workspace-store.js', 'assets.js', 'publishing.js']) assert.ok(pkg.scripts.check.includes(script));
@@ -76,7 +76,7 @@ test('explicit page breaks preserve trailing and consecutive blank pages in A4 p
 });
 
 test('Word images are capped to the configured printable page width', () => {
-    assert.match(app, /Md2WordPublishing\.pageGeometry\(state\.settings\)/);
-    assert.match(app, /geometry && geometry\.contentWidthPx/);
+    assert.match(app, /Md2WordPublishing\?\.pageGeometry\?\.\(\{ \.\.\.state\.settings, wordOrientation:/);
+    assert.match(app, /geometry\?\.contentWidthPx/);
     assert.match(app, /const width = clamp\(requestedWidth, 40, maximumWidth\)/);
 });

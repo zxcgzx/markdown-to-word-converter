@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="color-scheme" content="light dark">
-    <meta name="description" content="纯前端 Markdown 转 Word 工作台，支持多文档、版本历史、图片素材、A4 页面预览、文档模板、可靠公式和 Word 导出。">
-    <title>AI 智能 Markdown 转 Word · 融合体验版 v5.4</title>
+    <meta name="description" content="纯前端 Markdown 转 Word 工作台，支持多文档、版本历史、图片素材、A4 页面预览、封面目录、页眉页脚、标题编号、可靠公式和专业 Word 导出。">
+    <title>AI 智能 Markdown 转 Word · 融合体验版 v5.5</title>
 
     <script src="https://cdn.jsdelivr.net/npm/marked@9.0.0/marked.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" defer></script>
@@ -15,20 +15,22 @@
     <script src="https://unpkg.com/docx@7.8.2/build/index.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" defer></script>
 
-    <link rel="stylesheet" href="css/app.css?v=5.4">
-    <link rel="stylesheet" href="css/toolbar.css?v=5.4">
-    <link rel="stylesheet" href="css/experience.css?v=5.4">
-    <link rel="stylesheet" href="css/hero.css?v=5.4">
-    <link rel="stylesheet" href="css/typography.css?v=5.4">
-    <link rel="stylesheet" href="css/workflow.css?v=5.4">
-    <link rel="stylesheet" href="css/publishing.css?v=5.4">
-    <script src="js/access-config.js?v=5.4" defer></script>
-    <script src="js/math-engine.js?v=5.4" defer></script>
-    <script src="js/preflight.js?v=5.4" defer></script>
-    <script src="js/workspace-store.js?v=5.4" defer></script>
-    <script src="js/assets.js?v=5.4" defer></script>
-    <script src="js/publishing.js?v=5.4" defer></script>
-    <script src="js/app.js?v=5.4" defer></script>
+    <link rel="stylesheet" href="css/app.css?v=5.5">
+    <link rel="stylesheet" href="css/toolbar.css?v=5.5">
+    <link rel="stylesheet" href="css/experience.css?v=5.5">
+    <link rel="stylesheet" href="css/hero.css?v=5.5">
+    <link rel="stylesheet" href="css/typography.css?v=5.5">
+    <link rel="stylesheet" href="css/workflow.css?v=5.5">
+    <link rel="stylesheet" href="css/publishing.css?v=5.5">
+    <link rel="stylesheet" href="css/professional.css?v=5.5">
+    <script src="js/access-config.js?v=5.5" defer></script>
+    <script src="js/math-engine.js?v=5.5" defer></script>
+    <script src="js/preflight.js?v=5.5" defer></script>
+    <script src="js/workspace-store.js?v=5.5" defer></script>
+    <script src="js/assets.js?v=5.5" defer></script>
+    <script src="js/publishing.js?v=5.5" defer></script>
+    <script src="js/professional.js?v=5.5" defer></script>
+    <script src="js/app.js?v=5.5" defer></script>
 </head>
 <body class="auth-locked">
     <svg class="ui-symbols" aria-hidden="true" focusable="false">
@@ -55,6 +57,10 @@
         <symbol id="icon-page-break" viewBox="0 0 24 24"><path d="M6 3h9l3 3v5H6zM6 21h12v-5H6z"/><path d="M3 13h3M9 13h2M14 13h2M19 13h2"/></symbol>
         <symbol id="icon-page" viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6z"/><path d="M15 3v4h4M9 11h6M9 15h6"/></symbol>
         <symbol id="icon-refresh" viewBox="0 0 24 24"><path d="M20 6v5h-5M4 18v-5h5"/><path d="M18.5 9A7 7 0 0 0 6 6.5L4 9M5.5 15A7 7 0 0 0 18 17.5L20 15"/></symbol>
+        <symbol id="icon-delivery" viewBox="0 0 24 24"><path d="M5 3h10l4 4v14H5z"/><path d="M15 3v5h5M8 12h8M8 16h5"/><path d="m15 17 2 2 4-5"/></symbol>
+        <symbol id="icon-cover" viewBox="0 0 24 24"><path d="M5 3h14v18H5z"/><path d="M8 7h8M8 11h8M8 17h5"/></symbol>
+        <symbol id="icon-toc" viewBox="0 0 24 24"><path d="M8 6h11M8 12h11M8 18h11"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></symbol>
+        <symbol id="icon-section" viewBox="0 0 24 24"><path d="M4 4h16v6H4zM4 14h16v6H4z"/><path d="M2 12h20"/></symbol>
     </svg>
     <noscript><div class="fatal-banner">此工具需要启用 JavaScript。</div></noscript>
 
@@ -79,7 +85,7 @@
                         <svg class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9c0-.55-.45-1-1-1h-3.2a2.8 2.8 0 0 1-2.8-2.8V4c0-.55-.45-1-1-1h-1Z"/><path d="M7.5 10.5h.01M9.5 7.5h.01M7.5 14.5h.01"/></svg>
                         <span id="authThemeText">暖阳琥珀</span>
                     </button>
-                    <span class="auth-version-pill">v5.4</span>
+                    <span class="auth-version-pill">v5.5</span>
                 </div>
             </header>
 
@@ -113,7 +119,7 @@
 
                         <div class="auth-update-note">
                             <span class="auth-update-dot" aria-hidden="true"></span>
-                            <div><strong>v5.4 预览与素材</strong><p>A4 页面预览、图片素材库、网络图片嵌入与文档模板，让最终交付更可预期。</p></div>
+                            <div><strong>v5.5 专业 Word 交付</strong><p>封面、目录、标题编号、页眉页脚、分节与专业表格样式，让 DOCX 更接近可直接提交的正式文档。</p></div>
                         </div>
                     </div>
 
@@ -222,7 +228,7 @@
 
                     <div class="author-info">
                         <span class="hero-author"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><strong>Boning</strong> · TJUT</span>
-                        <span class="hero-version">Fusion v5.4</span>
+                        <span class="hero-version">Fusion v5.5</span>
                     </div>
                 </div>
 
@@ -317,6 +323,7 @@
                         <span class="toolbar-inline-divider" aria-hidden="true"></span>
                         <button type="button" class="tool-button compact-toolbar-hide" data-action="open-assets"><svg class="ui-icon" aria-hidden="true"><use href="#icon-image"></use></svg><span>图片</span></button>
                         <button type="button" class="tool-button compact-toolbar-hide" data-action="open-templates"><svg class="ui-icon" aria-hidden="true"><use href="#icon-template"></use></svg><span>模板</span></button>
+                        <button type="button" class="tool-button compact-toolbar-hide" data-action="open-professional"><svg class="ui-icon" aria-hidden="true"><use href="#icon-delivery"></use></svg><span>交付</span></button>
                         <button type="button" class="tool-button compact-toolbar-hide" data-action="open-table"><span aria-hidden="true">▦</span><span>表格</span></button>
                         <button type="button" class="tool-button compact-toolbar-hide" data-action="insert-page-break"><svg class="ui-icon" aria-hidden="true"><use href="#icon-page-break"></use></svg><span>分页</span></button>
                         <button type="button" class="tool-button ai-direct-button compact-toolbar-hide" data-action="run-ai-direct"><svg class="ui-icon" aria-hidden="true"><use href="#icon-sparkles"></use></svg><span>AI 修复</span></button>
@@ -333,6 +340,7 @@
                                 <button type="button" role="menuitem" data-command="display-math">Σ 独立公式</button>
                                 <button type="button" role="menuitem" data-action="open-assets"><svg class="ui-icon" aria-hidden="true"><use href="#icon-image"></use></svg><span>图片与素材</span></button>
                                 <button type="button" role="menuitem" data-action="open-templates"><svg class="ui-icon" aria-hidden="true"><use href="#icon-template"></use></svg><span>文档模板</span></button>
+                                <button type="button" role="menuitem" data-action="open-professional"><svg class="ui-icon" aria-hidden="true"><use href="#icon-delivery"></use></svg><span>专业交付</span></button>
                                 <button type="button" role="menuitem" data-action="open-table">▦ 表格转换</button>
                                 <button type="button" role="menuitem" data-action="insert-page-break"><svg class="ui-icon" aria-hidden="true"><use href="#icon-page-break"></use></svg><span>插入分页符</span></button>
                                 <button type="button" role="menuitem" data-action="run-ai-direct"><svg class="ui-icon" aria-hidden="true"><use href="#icon-sparkles"></use></svg><span>AI 修复</span></button>
@@ -420,6 +428,25 @@
                 <div id="templateToolPanel" class="tool-panel template-tool-panel" hidden>
                     <div class="template-tool-head"><div><strong>文档模板</strong><span>模板会写入结构，并同步推荐的纸张方向、字体和行距。</span></div></div>
                     <div class="template-list" id="templateList" role="list"></div>
+                </div>
+
+                <div id="professionalToolPanel" class="tool-panel professional-tool-panel" hidden>
+                    <div class="professional-tool-head">
+                        <div><strong>专业 Word 交付</strong><span id="professionalSummary">简洁商务 · 基础交付</span></div>
+                        <button type="button" class="text-button" data-action="open-professional-settings">完整设置</button>
+                    </div>
+                    <div class="professional-quick-grid">
+                        <label class="field"><span>样式方案</span><select id="professionalQuickPreset"><option value="business">简洁商务</option><option value="formal">正式报告</option><option value="academic">学术论文</option><option value="laboratory">实验记录</option><option value="monochrome">黑白打印</option><option value="sop">内部 SOP</option></select></label>
+                        <label class="field"><span>标题编号</span><select id="professionalQuickNumbering"><option value="none">不编号</option><option value="decimal">数字分级</option><option value="chapter">章节格式</option></select></label>
+                        <label class="switch-field professional-quick-switch"><input type="checkbox" id="professionalQuickCover"><span><strong>封面</strong><small>标题、作者、单位和版本</small></span></label>
+                        <label class="switch-field professional-quick-switch"><input type="checkbox" id="professionalQuickToc"><span><strong>自动目录</strong><small>基于 Markdown 标题生成</small></span></label>
+                    </div>
+                    <div class="inline-tool-actions professional-quick-actions"><button type="button" class="accent-button" data-action="apply-professional-quick">应用交付方案</button><button type="button" class="secondary-button" data-action="open-professional-settings">编辑元数据与页眉页脚</button></div>
+                    <div class="professional-insert-grid">
+                        <section><div><strong>局部分节</strong><p>让宽表格单独横向，后续再切回纵向。</p></div><div class="professional-inline-buttons"><button type="button" class="secondary-button" data-action="insert-section-landscape"><svg class="ui-icon" aria-hidden="true"><use href="#icon-section"></use></svg>下一节横向</button><button type="button" class="secondary-button" data-action="insert-section-portrait">下一节纵向</button></div></section>
+                        <section><div><strong>图表题注</strong><p>生成可统一编号的图题或表题。</p></div><div class="caption-insert-row"><select id="captionKind" aria-label="题注类型"><option value="figure">图题</option><option value="table">表题</option></select><input type="text" id="captionTitle" placeholder="例如：系统总体结构" maxlength="160" aria-label="题注文字"><button type="button" class="secondary-button" data-action="insert-caption">插入</button></div></section>
+                    </div>
+                    <p class="professional-tool-note">Word 自动目录首次打开时可能需要在 Word / WPS 中更新域；导出回执会继续提示。</p>
                 </div>
 
                 <div id="exportCheckToolPanel" class="tool-panel export-check-panel" hidden>
@@ -553,6 +580,7 @@
                 <nav class="settings-nav" id="settingsNav" role="tablist" aria-label="设置分类">
                     <button type="button" id="settingsTabInterface" role="tab" aria-selected="true" aria-controls="settingsInterfaceSection" data-settings-tab="interface" class="active"><svg class="ui-icon" aria-hidden="true"><use href="#icon-settings"></use></svg><span>界面与草稿</span></button>
                     <button type="button" id="settingsTabWord" role="tab" aria-selected="false" aria-controls="settingsWordSection" data-settings-tab="word" tabindex="-1"><svg class="ui-icon" aria-hidden="true"><use href="#icon-word"></use></svg><span>Word 导出</span></button>
+                    <button type="button" id="settingsTabProfessional" role="tab" aria-selected="false" aria-controls="settingsProfessionalSection" data-settings-tab="professional" tabindex="-1"><svg class="ui-icon" aria-hidden="true"><use href="#icon-delivery"></use></svg><span>专业交付</span></button>
                     <button type="button" id="settingsTabAI" role="tab" aria-selected="false" aria-controls="settingsAISection" data-settings-tab="ai" tabindex="-1"><svg class="ui-icon" aria-hidden="true"><use href="#icon-sparkles"></use></svg><span>AI 修复</span></button>
                     <button type="button" id="settingsTabShortcuts" role="tab" aria-selected="false" aria-controls="settingsShortcutSection" data-settings-tab="shortcuts" tabindex="-1"><span class="settings-nav-key" aria-hidden="true">⌘</span><span>快捷键</span></button>
                     <button type="button" id="settingsTabAccount" role="tab" aria-selected="false" aria-controls="settingsAccountSection" data-settings-tab="account" tabindex="-1"><span class="settings-nav-key" aria-hidden="true">ID</span><span>账户与会话</span></button>
@@ -632,6 +660,33 @@
                     <p class="form-note">A4 预览会使用这里的纸张、方向、边距、字号和行距。公式在导出阶段单独解析；复杂矩阵与分式仍以可读线性形式保留。</p>
                 </section>
 
+                <section class="settings-section professional-settings-section" id="settingsProfessionalSection" role="tabpanel" aria-labelledby="settingsTabProfessional" data-settings-panel="professional" hidden>
+                    <div class="professional-settings-heading"><div><h3>专业 Word 交付</h3><p>统一管理封面、目录、标题编号、页眉页脚、题注和表格风格。</p></div><span class="professional-version-badge">v5.5</span></div>
+                    <div class="professional-settings-block">
+                        <div class="settings-block-heading"><div><strong>样式方案</strong><p>方案会同步建议字体、段落节奏、标题编号和表格外观；之后仍可单独微调。</p></div></div>
+                        <div class="form-grid two-columns"><label class="field"><span>交付样式</span><select name="professionalStyle" id="professionalStyle"><option value="business">简洁商务</option><option value="formal">正式报告</option><option value="academic">学术论文</option><option value="laboratory">实验记录</option><option value="monochrome">黑白打印</option><option value="sop">内部 SOP</option></select></label><label class="field"><span>标题字体</span><select name="wordHeadingFont" id="wordHeadingFont"><option value="">跟随正文</option><option value="黑体">黑体</option><option value="微软雅黑">微软雅黑</option><option value="宋体">宋体</option><option value="Arial">Arial</option><option value="Times New Roman">Times New Roman</option></select></label><label class="field"><span>正文首行缩进（字符）</span><input type="number" name="wordFirstLineChars" id="wordFirstLineChars" min="0" max="4" step="0.5"></label><label class="field"><span>段后间距（pt）</span><input type="number" name="wordParagraphAfterPt" id="wordParagraphAfterPt" min="0" max="24" step="1"></label></div>
+                    </div>
+                    <div class="professional-settings-block">
+                        <div class="settings-block-heading"><div><strong>封面与文档信息</strong><p>这些字段也会写入 DOCX 文档属性，可在文件信息中查看。</p></div></div>
+                        <label class="switch-field"><input type="checkbox" name="coverEnabled" id="coverEnabled"><span><strong>生成独立封面</strong><small>封面不会重复显示页眉和页脚</small></span></label>
+                        <div class="form-grid two-columns"><label class="field"><span>封面样式</span><select name="coverStyle" id="coverStyle"><option value="minimal">简洁封面</option><option value="report">正式报告</option><option value="academic">学术论文</option></select></label><label class="field"><span>副标题</span><input type="text" name="documentSubtitle" id="documentSubtitle" maxlength="160" placeholder="可选"></label><label class="field"><span>作者</span><input type="text" name="documentAuthor" id="documentAuthor" maxlength="120"></label><label class="field"><span>单位</span><input type="text" name="documentOrganization" id="documentOrganization" maxlength="160"></label><label class="field"><span>文档日期</span><input type="date" name="documentDate" id="documentDate"></label><label class="field"><span>版本</span><input type="text" name="documentVersion" id="documentVersion" maxlength="40" placeholder="V1.0"></label><label class="field"><span>文档编号</span><input type="text" name="documentNumber" id="documentNumber" maxlength="80"></label><label class="field"><span>密级 / 状态</span><input type="text" name="documentClassification" id="documentClassification" maxlength="60" placeholder="例如：内部资料"></label></div>
+                    </div>
+                    <div class="professional-settings-block">
+                        <div class="settings-block-heading"><div><strong>目录与标题结构</strong><p>目录使用 Word 域生成；标题编号使用 Word 多级编号，正文不写死编号文字。</p></div></div>
+                        <div class="form-grid two-columns"><label class="field"><span>标题编号</span><select name="headingNumbering" id="headingNumbering"><option value="none">不编号</option><option value="decimal">1 · 1.1 · 1.1.1</option><option value="chapter">第一章式主标题 + 数字子级</option></select></label><label class="field"><span>目录深度</span><select name="tocDepth" id="tocDepth"><option value="1">H1</option><option value="2">H1–H2</option><option value="3">H1–H3</option><option value="4">H1–H4</option><option value="5">H1–H5</option><option value="6">H1–H6</option></select></label><label class="field"><span>目录标题</span><input type="text" name="tocTitle" id="tocTitle" maxlength="40" value="目录"></label><label class="switch-field professional-inline-switch"><input type="checkbox" name="tocEnabled" id="tocEnabled"><span><strong>生成自动目录</strong><small>首次打开后更新域即可显示准确页码</small></span></label></div>
+                    </div>
+                    <div class="professional-settings-block">
+                        <div class="settings-block-heading"><div><strong>页眉、页脚与页码</strong><p>可使用 {title}、{author}、{organization}、{date}、{version}、{number} 占位符。</p></div></div>
+                        <div class="form-grid two-columns"><label class="field field-wide"><span>页眉文字</span><input type="text" name="headerText" id="headerText" maxlength="180" placeholder="{title}"></label><label class="field field-wide"><span>页脚附加文字</span><input type="text" name="footerText" id="footerText" maxlength="180" placeholder="例如：{version}"></label><label class="field"><span>页码格式</span><select name="pageNumberFormat" id="pageNumberFormat"><option value="current">1</option><option value="current-total">1 / 12</option><option value="page-current">第 1 页</option><option value="page-current-total">第 1 页 / 共 12 页</option></select></label><label class="field"><span>页码位置</span><select name="pageNumberAlignment" id="pageNumberAlignment"><option value="left">左侧</option><option value="center">居中</option><option value="right">右侧</option></select></label></div>
+                        <label class="switch-field"><input type="checkbox" name="headerEnabled" id="headerEnabled"><span><strong>显示页眉</strong><small>封面节默认不显示页眉</small></span></label><label class="switch-field"><input type="checkbox" name="pageNumberEnabled" id="pageNumberEnabled"><span><strong>显示页码</strong><small>支持当前页与总页数字段</small></span></label><label class="switch-field"><input type="checkbox" name="firstPageDifferent" id="firstPageDifferent"><span><strong>正文首页不同</strong><small>无封面时，正文首页可不重复普通页眉页脚</small></span></label>
+                    </div>
+                    <div class="professional-settings-block">
+                        <div class="settings-block-heading"><div><strong>表格与题注</strong><p>表头可跨页重复，行内容尽量保持在同一页。</p></div></div>
+                        <div class="form-grid two-columns"><label class="field"><span>表格样式</span><select name="wordTableStyle" id="wordTableStyle"><option value="clean">清晰蓝灰</option><option value="formal">正式灰阶</option><option value="grid">完整网格</option><option value="academic">学术三线风格</option><option value="monochrome">黑白打印</option><option value="minimal">极简边线</option></select></label><label class="field"><span>图片题注</span><select name="captionMode" id="captionMode"><option value="manual">只使用手动题注</option><option value="alt">自动使用图片替代文字</option><option value="off">关闭题注编号</option></select></label></div>
+                        <label class="switch-field"><input type="checkbox" name="repeatTableHeader" id="repeatTableHeader"><span><strong>表头跨页重复</strong><small>Word 会将第一行识别为重复表头</small></span></label><label class="switch-field"><input type="checkbox" name="keepTableRows" id="keepTableRows"><span><strong>避免表格行跨页拆分</strong><small>超高单元格仍可能由 Word 自动拆分</small></span></label>
+                    </div>
+                </section>
+
                 <section class="settings-section" id="settingsAISection" role="tabpanel" aria-labelledby="settingsTabAI" data-settings-panel="ai" hidden>
                     <h3>AI 修复</h3>
                     <div class="form-grid two-columns">
@@ -659,6 +714,7 @@
                         <div><kbd>Ctrl / ⌘ + /</kbd><span>打开本设置页的快捷键区域</span></div>
                         <div><kbd>Alt + M</kbd><span>插入独立公式</span></div>
                         <div><kbd>Alt + P</kbd><span>插入分页符</span></div>
+                        <div><kbd>Alt + L</kbd><span>插入横向分节</span></div>
                         <div><kbd>双击分隔条</kbd><span>恢复左右均分</span></div>
                     </div>
                 </section>

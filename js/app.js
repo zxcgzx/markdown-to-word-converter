@@ -31,7 +31,35 @@
         wordMarginRightCm: 2.54,
         wordMarginBottomCm: 2.54,
         wordMarginLeftCm: 2.54,
-        embedRemoteImages: true
+        embedRemoteImages: true,
+        professionalStyle: 'business',
+        coverEnabled: false,
+        coverStyle: 'minimal',
+        documentSubtitle: '',
+        documentAuthor: '',
+        documentOrganization: '',
+        documentDate: '',
+        documentVersion: 'V1.0',
+        documentNumber: '',
+        documentClassification: '',
+        tocEnabled: false,
+        tocTitle: '目录',
+        tocDepth: 3,
+        headingNumbering: 'none',
+        headerEnabled: false,
+        headerText: '{title}',
+        footerText: '',
+        firstPageDifferent: true,
+        pageNumberEnabled: true,
+        pageNumberFormat: 'current',
+        pageNumberAlignment: 'center',
+        wordHeadingFont: '',
+        wordFirstLineChars: 0,
+        wordParagraphAfterPt: 6,
+        wordTableStyle: 'clean',
+        repeatTableHeader: true,
+        keepTableRows: true,
+        captionMode: 'manual'
     });
 
     const AI_PRESETS = Object.freeze({
@@ -280,6 +308,7 @@
             exportCheckToolPanel: byId('exportCheckToolPanel'),
             assetToolPanel: byId('assetToolPanel'),
             templateToolPanel: byId('templateToolPanel'),
+            professionalToolPanel: byId('professionalToolPanel'),
             exportCheckSummary: byId('exportCheckSummary'),
             exportCheckDetail: byId('exportCheckDetail'),
             exportCheckList: byId('exportCheckList'),
@@ -462,6 +491,7 @@
         if (!window.Md2WordPreflight || typeof window.Md2WordPreflight.analyze !== 'function') missing.push('导出检查器');
         if (!window.Md2WordAssets) missing.push('图片素材模块');
         if (!window.Md2WordPublishing) missing.push('A4 预览与模板模块');
+        if (!window.Md2WordProfessional) missing.push('专业 Word 交付模块');
         if (!window.docx) missing.push('docx（Word 导出不可用）');
         if (typeof window.saveAs !== 'function') missing.push('FileSaver（将使用浏览器下载降级）');
 
@@ -885,6 +915,9 @@
             wordMarginLeftCm: clamp(Number(stored.wordMarginLeftCm ?? stored.wordMarginCm ?? DEFAULT_SETTINGS.wordMarginLeftCm), 0.8, 4.5),
             embedRemoteImages: stored.embedRemoteImages !== false
         };
+        if (window.Md2WordProfessional && typeof window.Md2WordProfessional.normalizeSettings === 'function') {
+            state.settings = { ...state.settings, ...window.Md2WordProfessional.normalizeSettings(state.settings) };
+        }
     }
 
     function persistSettings() {
@@ -900,7 +933,9 @@
         dom.syncScrollToggle.checked = Boolean(state.settings.syncScroll);
         if (dom.settingsSyncScrollToggle) dom.settingsSyncScrollToggle.checked = Boolean(state.settings.syncScroll);
         updatePerformanceIndicator();
+        if (window.Md2WordProfessional && dom.preview) window.Md2WordProfessional.decoratePreview(dom.preview, state.settings);
         if (window.Md2WordPublishing) window.Md2WordPublishing.onPreviewRendered(dom.preview, state.settings);
+        document.dispatchEvent(new CustomEvent('md2word:settings-updated', { detail: { settings: { ...state.settings } } }));
     }
 
     function applyTheme() {
@@ -980,6 +1015,20 @@
         byId('wordMarginBottomCm').value = state.settings.wordMarginBottomCm;
         byId('wordMarginLeftCm').value = state.settings.wordMarginLeftCm;
         byId('embedRemoteImagesToggle').checked = Boolean(state.settings.embedRemoteImages);
+        const professional = window.Md2WordProfessional ? window.Md2WordProfessional.normalizeSettings(state.settings) : state.settings;
+        const professionalFields = {
+            professionalStyle: professional.professionalStyle, coverStyle: professional.coverStyle, documentSubtitle: professional.documentSubtitle,
+            documentAuthor: professional.documentAuthor, documentOrganization: professional.documentOrganization, documentDate: professional.documentDate,
+            documentVersion: professional.documentVersion, documentNumber: professional.documentNumber, documentClassification: professional.documentClassification,
+            tocTitle: professional.tocTitle, tocDepth: String(professional.tocDepth), headingNumbering: professional.headingNumbering,
+            headerText: professional.headerText, footerText: professional.footerText, pageNumberFormat: professional.pageNumberFormat,
+            pageNumberAlignment: professional.pageNumberAlignment, wordHeadingFont: professional.wordHeadingFont,
+            wordFirstLineChars: professional.wordFirstLineChars, wordParagraphAfterPt: professional.wordParagraphAfterPt,
+            wordTableStyle: professional.wordTableStyle, captionMode: professional.captionMode
+        };
+        Object.entries(professionalFields).forEach(([id, value]) => { const field = byId(id); if (field) field.value = value; });
+        const professionalChecks = { coverEnabled: professional.coverEnabled, tocEnabled: professional.tocEnabled, headerEnabled: professional.headerEnabled, firstPageDifferent: professional.firstPageDifferent, pageNumberEnabled: professional.pageNumberEnabled, repeatTableHeader: professional.repeatTableHeader, keepTableRows: professional.keepTableRows };
+        Object.entries(professionalChecks).forEach(([id, value]) => { const field = byId(id); if (field) field.checked = Boolean(value); });
         populateAISettings();
         updateRememberedDeviceStatus();
     }
@@ -1010,8 +1059,37 @@
                 wordMarginRightCm: clamp(Number(byId('wordMarginRightCm').value), 0.8, 4.5),
                 wordMarginBottomCm: clamp(Number(byId('wordMarginBottomCm').value), 0.8, 4.5),
                 wordMarginLeftCm: clamp(Number(byId('wordMarginLeftCm').value), 0.8, 4.5),
-                embedRemoteImages: byId('embedRemoteImagesToggle').checked
+                embedRemoteImages: byId('embedRemoteImagesToggle').checked,
+                professionalStyle: byId('professionalStyle')?.value || DEFAULT_SETTINGS.professionalStyle,
+                coverEnabled: Boolean(byId('coverEnabled')?.checked),
+                coverStyle: byId('coverStyle')?.value || DEFAULT_SETTINGS.coverStyle,
+                documentSubtitle: byId('documentSubtitle')?.value || '',
+                documentAuthor: byId('documentAuthor')?.value || '',
+                documentOrganization: byId('documentOrganization')?.value || '',
+                documentDate: byId('documentDate')?.value || '',
+                documentVersion: byId('documentVersion')?.value || DEFAULT_SETTINGS.documentVersion,
+                documentNumber: byId('documentNumber')?.value || '',
+                documentClassification: byId('documentClassification')?.value || '',
+                tocEnabled: Boolean(byId('tocEnabled')?.checked),
+                tocTitle: byId('tocTitle')?.value || DEFAULT_SETTINGS.tocTitle,
+                tocDepth: clamp(Number(byId('tocDepth')?.value || DEFAULT_SETTINGS.tocDepth), 1, 6),
+                headingNumbering: byId('headingNumbering')?.value || DEFAULT_SETTINGS.headingNumbering,
+                headerEnabled: Boolean(byId('headerEnabled')?.checked),
+                headerText: byId('headerText')?.value || '',
+                footerText: byId('footerText')?.value || '',
+                firstPageDifferent: Boolean(byId('firstPageDifferent')?.checked),
+                pageNumberEnabled: Boolean(byId('pageNumberEnabled')?.checked),
+                pageNumberFormat: byId('pageNumberFormat')?.value || DEFAULT_SETTINGS.pageNumberFormat,
+                pageNumberAlignment: byId('pageNumberAlignment')?.value || DEFAULT_SETTINGS.pageNumberAlignment,
+                wordHeadingFont: byId('wordHeadingFont')?.value || '',
+                wordFirstLineChars: clamp(Number(byId('wordFirstLineChars')?.value || 0), 0, 4),
+                wordParagraphAfterPt: clamp(Number(byId('wordParagraphAfterPt')?.value || 0), 0, 24),
+                wordTableStyle: byId('wordTableStyle')?.value || DEFAULT_SETTINGS.wordTableStyle,
+                repeatTableHeader: Boolean(byId('repeatTableHeader')?.checked),
+                keepTableRows: Boolean(byId('keepTableRows')?.checked),
+                captionMode: byId('captionMode')?.value || DEFAULT_SETTINGS.captionMode
             };
+            if (window.Md2WordProfessional) state.settings = { ...state.settings, ...window.Md2WordProfessional.normalizeSettings(state.settings) };
             state.aiConfig = collectAIConfigFromSettings();
             persistSettings();
             persistAIConfig();
@@ -1021,6 +1099,18 @@
             renderPreview({ immediate: true, force: true });
             closeDialog(dom.settingsDialog, 'save');
             setStatusMessage('设置已保存。', { duration: 2600 });
+        });
+
+        const professionalStyleField = byId('professionalStyle');
+        if (professionalStyleField) professionalStyleField.addEventListener('change', () => {
+            if (!window.Md2WordProfessional) return;
+            const patch = window.Md2WordProfessional.getPresetPatch(professionalStyleField.value);
+            Object.entries(patch).forEach(([key, value]) => {
+                const field = byId(key);
+                if (!field) return;
+                if (field.type === 'checkbox') field.checked = Boolean(value);
+                else field.value = value;
+            });
         });
 
         if (dom.settingsNav) {
@@ -1210,6 +1300,7 @@
                 segments: []
             };
             updateMathStatus();
+            if (window.Md2WordProfessional) window.Md2WordProfessional.decoratePreview(dom.preview, state.settings);
             buildOutline();
             updateExportReadiness();
             if (window.Md2WordAssets) window.Md2WordAssets.onPreviewRendered(dom.preview);
@@ -1230,7 +1321,7 @@
         try {
             const sanitize = (html) => {
                 if (window.DOMPurify && typeof window.DOMPurify.sanitize === 'function') {
-                    return window.DOMPurify.sanitize(html, { USE_PROFILES: { html: true }, ALLOW_UNKNOWN_PROTOCOLS: true, ADD_ATTR: ['target', 'rel', 'data-math-index', 'data-math-start', 'data-math-end', 'data-math-source', 'data-math-display', 'data-md2word-asset', 'data-width-mode', 'data-page-break', 'width', 'height', 'role', 'tabindex'] });
+                    return window.DOMPurify.sanitize(html, { USE_PROFILES: { html: true }, ALLOW_UNKNOWN_PROTOCOLS: true, ADD_ATTR: ['target', 'rel', 'data-math-index', 'data-math-start', 'data-math-end', 'data-math-source', 'data-math-display', 'data-md2word-asset', 'data-width-mode', 'data-page-break', 'data-section-break', 'data-orientation', 'data-caption-kind', 'data-caption-title', 'data-caption-index', 'data-professional-cover', 'data-professional-toc', 'width', 'height', 'role', 'tabindex'] });
                 }
                 return html;
             };
@@ -1248,6 +1339,7 @@
             dom.preview.innerHTML = result.html;
             state.renderResult = result;
             decoratePreviewLinks();
+            if (window.Md2WordProfessional) window.Md2WordProfessional.decoratePreview(dom.preview, state.settings);
             buildOutline();
             updateMathStatus();
             updateExportReadiness();
@@ -1871,6 +1963,21 @@
                 run: () => window.Md2WordPublishing && window.Md2WordPublishing.openTemplatePanel()
             },
             {
+                id: 'professional-delivery', icon: 'D', label: '打开专业交付',
+                description: '设置封面、目录、标题编号、页眉页脚和题注', keywords: '专业 交付 封面 目录 页眉 页脚 编号 word', shortcut: '',
+                run: () => window.Md2WordProfessional && window.Md2WordProfessional.openPanel()
+            },
+            {
+                id: 'section-landscape', icon: '↔', label: '下一节切换为横向',
+                description: '让后续宽表格或图片使用横向页面', keywords: '分节 横向 landscape section', shortcut: 'Alt L',
+                run: () => window.Md2WordProfessional && window.Md2WordProfessional.insertAtSelection(window.Md2WordProfessional.createSectionBreakMarker('landscape'))
+            },
+            {
+                id: 'section-portrait', icon: '↕', label: '下一节恢复为纵向',
+                description: '结束横向内容并恢复纵向页面', keywords: '分节 纵向 portrait section', shortcut: '',
+                run: () => window.Md2WordProfessional && window.Md2WordProfessional.insertAtSelection(window.Md2WordProfessional.createSectionBreakMarker('portrait'))
+            },
+            {
                 id: 'page-break', icon: '↡', label: '插入分页符',
                 description: '在 Word 与 A4 预览中从新页面开始', keywords: '分页 页面 page break', shortcut: 'Alt P',
                 run: () => window.Md2WordPublishing && window.Md2WordPublishing.insertPageBreak()
@@ -1902,7 +2009,7 @@
             },
             {
                 id: 'settings', icon: '⚙', label: '打开统一设置',
-                description: '调整界面、Word、AI、快捷键和账户', keywords: '设置 偏好 settings', shortcut: 'Ctrl /',
+                description: '调整界面、Word、专业交付、AI、快捷键和账户', keywords: '设置 偏好 settings', shortcut: 'Ctrl /',
                 run: () => openSettings('interface')
             },
             {
@@ -2190,6 +2297,9 @@
         } else if (event.altKey && key === 'p') {
             event.preventDefault();
             if (window.Md2WordPublishing) window.Md2WordPublishing.insertPageBreak();
+        } else if (event.altKey && key === 'l') {
+            event.preventDefault();
+            if (window.Md2WordProfessional) window.Md2WordProfessional.insertAtSelection(window.Md2WordProfessional.createSectionBreakMarker('landscape'));
         }
     }
 
@@ -2538,6 +2648,7 @@
         dom.exportCheckToolPanel.hidden = panel !== 'export';
         if (dom.assetToolPanel) dom.assetToolPanel.hidden = panel !== 'asset';
         if (dom.templateToolPanel) dom.templateToolPanel.hidden = panel !== 'template';
+        if (dom.professionalToolPanel) dom.professionalToolPanel.hidden = panel !== 'professional';
         requestAnimationFrame(() => dom.toolDrawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
     }
 
@@ -2549,6 +2660,7 @@
         dom.exportCheckToolPanel.hidden = true;
         if (dom.assetToolPanel) dom.assetToolPanel.hidden = true;
         if (dom.templateToolPanel) dom.templateToolPanel.hidden = true;
+        if (dom.professionalToolPanel) dom.professionalToolPanel.hidden = true;
     }
 
     function openTableTool() {
@@ -2891,7 +3003,10 @@
         const assetIssues = window.Md2WordAssets && typeof window.Md2WordAssets.getAssetIssues === 'function'
             ? window.Md2WordAssets.getAssetIssues(dom.preview, dom.markdownInput.value)
             : [];
-        const extra = [...pageIssues, ...assetIssues];
+        const professionalIssues = window.Md2WordProfessional && typeof window.Md2WordProfessional.analyze === 'function'
+            ? window.Md2WordProfessional.analyze(dom.markdownInput.value, dom.preview, { ...state.settings, documentTitle: state.documentName })
+            : [];
+        const extra = [...pageIssues, ...assetIssues, ...professionalIssues];
         if (!extra.length) return base;
         const issues = [...base.issues, ...extra];
         const errors = issues.filter((issue) => issue.severity === 'error');
@@ -2975,6 +3090,203 @@
         dom.forceExportButton.textContent = issues.length ? '仍然导出' : '立即导出';
     }
 
+    let docxExportContext = null;
+
+    function getProfessionalSettings() {
+        return window.Md2WordProfessional
+            ? window.Md2WordProfessional.normalizeSettings(state.settings)
+            : { ...state.settings };
+    }
+
+    function getProfessionalMetadata(title) {
+        if (window.Md2WordProfessional) return window.Md2WordProfessional.metadata({ ...state.settings, documentTitle: title }, title);
+        return { title, subtitle: '', author: '', organization: '', date: '', version: '', number: '', classification: '' };
+    }
+
+    function createPageFieldChildren(tokens) {
+        const d = window.docx;
+        const size = Math.max(18, Math.round(state.settings.wordFontSize * 2 - 2));
+        return (tokens || []).map((token) => {
+            if (typeof token === 'string') return new d.TextRun({ text: token, font: state.settings.wordFont, size });
+            return token;
+        });
+    }
+
+    function buildHeaderFooterGroups(title, settings, options = {}) {
+        const d = window.docx;
+        const professional = window.Md2WordProfessional;
+        const meta = getProfessionalMetadata(title);
+        const substitute = professional?.substitutePlaceholders || ((value) => String(value || ''));
+        const headerText = settings.headerEnabled ? substitute(settings.headerText, meta) : '';
+        const footerText = substitute(settings.footerText, meta);
+        const pageTokens = professional?.pageNumberTokens ? professional.pageNumberTokens(settings, d) : [];
+        const makeParagraph = (text, includePageNumber, alignment) => {
+            const children = [];
+            if (text) children.push(new d.TextRun({ text, font: state.settings.wordFont, size: Math.max(18, Math.round(state.settings.wordFontSize * 2 - 2)), color: '667085' }));
+            if (text && includePageNumber && pageTokens.length) children.push(new d.TextRun({ text: ' · ', color: '98A2B3' }));
+            if (includePageNumber) children.push(...createPageFieldChildren(pageTokens));
+            return new d.Paragraph({
+                children,
+                alignment: professional?.alignmentValue ? professional.alignmentValue(alignment, d) : (d.AlignmentType?.CENTER || 'center'),
+                spacing: { before: 0, after: 0 },
+                border: options.header ? { bottom: { color: 'D0D5DD', size: 2, style: d.BorderStyle?.SINGLE || 'single', space: 6 } } : { top: { color: 'E4E7EC', size: 2, style: d.BorderStyle?.SINGLE || 'single', space: 6 } }
+            });
+        };
+        const groups = {};
+        if (d.Header && headerText) {
+            groups.headers = { default: new d.Header({ children: [makeParagraph(headerText, false, 'left')] }) };
+            if (settings.firstPageDifferent) groups.headers.first = new d.Header({ children: [new d.Paragraph('')] });
+        }
+        if (d.Footer && (footerText || pageTokens.length)) {
+            groups.footers = { default: new d.Footer({ children: [makeParagraph(footerText, true, settings.pageNumberAlignment)] }) };
+            if (settings.firstPageDifferent) groups.footers.first = new d.Footer({ children: [new d.Paragraph('')] });
+        }
+        return groups;
+    }
+
+    function createCoverDocxChildren(title, settings) {
+        const d = window.docx;
+        const meta = getProfessionalMetadata(title);
+        const colors = window.Md2WordProfessional?.getPresetColors?.(settings) || { heading: '101828', accent: '2F75B5', muted: '667085' };
+        const headingFont = settings.wordHeadingFont || state.settings.wordFont;
+        const rows = [
+            ['作者', meta.author], ['单位', meta.organization], ['日期', meta.date],
+            ['版本', meta.version], ['文档编号', meta.number], ['密级', meta.classification]
+        ].filter((item) => item[1]);
+        const children = [
+            new d.Paragraph({ children: [new d.TextRun({ text: 'MARKDOWN → DOCX', bold: true, color: colors.muted, size: 18, characterSpacing: 40 })], spacing: { before: 900, after: 900 } }),
+            new d.Paragraph({ children: [new d.TextRun({ text: meta.title, bold: true, font: headingFont, size: settings.coverStyle === 'report' ? 52 : 46, color: colors.heading })], spacing: { after: meta.subtitle ? 240 : 520 }, alignment: settings.coverStyle === 'academic' ? d.AlignmentType?.CENTER : undefined }),
+        ];
+        if (meta.subtitle) children.push(new d.Paragraph({ children: [new d.TextRun({ text: meta.subtitle, font: headingFont, size: 28, color: colors.muted })], spacing: { after: 520 }, alignment: settings.coverStyle === 'academic' ? d.AlignmentType?.CENTER : undefined }));
+        children.push(new d.Paragraph({ text: '', border: { bottom: { color: colors.accent, size: 18, style: d.BorderStyle?.SINGLE || 'single', space: 8 } }, spacing: { after: 620 } }));
+        rows.forEach(([label, value]) => children.push(new d.Paragraph({
+            children: [new d.TextRun({ text: `${label}：`, color: colors.muted, size: 21 }), new d.TextRun({ text: value, bold: true, color: colors.heading, size: 22 })],
+            spacing: { after: 150 },
+            alignment: settings.coverStyle === 'academic' ? d.AlignmentType?.CENTER : undefined
+        })));
+        return children;
+    }
+
+    function createTocDocxChildren(preview, settings) {
+        const d = window.docx;
+        if (!settings.tocEnabled) return [];
+        if (d.TableOfContents) {
+            try {
+                const toc = new d.TableOfContents(settings.tocTitle, {
+                    hyperlink: true,
+                    headingStyleRange: `1-${settings.tocDepth}`,
+                    stylesWithLevels: []
+                });
+                const pageBreak = d.PageBreak ? new d.Paragraph({ children: [new d.PageBreak()] }) : new d.Paragraph({ pageBreakBefore: true, children: [new d.TextRun({ text: '' })] });
+                return [toc, pageBreak];
+            } catch (_error) {
+                // Fall back to a static, clickable-looking list below.
+            }
+        }
+        const headings = window.Md2WordProfessional?.extractHeadings?.(preview, settings) || [];
+        return [
+            new d.Paragraph({ children: [new d.TextRun({ text: settings.tocTitle, bold: true, size: 32 })], style: 'TOCHeading', spacing: { after: 220 } }),
+            ...headings.filter((item) => item.level <= settings.tocDepth).map((item) => new d.Paragraph({
+                children: [new d.TextRun({ text: `${item.number ? `${item.number} ` : ''}${item.text}`, color: '344054' })],
+                indent: { left: Math.max(0, (item.level - 1) * 360) }, spacing: { after: 80 }
+            })),
+            d.PageBreak ? new d.Paragraph({ children: [new d.PageBreak()] }) : new d.Paragraph({ pageBreakBefore: true, children: [new d.TextRun({ text: '' })] })
+        ];
+    }
+
+    function buildDocxNumbering(settings) {
+        const d = window.docx;
+        if (!window.Md2WordProfessional || settings.headingNumbering === 'none') return undefined;
+        const levels = window.Md2WordProfessional.getHeadingNumberingLevels(settings, d);
+        if (!levels.length) return undefined;
+        return { config: [{ reference: window.Md2WordProfessional.HEADING_NUMBERING_REFERENCE, levels }] };
+    }
+
+    function getDocxPageForOrientation(orientation) {
+        if (window.Md2WordPublishing) return window.Md2WordPublishing.getDocxPageProperties({ ...state.settings, wordOrientation: orientation }, window.docx);
+        return { margin: { top: cmToTwip(state.settings.wordMarginCm), right: cmToTwip(state.settings.wordMarginCm), bottom: cmToTwip(state.settings.wordMarginCm), left: cmToTwip(state.settings.wordMarginCm) } };
+    }
+
+
+    function normalizeInternalAnchor(value) {
+        let anchor = String(value || '').replace(/^#/, '').trim();
+        try { anchor = decodeURIComponent(anchor); } catch (_error) { /* keep the original fragment */ }
+        return anchor.trim().toLowerCase();
+    }
+
+    function buildHeadingBookmarkMap(preview, settings) {
+        const map = new Map();
+        const headings = window.Md2WordProfessional?.extractHeadings?.(preview, settings) || [];
+        headings.forEach((heading) => {
+            const bookmark = heading.bookmarkId;
+            const text = String(heading.text || '').trim();
+            const aliases = [
+                heading.sourceId,
+                heading.element?.id,
+                text,
+                text.replace(/\s+/g, '-'),
+                text.replace(/\s+/g, '_')
+            ];
+            aliases.forEach((alias) => {
+                const key = normalizeInternalAnchor(alias);
+                if (key && !map.has(key)) map.set(key, bookmark);
+            });
+        });
+        return map;
+    }
+
+    function buildProfessionalDocxSections(preview, title, settings) {
+        const d = window.docx;
+        const sections = [];
+        const sectionType = d.SectionType?.NEXT_PAGE || undefined;
+        if (settings.coverEnabled) {
+            sections.push({
+                properties: { type: sectionType, page: getDocxPageForOrientation('portrait'), titlePage: true },
+                children: createCoverDocxChildren(title, settings)
+            });
+        }
+        const sourceSections = window.Md2WordProfessional
+            ? window.Md2WordProfessional.splitElementsIntoSections(Array.from(preview.children), state.settings.wordOrientation)
+            : [{ orientation: state.settings.wordOrientation, elements: Array.from(preview.children) }];
+        const headingBookmarks = buildHeadingBookmarkMap(preview, settings);
+        let headingCursor = 0;
+        sourceSections.forEach((sourceSection, index) => {
+            docxExportContext = { settings, orientation: sourceSection.orientation, headingCursor, headingBookmarks, figureIndex: 0, tableIndex: 0 };
+            let children = convertPreviewToDocxChildren(sourceSection.elements);
+            if (index === 0 && settings.tocEnabled) children = [...createTocDocxChildren(preview, settings), ...children];
+            if (!children.length) children = [new d.Paragraph({ children: [new d.TextRun({ text: '' })] })];
+            const page = getDocxPageForOrientation(sourceSection.orientation);
+            if (index === 0 && settings.coverEnabled) page.pageNumbers = { start: 1 };
+            headingCursor = docxExportContext.headingCursor;
+            sections.push({
+                properties: { type: sectionType, page, titlePage: !settings.coverEnabled && index === 0 && settings.firstPageDifferent },
+                ...buildHeaderFooterGroups(title, settings),
+                children
+            });
+        });
+        docxExportContext = null;
+        return sections;
+    }
+
+    function createDocumentStyles(baseSize, line, settings) {
+        return {
+            default: {
+                document: {
+                    run: { font: state.settings.wordFont, size: baseSize, color: '172033' },
+                    paragraph: {
+                        spacing: { line, after: Math.round(settings.wordParagraphAfterPt * 20) },
+                        indent: settings.wordFirstLineChars ? { firstLine: Math.round(settings.wordFirstLineChars * state.settings.wordFontSize * 20) } : undefined
+                    }
+                }
+            },
+            characterStyles: [{
+                id: 'Hyperlink', name: 'Hyperlink', basedOn: 'DefaultParagraphFont',
+                run: { color: '0563C1', underline: {} }
+            }],
+            paragraphStyles: createWordParagraphStyles(baseSize, line, settings)
+        };
+    }
+
     async function downloadWord(options = {}) {
         if (state.exporting) return;
         const markdown = dom.markdownInput.value.trim();
@@ -2991,12 +3303,8 @@
         dom.renderStatus.textContent = '正在执行导出前检查…';
         const renderResult = renderPreview({ immediate: true, force: true });
         await nextFrame();
-        if (window.Md2WordAssets && typeof window.Md2WordAssets.resolvePreviewAssets === 'function') {
-            await window.Md2WordAssets.resolvePreviewAssets(dom.preview);
-        }
-        if (window.Md2WordPublishing && window.Md2WordPublishing.getPreviewMode?.() === 'a4') {
-            window.Md2WordPublishing.buildA4Preview({ immediate: true });
-        }
+        if (window.Md2WordAssets && typeof window.Md2WordAssets.resolvePreviewAssets === 'function') await window.Md2WordAssets.resolvePreviewAssets(dom.preview);
+        if (window.Md2WordPublishing && window.Md2WordPublishing.getPreviewMode?.() === 'a4') window.Md2WordPublishing.buildA4Preview({ immediate: true });
         const report = updateExportReadiness(buildExportReport());
         if (!options.force && report.issues.length) {
             openExportCheck(report);
@@ -3006,82 +3314,74 @@
         }
 
         if (state.activeTool === 'export') closeToolDrawer();
-        showExportProgress(true, '正在准备图片、标题、列表、表格与公式…');
+        showExportProgress(true, '正在准备封面、目录、分节、图片、表格与公式…');
         try {
             state.lastImageExport = window.Md2WordAssets
                 ? await window.Md2WordAssets.preparePreviewForExport(dom.preview, { fetchRemote: state.settings.embedRemoteImages !== false, timeout: 12000 })
                 : null;
-            const children = convertPreviewToDocxChildren(dom.preview);
-            if (!children.length) throw new Error('没有可写入 Word 的内容');
-
             const title = state.documentName || extractTitle(markdown) || '未命名文档';
-            const pageProperties = window.Md2WordPublishing
-                ? window.Md2WordPublishing.getDocxPageProperties(state.settings, window.docx)
-                : { margin: { top: cmToTwip(state.settings.wordMarginCm), right: cmToTwip(state.settings.wordMarginCm), bottom: cmToTwip(state.settings.wordMarginCm), left: cmToTwip(state.settings.wordMarginCm) } };
+            const settings = getProfessionalSettings();
+            const meta = getProfessionalMetadata(title);
             const line = Math.round(240 * state.settings.wordLineSpacing);
             const fontSize = Math.round(state.settings.wordFontSize * 2);
-            const doc = new window.docx.Document({
-                creator: 'AI 智能 Markdown 转 Word · 融合体验版 v5.4',
-                title,
-                description: '由浏览器本地生成；公式转换为可编辑文本与上下标',
-                styles: {
-                    default: {
-                        document: { run: { font: state.settings.wordFont, size: fontSize, color: '172033' }, paragraph: { spacing: { line, after: 120 } } }
-                    },
-                    paragraphStyles: createWordParagraphStyles(fontSize, line)
-                },
-                sections: [{
-                    properties: { page: pageProperties },
-                    children
-                }]
-            });
+            const sections = buildProfessionalDocxSections(dom.preview, title, settings);
+            if (!sections.some((section) => section.children && section.children.length)) throw new Error('没有可写入 Word 的内容');
+            const documentOptions = {
+                creator: meta.author || 'AI 智能 Markdown 转 Word',
+                lastModifiedBy: meta.author || 'AI 智能 Markdown 转 Word',
+                title: meta.title,
+                subject: meta.subtitle || 'Markdown 转 Word 文档',
+                description: `由浏览器本地生成 · ${window.Md2WordProfessional?.getPreset(settings.professionalStyle)?.name || '专业交付'}`,
+                keywords: ['Markdown', 'DOCX', meta.organization, meta.number].filter(Boolean).join(', '),
+                category: meta.classification || 'Document',
+                styles: createDocumentStyles(fontSize, line, settings),
+                sections
+            };
+            const numbering = buildDocxNumbering(settings);
+            if (numbering) documentOptions.numbering = numbering;
+            const doc = new window.docx.Document(documentOptions);
 
-            showExportProgress(true, '正在打包 DOCX 文件…');
+            showExportProgress(true, '正在打包专业 DOCX 文件…');
             const blob = await window.docx.Packer.toBlob(doc);
             const fileName = `${sanitizeFileName(state.documentName || title)}.docx`;
             downloadBlob(blob, fileName);
             const mathCount = renderResult ? Number(renderResult.mathCount || 0) : 0;
             const mathErrors = renderResult && renderResult.errors ? renderResult.errors.length : 0;
             showExportProgress(false);
-            setStatusMessage(`Word 已生成：${fileName} · 公式 ${mathCount} 个，渲染错误 ${mathErrors} 个。`, { duration: 6500 });
+            const extras = [settings.coverEnabled ? '封面' : '', settings.tocEnabled ? '目录' : '', sections.length > 1 ? `${sections.length} 节` : ''].filter(Boolean).join(' · ');
+            setStatusMessage(`Word 已生成：${fileName} · 公式 ${mathCount} 个，渲染错误 ${mathErrors} 个${extras ? ` · ${extras}` : ''}。`, { duration: 7200 });
         } catch (error) {
             console.error('Word 导出失败:', error);
             showExportProgress(false);
             toast('Word 导出失败', error.message || String(error), 'error', 6500);
+        } finally {
+            docxExportContext = null;
         }
     }
 
-    function createWordParagraphStyles(baseSize, line) {
-        const font = state.settings.wordFont;
-        return [
-            {
-                id: 'Heading1', name: '标题 1', basedOn: 'Normal', next: 'Normal', quickFormat: true,
-                run: { font, size: Math.max(baseSize + 16, 32), bold: true, color: '111827' },
-                paragraph: { spacing: { before: 280, after: 180, line } }
-            },
-            {
-                id: 'Heading2', name: '标题 2', basedOn: 'Normal', next: 'Normal', quickFormat: true,
-                run: { font, size: Math.max(baseSize + 10, 28), bold: true, color: '172033' },
-                paragraph: { spacing: { before: 240, after: 150, line } }
-            },
-            {
-                id: 'Heading3', name: '标题 3', basedOn: 'Normal', next: 'Normal', quickFormat: true,
-                run: { font, size: Math.max(baseSize + 6, 24), bold: true, color: '172033' },
-                paragraph: { spacing: { before: 200, after: 120, line } }
-            },
-            {
-                id: 'Heading4', name: '标题 4', basedOn: 'Normal', next: 'Normal', quickFormat: true,
-                run: { font, size: Math.max(baseSize + 3, 22), bold: true, color: '172033' },
-                paragraph: { spacing: { before: 160, after: 100, line } }
-            }
-        ];
+    function createWordParagraphStyles(baseSize, line, professionalInput = {}) {
+        const settings = window.Md2WordProfessional?.normalizeSettings?.(professionalInput) || professionalInput;
+        const colors = window.Md2WordProfessional?.getPresetColors?.(settings) || { heading: '111827', accent: '2F75B5', muted: '667085' };
+        const font = settings.wordHeadingFont || state.settings.wordFont;
+        const sizes = [Math.max(baseSize + 16, 32), Math.max(baseSize + 10, 28), Math.max(baseSize + 6, 24), Math.max(baseSize + 3, 22), Math.max(baseSize + 1, 21), Math.max(baseSize, 20)];
+        const styles = sizes.map((size, index) => ({
+            id: `Heading${index + 1}`, name: `标题 ${index + 1}`, basedOn: 'Normal', next: 'Normal', quickFormat: true,
+            run: { font, size, bold: true, color: colors.heading },
+            paragraph: { spacing: { before: Math.max(120, 280 - index * 30), after: Math.max(80, 180 - index * 18), line }, keepNext: true, keepLines: true }
+        }));
+        styles.push(
+            { id: 'TOCHeading', name: '目录标题', basedOn: 'Normal', next: 'Normal', quickFormat: true, run: { font, size: Math.max(baseSize + 12, 30), bold: true, color: colors.heading }, paragraph: { spacing: { before: 120, after: 240 } } },
+            { id: 'Caption', name: '题注', basedOn: 'Normal', next: 'Normal', quickFormat: true, run: { font: state.settings.wordFont, size: Math.max(18, baseSize - 2), color: colors.muted }, paragraph: { alignment: window.docx.AlignmentType?.CENTER || 'center', spacing: { before: 80, after: 160 } } }
+        );
+        return styles;
     }
 
-    function convertPreviewToDocxChildren(previewRoot) {
+    function convertPreviewToDocxChildren(previewRootOrElements) {
         const output = [];
-        Array.from(previewRoot.children).forEach((element) => {
-            output.push(...convertBlockElement(element, 0));
-        });
+        const elements = Array.isArray(previewRootOrElements)
+            ? previewRootOrElements
+            : Array.from(previewRootOrElements?.children || []);
+        elements.forEach((element) => output.push(...convertBlockElement(element, 0)));
         return output;
     }
 
@@ -3089,21 +3389,44 @@
         const d = window.docx;
         if (!(element instanceof Element)) return [];
         if (element.classList.contains('preview-empty')) return [];
+        if (element.matches('.md2word-section-break, [data-section-break="true"]')) return [];
+        if (element.matches('[data-professional-cover="true"], [data-professional-toc="true"]')) return [];
         const tag = element.tagName.toLowerCase();
+        const settings = docxExportContext?.settings || getProfessionalSettings();
 
         if (element.classList.contains('md2word-page-break') || element.dataset.pageBreak === 'true') {
             if (d.PageBreak) return [new d.Paragraph({ children: [new d.PageBreak()] })];
             return [new d.Paragraph({ children: [new d.TextRun({ text: '', break: 1 })], pageBreakBefore: true })];
         }
 
+        if (element.classList.contains('md2word-caption')) {
+            const text = element.textContent.trim() || element.dataset.captionTitle || '题注';
+            return [new d.Paragraph({ children: [new d.TextRun({ text, font: state.settings.wordFont })], style: 'Caption', keepNext: true })];
+        }
+
         if (/^h[1-6]$/.test(tag)) {
             const level = Number(tag.slice(1));
-            return [new d.Paragraph({
-                children: collectDocxRuns(element),
-                style: level <= 4 ? `Heading${level}` : undefined,
-                heading: level <= 6 && d.HeadingLevel ? d.HeadingLevel[`HEADING_${level}`] : undefined,
-                spacing: { before: level === 1 ? 260 : 180, after: 120 }
-            })];
+            const plainRuns = collectDocxRuns(element);
+            let children = plainRuns;
+            if (d.Bookmark && window.Md2WordProfessional) {
+                const headingIndex = docxExportContext ? docxExportContext.headingCursor++ : Math.max(0, level - 1);
+                const bookmark = element.dataset.bookmarkId
+                    || docxExportContext?.headingBookmarks?.get(normalizeInternalAnchor(element.id || element.textContent))
+                    || window.Md2WordProfessional.bookmarkId(headingIndex, element.textContent);
+                try { children = [new d.Bookmark({ id: bookmark, children: plainRuns })]; } catch (_error) { children = plainRuns; }
+            }
+            const options = {
+                children,
+                style: `Heading${Math.min(6, level)}`,
+                heading: d.HeadingLevel ? d.HeadingLevel[`HEADING_${level}`] : undefined,
+                spacing: { before: level === 1 ? 260 : 180, after: 120 },
+                keepNext: true,
+                keepLines: true
+            };
+            if (settings.headingNumbering !== 'none' && window.Md2WordProfessional) {
+                options.numbering = { reference: window.Md2WordProfessional.HEADING_NUMBERING_REFERENCE, level: level - 1 };
+            }
+            return [new d.Paragraph(options)];
         }
 
         if (tag === 'p') {
@@ -3113,111 +3436,99 @@
             return [new d.Paragraph({
                 children: runs,
                 alignment: onlyDisplayMath && d.AlignmentType ? d.AlignmentType.CENTER : undefined,
-                spacing: { after: onlyDisplayMath ? 180 : 120 }
+                indent: !onlyDisplayMath && settings.wordFirstLineChars ? { firstLine: Math.round(settings.wordFirstLineChars * state.settings.wordFontSize * 20) } : undefined,
+                spacing: { after: onlyDisplayMath ? 180 : Math.round(settings.wordParagraphAfterPt * 20) },
+                keepLines: onlyDisplayMath
             })];
         }
 
         if (tag === 'ul' || tag === 'ol') {
             const ordered = tag === 'ol';
             const blocks = [];
-            Array.from(element.children).filter((child) => child.tagName && child.tagName.toLowerCase() === 'li').forEach((li, index) => {
+            Array.from(element.children).filter((child) => child.tagName?.toLowerCase() === 'li').forEach((li, index) => {
                 const clone = li.cloneNode(true);
                 queryAll(':scope > ul, :scope > ol', clone).forEach((nested) => nested.remove());
                 const prefix = ordered ? `${index + 1}. ` : '• ';
                 blocks.push(new d.Paragraph({
                     children: [new d.TextRun({ text: prefix, bold: ordered }), ...collectDocxRuns(clone)],
                     indent: { left: 600 + listLevel * 420, hanging: 300 },
-                    spacing: { after: 70 }
+                    spacing: { after: 70 },
+                    keepLines: true
                 }));
-                Array.from(li.children).filter((child) => ['ul', 'ol'].includes(child.tagName.toLowerCase())).forEach((nested) => {
-                    blocks.push(...convertBlockElement(nested, listLevel + 1));
-                });
+                Array.from(li.children).filter((child) => ['ul', 'ol'].includes(child.tagName.toLowerCase())).forEach((nested) => blocks.push(...convertBlockElement(nested, listLevel + 1)));
             });
             return blocks;
         }
 
         if (tag === 'blockquote') {
-            const blocks = [];
-            const children = Array.from(element.children);
-            if (children.length) {
-                children.forEach((child) => {
-                    const converted = convertBlockElement(child, listLevel);
-                    converted.forEach((paragraph) => {
-                        if (paragraph && paragraph.options) {
-                            // docx internals are not stable; leave existing object untouched.
-                        }
-                        blocks.push(paragraph);
-                    });
-                });
-            } else {
-                blocks.push(new d.Paragraph({ children: collectDocxRuns(element) }));
-            }
-            return blocks.map((paragraph, index) => {
-                if (!(paragraph instanceof d.Paragraph)) return paragraph;
-                // Rebuild a predictable quote paragraph from visible text for consistent borders.
-                if (index === 0) {
-                    return new d.Paragraph({
-                        children: collectDocxRuns(element),
-                        indent: { left: 480 },
-                        border: {
-                            left: { color: '2563EB', size: 18, style: d.BorderStyle.SINGLE, space: 8 }
-                        },
-                        shading: { type: d.ShadingType.CLEAR, fill: 'EEF4FF' },
-                        spacing: { before: 80, after: 120 }
-                    });
-                }
-                return paragraph;
-            }).slice(0, 1);
+            return [new d.Paragraph({
+                children: collectDocxRuns(element),
+                indent: { left: 480, right: 240 },
+                border: { left: { color: '2563EB', size: 18, style: d.BorderStyle?.SINGLE || 'single', space: 8 } },
+                shading: { type: d.ShadingType?.CLEAR || 'clear', fill: 'EEF4FF' },
+                spacing: { before: 80, after: 120 },
+                keepLines: true
+            })];
         }
 
         if (tag === 'pre') {
             const code = element.textContent.replace(/\n$/, '');
-            return code.split('\n').map((line, index) => new d.Paragraph({
-                children: [new d.TextRun({
-                    text: line || ' ',
-                    font: 'Consolas',
-                    size: Math.max(18, Math.round(state.settings.wordFontSize * 2 - 2)),
-                    color: '1F2937'
-                })],
-                shading: { type: d.ShadingType.CLEAR, fill: 'F3F4F6' },
+            const lines = code.split('\n');
+            return lines.map((line, index) => new d.Paragraph({
+                children: [new d.TextRun({ text: line || ' ', font: 'Consolas', size: Math.max(18, Math.round(state.settings.wordFontSize * 2 - 2)), color: '1F2937' })],
+                shading: { type: d.ShadingType?.CLEAR || 'clear', fill: 'F3F4F6' },
                 border: index === 0 ? {
-                    top: { color: 'D1D5DB', size: 4, style: d.BorderStyle.SINGLE },
-                    left: { color: 'D1D5DB', size: 4, style: d.BorderStyle.SINGLE },
-                    right: { color: 'D1D5DB', size: 4, style: d.BorderStyle.SINGLE }
-                } : index === code.split('\n').length - 1 ? {
-                    bottom: { color: 'D1D5DB', size: 4, style: d.BorderStyle.SINGLE },
-                    left: { color: 'D1D5DB', size: 4, style: d.BorderStyle.SINGLE },
-                    right: { color: 'D1D5DB', size: 4, style: d.BorderStyle.SINGLE }
+                    top: { color: 'D1D5DB', size: 4, style: d.BorderStyle?.SINGLE || 'single' }, left: { color: 'D1D5DB', size: 4, style: d.BorderStyle?.SINGLE || 'single' }, right: { color: 'D1D5DB', size: 4, style: d.BorderStyle?.SINGLE || 'single' }
+                } : index === lines.length - 1 ? {
+                    bottom: { color: 'D1D5DB', size: 4, style: d.BorderStyle?.SINGLE || 'single' }, left: { color: 'D1D5DB', size: 4, style: d.BorderStyle?.SINGLE || 'single' }, right: { color: 'D1D5DB', size: 4, style: d.BorderStyle?.SINGLE || 'single' }
                 } : {
-                    left: { color: 'D1D5DB', size: 4, style: d.BorderStyle.SINGLE },
-                    right: { color: 'D1D5DB', size: 4, style: d.BorderStyle.SINGLE }
+                    left: { color: 'D1D5DB', size: 4, style: d.BorderStyle?.SINGLE || 'single' }, right: { color: 'D1D5DB', size: 4, style: d.BorderStyle?.SINGLE || 'single' }
                 },
                 indent: { left: 240, right: 240 },
-                spacing: { before: 0, after: index === code.split('\n').length - 1 ? 140 : 0 }
+                spacing: { before: 0, after: index === lines.length - 1 ? 140 : 0 },
+                keepLines: true
             }));
         }
 
         if (tag === 'table') {
-            return [convertTableToDocx(element)];
+            const table = convertTableToDocx(element);
+            const blocks = [table];
+            if (settings.captionMode === 'alt' && settings.captionTables) {
+                const title = element.getAttribute('aria-label') || element.dataset.caption || '';
+                if (title) blocks.unshift(new d.Paragraph({ children: [new d.TextRun({ text: title })], style: 'Caption', keepNext: true }));
+            }
+            return blocks;
         }
 
         if (tag === 'hr') {
             return [new d.Paragraph({
                 text: '',
-                border: { bottom: { color: 'C5CFDA', size: 6, style: d.BorderStyle.SINGLE, space: 8 } },
+                border: { bottom: { color: 'C5CFDA', size: 6, style: d.BorderStyle?.SINGLE || 'single', space: 8 } },
                 spacing: { before: 120, after: 160 }
             })];
         }
 
         if (tag === 'img') {
-            return [new d.Paragraph({ children: collectDocxRuns(element) })];
+            const paragraph = new d.Paragraph({ children: collectDocxRuns(element), alignment: d.AlignmentType?.CENTER || 'center', spacing: { after: 80 } });
+            const blocks = [paragraph];
+            if (settings.captionMode === 'alt' && settings.captionFigures) {
+                const alt = element.getAttribute('alt') || '';
+                if (alt) blocks.push(new d.Paragraph({ children: [new d.TextRun({ text: alt })], style: 'Caption', keepNext: false }));
+            }
+            return blocks;
+        }
+
+        if (tag === 'figure') {
+            const blocks = [];
+            Array.from(element.children).forEach((child) => blocks.push(...convertBlockElement(child, listLevel)));
+            return blocks;
         }
 
         const nestedBlocks = [];
         Array.from(element.children).forEach((child) => nestedBlocks.push(...convertBlockElement(child, listLevel)));
         if (nestedBlocks.length) return nestedBlocks;
         const runs = collectDocxRuns(element);
-        return runs.length ? [new d.Paragraph({ children: runs, spacing: { after: 120 } })] : [];
+        return runs.length ? [new d.Paragraph({ children: runs, spacing: { after: Math.round(settings.wordParagraphAfterPt * 20) } })] : [];
     }
 
     function isDisplayMathParagraph(element) {
@@ -3225,9 +3536,7 @@
             if (node.nodeType === Node.TEXT_NODE) return Boolean(node.textContent.trim());
             return node.nodeType === Node.ELEMENT_NODE;
         });
-        return meaningful.length === 1
-            && meaningful[0].nodeType === Node.ELEMENT_NODE
-            && meaningful[0].classList.contains('math-display');
+        return meaningful.length === 1 && meaningful[0].nodeType === Node.ELEMENT_NODE && meaningful[0].classList.contains('math-display');
     }
 
     function collectDocxRuns(root, inherited = {}) {
@@ -3242,20 +3551,15 @@
             }
             if (node.nodeType !== Node.ELEMENT_NODE) return;
             const element = node;
+            if (element.classList.contains('md2word-heading-number')) return;
 
             if (element.classList.contains('math-node')) {
                 const latex = window.Md2WordMath.decodeMathSource(element);
                 const mathSegments = window.Md2WordMath.latexToWordSegments(latex);
-                mathSegments.forEach((segment) => {
-                    runs.push(new d.TextRun({
-                        text: segment.text,
-                        font: state.settings.wordFont,
-                        bold: Boolean(segment.bold),
-                        italics: Boolean(segment.italics),
-                        subScript: Boolean(segment.subScript),
-                        superScript: Boolean(segment.superScript)
-                    }));
-                });
+                mathSegments.forEach((segment) => runs.push(new d.TextRun({
+                    text: segment.text, font: state.settings.wordFont, bold: Boolean(segment.bold), italics: Boolean(segment.italics),
+                    subScript: Boolean(segment.subScript), superScript: Boolean(segment.superScript)
+                })));
                 return;
             }
 
@@ -3277,7 +3581,19 @@
             if (tag === 'a') {
                 const text = element.textContent || element.getAttribute('href') || '';
                 const href = element.getAttribute('href') || '';
-                runs.push(new d.TextRun({ text: href && href !== text ? `${text} (${href})` : text, color: '2563EB', underline: {} }));
+                const linkRun = new d.TextRun({ text, style: 'Hyperlink', color: '0563C1', underline: {} });
+                try {
+                    if (/^https?:\/\//i.test(href) && d.ExternalHyperlink) runs.push(new d.ExternalHyperlink({ children: [linkRun], link: href }));
+                    else if (href.startsWith('#') && d.InternalHyperlink && window.Md2WordProfessional) {
+                        const sourceId = normalizeInternalAnchor(href.slice(1));
+                        const anchor = docxExportContext?.headingBookmarks?.get(sourceId);
+                        if (anchor) runs.push(new d.InternalHyperlink({ children: [linkRun], anchor }));
+                        else runs.push(new d.TextRun({ text, color: '0563C1', underline: {} }));
+                    }
+                    else runs.push(new d.TextRun({ text: href && href !== text ? `${text} (${href})` : text, color: '0563C1', underline: {} }));
+                } catch (_error) {
+                    runs.push(new d.TextRun({ text: href && href !== text ? `${text} (${href})` : text, color: '0563C1', underline: {} }));
+                }
                 return;
             }
 
@@ -3286,20 +3602,11 @@
             if (tag === 'em' || tag === 'i') nextStyle.italics = true;
             if (tag === 'u') nextStyle.underline = {};
             if (tag === 's' || tag === 'del') nextStyle.strike = true;
-            if (tag === 'code') {
-                nextStyle.font = 'Consolas';
-                nextStyle.highlight = 'lightGray';
-            }
+            if (tag === 'code') { nextStyle.font = 'Consolas'; nextStyle.highlight = 'lightGray'; }
             Array.from(element.childNodes).forEach((child) => visit(child, nextStyle));
         }
 
         visit(root, inherited);
-        return mergeAdjacentTextRuns(runs);
-    }
-
-    function mergeAdjacentTextRuns(runs) {
-        // Keep docx objects as-is. The function is a future extension point and
-        // intentionally does not inspect private docx internals.
         return runs;
     }
 
@@ -3313,10 +3620,8 @@
             const binary = atob(match[2]);
             const bytes = new Uint8Array(binary.length);
             for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
-            const geometry = window.Md2WordPublishing && typeof window.Md2WordPublishing.pageGeometry === 'function'
-                ? window.Md2WordPublishing.pageGeometry(state.settings)
-                : null;
-            const maximumWidth = Math.max(120, Math.floor(geometry && geometry.contentWidthPx ? geometry.contentWidthPx : 620));
+            const geometry = window.Md2WordPublishing?.pageGeometry?.({ ...state.settings, wordOrientation: docxExportContext?.orientation || state.settings.wordOrientation }) || null;
+            const maximumWidth = Math.max(120, Math.floor(geometry?.contentWidthPx || 620));
             const requestedWidth = Number(element.getAttribute('width') || element.dataset.naturalWidth || element.naturalWidth || 520);
             const width = clamp(requestedWidth, 40, maximumWidth);
             const naturalWidth = Number(element.dataset.naturalWidth || element.naturalWidth || width);
@@ -3328,20 +3633,47 @@
         }
     }
 
+    function tableBorder(style, size, color) {
+        return { style, size, color };
+    }
+
     function convertTableToDocx(tableElement) {
         const d = window.docx;
+        const settings = docxExportContext?.settings || getProfessionalSettings();
+        const colors = window.Md2WordProfessional?.getPresetColors?.(settings) || { tableHeader: 'EAF1FF', tableBorder: 'C5CFDA', accent: '1D4ED8' };
         const rows = Array.from(tableElement.querySelectorAll('tr'));
+        const columnCount = Math.max(1, ...rows.map((row) => Array.from(row.children).filter((cell) => ['td', 'th'].includes(cell.tagName.toLowerCase())).length));
+        const page = getDocxPageForOrientation(docxExportContext?.orientation || state.settings.wordOrientation);
+        const pageWidth = Number(page.size?.width || 11906);
+        const contentWidth = Math.max(2400, pageWidth - Number(page.margin?.left || 1440) - Number(page.margin?.right || 1440));
+        const columnWidth = Math.floor(contentWidth / columnCount);
+        const borderStyle = d.BorderStyle?.SINGLE || 'single';
+        const noneStyle = d.BorderStyle?.NONE || 'none';
+        const academic = settings.wordTableStyle === 'academic';
+        const minimal = settings.wordTableStyle === 'minimal';
+        const monochrome = settings.wordTableStyle === 'monochrome';
+        const borderColor = monochrome ? '333333' : colors.tableBorder;
+        const outsideSize = academic ? 10 : minimal ? 0 : 4;
+        const insideSize = academic || minimal ? 0 : 3;
+        const borders = {
+            top: tableBorder(borderStyle, outsideSize || 0, borderColor),
+            bottom: tableBorder(borderStyle, outsideSize || 0, borderColor),
+            left: tableBorder(minimal || academic ? noneStyle : borderStyle, minimal || academic ? 0 : outsideSize, borderColor),
+            right: tableBorder(minimal || academic ? noneStyle : borderStyle, minimal || academic ? 0 : outsideSize, borderColor),
+            insideHorizontal: tableBorder(academic ? borderStyle : (minimal ? noneStyle : borderStyle), academic ? 2 : insideSize, academic ? 'BFBFBF' : borderColor),
+            insideVertical: tableBorder(academic || minimal ? noneStyle : borderStyle, academic || minimal ? 0 : insideSize, borderColor)
+        };
         const docRows = rows.map((row, rowIndex) => {
             const cells = Array.from(row.children).filter((cell) => ['td', 'th'].includes(cell.tagName.toLowerCase()));
             return new d.TableRow({
+                tableHeader: settings.repeatTableHeader && rowIndex === 0,
+                cantSplit: settings.keepTableRows,
                 children: cells.map((cell) => {
                     const header = cell.tagName.toLowerCase() === 'th' || rowIndex === 0;
                     return new d.TableCell({
-                        children: [new d.Paragraph({
-                            children: collectDocxRuns(cell, header ? { bold: true, color: '1D4ED8' } : {}),
-                            spacing: { after: 0 }
-                        })],
-                        shading: header ? { type: d.ShadingType.CLEAR, fill: 'EAF1FF' } : undefined,
+                        width: { size: columnWidth, type: d.WidthType?.DXA || 'dxa' },
+                        children: [new d.Paragraph({ children: collectDocxRuns(cell, header ? { bold: true, color: academic || monochrome ? '000000' : colors.accent } : {}), spacing: { after: 0 }, keepLines: true })],
+                        shading: header && !minimal ? { type: d.ShadingType?.CLEAR || 'clear', fill: academic || monochrome ? 'F2F2F2' : colors.tableHeader } : undefined,
                         margins: { top: 100, bottom: 100, left: 110, right: 110 }
                     });
                 })
@@ -3349,15 +3681,10 @@
         });
         return new d.Table({
             rows: docRows,
-            width: { size: 100, type: d.WidthType.PERCENTAGE },
-            borders: {
-                top: { style: d.BorderStyle.SINGLE, size: 4, color: 'C5CFDA' },
-                bottom: { style: d.BorderStyle.SINGLE, size: 4, color: 'C5CFDA' },
-                left: { style: d.BorderStyle.SINGLE, size: 4, color: 'C5CFDA' },
-                right: { style: d.BorderStyle.SINGLE, size: 4, color: 'C5CFDA' },
-                insideHorizontal: { style: d.BorderStyle.SINGLE, size: 3, color: 'DBE2EA' },
-                insideVertical: { style: d.BorderStyle.SINGLE, size: 3, color: 'DBE2EA' }
-            }
+            width: { size: contentWidth, type: d.WidthType?.DXA || 'dxa' },
+            layout: d.TableLayoutType?.FIXED || 'fixed',
+            alignment: d.AlignmentType?.CENTER || 'center',
+            borders
         });
     }
 
@@ -3437,7 +3764,8 @@
         },
         getState: () => ({ ...state }),
         buildExportReport,
-        setView
+        setView,
+        activateSettingsTab
     });
 
     window.addEventListener('DOMContentLoaded', initialize, { once: true });
@@ -3469,11 +3797,11 @@
     }
 })();
 
-/* v5.4 reliable workflow and publishing enhancement. Runs after the v5.2.3 core and keeps the application fully static. */
+/* v5.5 reliable workflow, publishing and professional delivery enhancement. Runs after the formula core and keeps the application fully static. */
 (function () {
     'use strict';
 
-    const VERSION = '5.4';
+    const VERSION = '5.5';
     const SETTINGS_KEY = 'md2word.workflow.settings.v5.4';
     const LAST_DOCUMENT_KEY = 'md2word.workspace.last-document.v5.4';
     const LEGACY_AUTOSAVE_KEY = 'md2word.personal.autosave.v3';
@@ -3635,7 +3963,7 @@
             storageSet(LAST_DOCUMENT_KEY, saved.id);
             if (state.centerOpen) await refreshDocumentCenter();
             return saved;
-        }).catch((error) => { state.workspaceError = String(error.message || error); console.warn('v5.4 文档保存失败', error); throw error; });
+        }).catch((error) => { state.workspaceError = String(error.message || error); console.warn('v5.5 文档保存失败', error); throw error; });
         return state.saveChain;
     }
 
@@ -3949,7 +4277,7 @@
     }
 
     function buildDiagnosticsReport() {
-        let report = null; try { report = window.__MD2WORD__?.buildExportReport?.(); } catch (_error) { report = null; }
+        let report = null; try { report = window.Md2WordCore?.buildExportReport?.() || window.__MD2WORD__?.buildExportReport?.(); } catch (_error) { report = null; }
         const statuses = getDependencyStatuses();
         const formulaText = $('mathStatusText')?.textContent || '公式状态不可用';
         return [
@@ -3982,22 +4310,24 @@
         if (!dom.receipt) return;
         clearTimeout(state.receiptTimer);
         dom.receiptFile.textContent = details.fileName || '未命名.docx';
-        dom.receiptSummary.textContent = details.warningCount ? `已交给浏览器下载，并保留 ${details.warningCount} 项兼容性提醒。` : '已交给浏览器下载，导出前检查通过。';
-        const metrics = [`公式 ${details.mathCount || 0}`, `表格 ${details.tableCount || 0}`, `图片 ${details.imageCount || 0}`, formatBytes(details.bytes || 0), `${Math.max(1, details.duration || 1)} ms`];
+        const professional = window.Md2WordProfessional?.normalizeSettings?.(window.Md2WordCore?.getSettings?.() || {}) || {};
+        const tocNote = professional.tocEnabled ? ' 自动目录首次打开后请在 Word / WPS 中更新域。' : '';
+        dom.receiptSummary.textContent = (details.warningCount ? `已交给浏览器下载，并保留 ${details.warningCount} 项兼容性提醒。` : '已交给浏览器下载，导出前检查通过。') + tocNote;
+        const metrics = [`公式 ${details.mathCount || 0}`, `表格 ${details.tableCount || 0}`, `图片 ${details.imageCount || 0}`, professional.coverEnabled ? '含封面' : '', professional.tocEnabled ? '含目录' : '', formatBytes(details.bytes || 0), `${Math.max(1, details.duration || 1)} ms`].filter(Boolean);
         dom.receiptMetrics.innerHTML = metrics.map((item) => `<span>${escapeHtml(item)}</span>`).join(''); dom.receipt.hidden = false;
         state.receiptTimer = setTimeout(closeReceipt, 9000);
     }
     function patchSaveAs() {
-        const original = window.saveAs; if (typeof original !== 'function' || original.__v54Wrapped) return;
+        const original = window.saveAs; if (typeof original !== 'function' || original.__v55Wrapped) return;
         const wrapped = function (blob, name, ...rest) {
             const result = original.call(this, blob, name, ...rest);
             if (/\.docx$/i.test(String(name || ''))) setTimeout(() => {
-                let report = null; try { report = window.__MD2WORD__?.buildExportReport?.(); } catch (_error) {}
+                let report = null; try { report = window.Md2WordCore?.buildExportReport?.() || window.__MD2WORD__?.buildExportReport?.(); } catch (_error) {}
                 showReceipt({ fileName: name, warningCount: report?.warningCount || 0, mathCount: dom.preview.querySelectorAll('.katex').length, tableCount: dom.preview.querySelectorAll('table').length, imageCount: dom.preview.querySelectorAll('img').length, bytes: blob?.size || 0, duration: Math.round(performance.now() - (state.exportStartedAt || performance.now())) });
             }, 40);
             return result;
         };
-        wrapped.__v54Wrapped = true; wrapped.__original = original; window.saveAs = wrapped;
+        wrapped.__v55Wrapped = true; wrapped.__original = original; window.saveAs = wrapped;
     }
 
     async function initializeWorkspace() {
@@ -4089,5 +4419,5 @@
         setHeroCollapsed, applyHeroBehavior, getState: () => ({ ...state }), version: VERSION
     });
 
-    window.addEventListener('DOMContentLoaded', () => initialize().catch((error) => { console.error('v5.4 工作流初始化失败', error); toast('工作流初始化失败', error.message || String(error), 'error'); }), { once: true });
+    window.addEventListener('DOMContentLoaded', () => initialize().catch((error) => { console.error('v5.5 工作流初始化失败', error); toast('工作流初始化失败', error.message || String(error), 'error'); }), { once: true });
 }());

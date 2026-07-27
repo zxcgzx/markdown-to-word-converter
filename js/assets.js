@@ -440,7 +440,7 @@
         if (!drawer) return;
         drawer.hidden = false;
         $('toolDrawerTitle').textContent = '图片与素材';
-        ['tableToolPanel', 'aiToolPanel', 'exportCheckToolPanel', 'templateToolPanel'].forEach((id) => { const panel = $(id); if (panel) panel.hidden = true; });
+        ['tableToolPanel', 'aiToolPanel', 'exportCheckToolPanel', 'templateToolPanel', 'professionalToolPanel'].forEach((id) => { const panel = $(id); if (panel) panel.hidden = true; });
         if (dom.assetPanel) dom.assetPanel.hidden = false;
         refreshAssetPanel().catch((error) => showError('素材库读取失败', error.message || String(error)));
         requestAnimationFrame(() => drawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
@@ -607,10 +607,10 @@
         schedulePreviewResolve(preview);
     }
 
-    if (root.addEventListener) root.addEventListener('DOMContentLoaded', () => initialize().catch((error) => console.error('v5.4 图片素材初始化失败', error)), { once: true });
+    if (root.addEventListener) root.addEventListener('DOMContentLoaded', () => initialize().catch((error) => console.error('v5.5 图片素材初始化失败', error)), { once: true });
 
     return Object.freeze({
-        version: '5.4', ASSET_PREFIX, ASSET_PLACEHOLDER, assetUrl, parseAssetId, makeAssetReference, extractAssetIds, replaceAssetId, removeAssetReferences,
+        version: '5.5', ASSET_PREFIX, ASSET_PLACEHOLDER, assetUrl, parseAssetId, makeAssetReference, extractAssetIds, replaceAssetId, removeAssetReferences,
         dataUrlToBytes, normalizeImageBlob, importImageFiles, importRemoteImage, insertExternalImage,
         resolvePreviewAssets, preparePreviewForExport, getAssetIssues, onPreviewRendered, refreshAssetPanel, openAssetPanel,
         duplicateDocumentAssets, getState: () => ({ ...state, assets: state.assets.map((asset) => ({ ...asset, dataUrl: asset.dataUrl ? `[${asset.dataUrl.length} chars]` : '' })) })
